@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import FileSaver from "file-saver";
-import PdfViewer from "./PdfViewer";
-import BACKEND_URLS from "@/app/BackendUrls";
+import PdfViewer from "@/app/utils/PdfViewer";
 
 interface DocViewerProps {
   doc_id: string | null;
@@ -14,9 +13,11 @@ interface DocViewerProps {
     instruction: string
   ) => void;
   handleNestedFieldChange: (
-    fieldType:string,
+    fieldType: string,
     index: number | null,
     field: string | null,
+    nestedIndex: number | null,
+    nestedColName: string | null,
     value: string | null,
     location: Record<string, any> | null,
     instruction: string
@@ -24,6 +25,8 @@ interface DocViewerProps {
   selectedField: string | null;
   selectedRow: number | null;
   colName: string | null;
+  selectedNestedRow: number | null;
+  nestedColName: string | null;
   dataChanged: boolean;
 }
 
@@ -36,12 +39,13 @@ const DocViewer: React.FC<DocViewerProps> = ({
   selectedField,
   selectedRow,
   colName,
+  selectedNestedRow,
+  nestedColName,
   dataChanged,
 }) => {
-  const fileUrl = `${BACKEND_URLS.getDocUrl}/${doc_id}`;
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-  // const fileUrl = './document.pdf';
-  
+  const fileUrl = `${API_BASE_URL}/get_document/${doc_id}`;
 
   const downloadFile = (file: string, docType: string) => {
     fetch(file)
@@ -56,9 +60,9 @@ const DocViewer: React.FC<DocViewerProps> = ({
 
   return (
     <div
-      className={`${
-        viewType === "General" ? "w-[70vw]" : ""
-      } border`}
+      className={`overflow-y-auto custom-scrollbar ${
+        viewType === "General" ? "w-[70vw]" : "h-[40vh]"
+      } border border-gray-400 shadow-md`}
     >
       <PdfViewer
         file={fileUrl}
@@ -71,6 +75,8 @@ const DocViewer: React.FC<DocViewerProps> = ({
         colName={colName}
         dataChanged={dataChanged}
         selectedRow={selectedRow}
+        selectedNestedRow={selectedNestedRow}
+        nestedColName={nestedColName}
       />
     </div>
   );

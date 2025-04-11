@@ -8,9 +8,10 @@ interface AddFieldProps {
   displayCols: DisplayCols;
   handleAddField: (fieldName: string) => void;
   handleSelectAll: (selectAll: boolean) => void;
+  isNested? : boolean
 }
 
-const AddField: React.FC<AddFieldProps> = ({ displayCols, handleAddField, handleSelectAll }) => {
+const AddField: React.FC<AddFieldProps> = ({ displayCols, handleAddField, handleSelectAll, isNested = false }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleDropdown = () => {
@@ -20,13 +21,12 @@ const AddField: React.FC<AddFieldProps> = ({ displayCols, handleAddField, handle
   const allSelected = Object.values(displayCols).every((b) => b);
 
   return (
-    <div className="relative inline-block">
+    <div className="relative inline-block z-200">
       <button
-        className={`px-2 py-1 m-1 rounded-lg shadow-md ${
-          isOpen
+        className={`px-2 py-1 m-1 rounded-lg shadow-md ${isOpen
             ? "bg-blue-600 hover:bg-blue-700"
             : "bg-blue-700 hover:bg-blue-800"
-        } text-white font-semibold focus:outline-none focus:ring-blue-500`}
+          } text-white font-semibold focus:outline-none focus:ring-blue-500`}
         onClick={toggleDropdown}
       >
         <svg
@@ -42,8 +42,8 @@ const AddField: React.FC<AddFieldProps> = ({ displayCols, handleAddField, handle
 
       {isOpen && (
         <div
-          className="absolute top-12 left-0 rounded-lg w-64 h-[50vh] overflow-auto scroll-smooth shadow-lg p-4 border border-solid border-gray-300 bg-white"
-          style={{ overflowY: "auto", zIndex: 10 }}
+          className={`absolute top-12 left-0 rounded-lg w-64 ${isNested? "max-h-[15vh]": "max-h-[20vh]"} overflow-y-auto scroll-smooth shadow-lg p-4 border border-solid border-gray-300 bg-white custom-scrollbar`}
+          style={{ overflowY: "auto", zIndex: 200 }}
           onMouseEnter={() => setIsOpen(true)}
           onMouseLeave={() => setIsOpen(false)}
         >

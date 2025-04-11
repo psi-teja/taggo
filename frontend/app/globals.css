@@ -25,3 +25,32 @@ body {
     )
     rgb(var(--background-start-rgb)); */
 }
+
+.custom-scrollbar {
+  scrollbar-gutter: stable; /* Prevents layout shifts when the scrollbar appears */
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+  /* Thin scrollbar */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #80bdff;
+  /* Lighter blue color */
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #339af0;
+  /* Slightly darker blue on hover */
+  cursor: default;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  /* Transparent track */
+  margin: 0;
+  /* Ensure scrollbar overlaps content */
+}

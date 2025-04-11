@@ -1,42 +1,105 @@
-"use client";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import React, { useState } from "react";
-import { HiOutlineArrowLeft } from "react-icons/hi";
-import { FaSpinner } from "react-icons/fa";
+import { HiHome } from "react-icons/hi";
+import { FaHistory } from "react-icons/fa";
+import Header from "@/app/utils/Header";
 
 interface TriageHeaderProps {
   doc_id: string | null;
+  history: any[];
+  handlePrevClick: () => void;
+  handleNextClick: () => void;
+  isEdit: boolean;
 }
 
-const TriageHeader: React.FC<TriageHeaderProps> = ({ doc_id }) => {
-  const [homeReady, setHomeReady] = useState<boolean>(false);
+const TriageHeader: React.FC<TriageHeaderProps> = ({
+  doc_id,
+  history,
+  handlePrevClick,
+  handleNextClick,
+  isEdit,
+}) => {
+  const [loading, setLoading] = useState<boolean>(false);
+  const [showHistory, setShowHistory] = useState<boolean>(false);
 
-  if (homeReady) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <FaSpinner className="animate-spin text-4xl text-gray-600" />
+        <div className="loader border-t-4 border-blue-500 rounded-full w-12 h-12 mx-auto animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="flex justify-between items-center bg-gradient-to-r from-blue-600 to-cyan-300 p-4 shadow-lg">
-      <Link href="/" className="text-white hover:underline flex items-center"
-        onClick={() => setHomeReady(true)}>
-        <HiOutlineArrowLeft className="mr-2 h-6 w-6" />
-        Back
+    <Header>
+      <Link
+        href="/labelling"
+        className="text-teal-900 hover:underline flex items-center"
+        onClick={() => setLoading(true)}
+      >
+        <HiHome className="m-1 text-2xl" />
+        <p className="m-1 text-lg font-semibold">Home</p>
       </Link>
+      <h1 className="text-xl font-bold text-teal-900 p-1">Annotation</h1>
+      <div className="flex items-center justify-between text-teal-900 w-[30vw] relative">
+        {isEdit !== false && (
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white text-xl px-2 rounded-l-lg shadow-md text-sm transition-colors duration-200"
+            onClick={handlePrevClick}
+          >
+            <i className="m-1 fa fa-angle-left"></i>
+          </button>
+        )}
+        <div className="flex flex-col mx-1 items-center overflow-hidden overflow-auto custom-scrollbar">
+          <div className="flex items-center space-x-1">
+            <p className="font-semibold text-sm">Doc ID:</p>
+            <p className="text-sm text-gray-700">{doc_id}</p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <FaHistory
+              className="text-lg text-gray-700 hover:text-blue-500 cursor-pointer"
+              onClick={() => setShowHistory(!showHistory)}
+            />
+            <p className="text-gray-700 text-sm">
+              {history ? `${history[history.length - 1]}` : ""}
+            </p>
+          </div>
 
-      <h1 className="text-3xl font-extrabold text-white tracking-tight leading-tight">
-        InPar
-      </h1>
-
-      <div className="flex items-center text-cyan-900">
-        <p className="mr-2">Document ID:</p>
-        <p className="font-semibold">{doc_id}</p>
+          {showHistory && (
+            <div 
+            onMouseLeave={() => setShowHistory(false)}
+            className="absolute top-16 left-0 right-0 z-50 bg-white border border-gray-300 shadow-lg p-2 rounded-lg">
+              <h3 className="text-sm font-bold text-teal-900 mb-2">History</h3>
+              <div className="max-h-64 overflow-y-auto custom-scrollbar">
+                {history && history.length > 0 ? (
+                  <ul className="text-gray-700 text-sm">
+                    {history.map((item, index) => (
+                      <li
+                        key={index}
+                        className="py-1 border-b last:border-none hover:bg-gray-100 transition-colors"
+                      >
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-500 text-sm">No history available.</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+        {isEdit !== false && (
+            <button
+            className="bg-blue-500 hover:bg-blue-700 text-white text-xl px-2 rounded-r-lg shadow-md text-sm transition-colors duration-200 h-full"
+            onClick={handleNextClick}
+            >
+            <i className="m-1 fa fa-angle-right"></i>          
+            </button>
+        )}
       </div>
-    </div>
+    </Header>
   );
-}
+};
 
 export default TriageHeader;
