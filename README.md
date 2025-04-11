@@ -16,7 +16,7 @@ InPar is a robust system for parsing invoices using a combination of LayoutLM an
 
 ## Components
 
-### 1. django_backend
+### 1. backend
 The backend component is responsible for handling document uploads, publishing request IDs to the Redis queue, and updating the database with the parsed data.
 
 #### Features:
@@ -25,9 +25,9 @@ The backend component is responsible for handling document uploads, publishing r
 - Updates database with parsed data
 
 #### Setup:
-1. Navigate to the `django_backend` folder:
+1. Navigate to the `backend` folder:
     ```sh
-    cd django_backend
+    cd backend
     ```
 2. Install dependencies:
     ```sh
@@ -38,7 +38,7 @@ The backend component is responsible for handling document uploads, publishing r
     python manage.py runserver
     ```
 
-For detailed documentation, refer to the [README.md](django_backend/README.md) file in the `django_backend` folder.
+For detailed documentation, refer to the [README.md](backend/README.md) file in the `backend` folder.
 
 ### 2. extractor
 The extractor subscribes to the Redis queue and processes invoices using models built from LayoutLM and YOLO.
