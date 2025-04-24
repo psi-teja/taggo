@@ -1,8 +1,8 @@
-# InPar
+# Taggo
 
 ## Overview
 
-InPar is a robust system for parsing invoices using a combination of LayoutLM and YOLO models. The system is built with a Next.js frontend, a Django backend, and an invoice extractor that processes documents by subscribing to a Redis queue.
+Taggo is a robust system for parsing invoices using a combination of LayoutLM and YOLO models. The system is built with a Next.js frontend, a Django backend, and an invoice extractor that processes documents by subscribing to a Redis queue.
 
 <p align="center">
   <img src="display.gif" alt="Working" style="border: 2px solid black; border-radius: 5px;">
@@ -12,12 +12,11 @@ InPar is a robust system for parsing invoices using a combination of LayoutLM an
 - **Next.js** (Frontend)
 - **Django** (Backend)
 - **LayoutLM + YOLO** (Invoice Parsing Models)
-- **Redis** (Queue Management)
 
 ## Components
 
 ### 1. backend
-The backend component is responsible for handling document uploads, publishing request IDs to the Redis queue, and updating the database with the parsed data.
+The backend component is responsible for handling document uploads and updating the database with the parsed data. Backend also handles user authentication
 
 #### Features:
 - Uploads documents to a local folder

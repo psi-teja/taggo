@@ -3,13 +3,8 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    if '--settings' in sys.argv:
-        settings = sys.argv[sys.argv.index('--settings') + 1]
-        os.environ.setdefault('DJANGO_SETTINGS_MODULE', settings)
-    else:
-        # Default to dev if no settings are provided
-        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings.dev')
-
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
+    
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
