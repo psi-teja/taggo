@@ -1,14 +1,14 @@
 import React from 'react';
 
 interface PageNavProps {
-  totalAnnotations: number;
+  totalTasks: number;
   perPage: number;
   currentPage: number;
   changePage: (page: number) => void;
 }
 
-const PageNav: React.FC<PageNavProps> = ({ totalAnnotations, perPage, currentPage, changePage }) => {
-  const isLastPage = currentPage === Math.ceil(totalAnnotations / perPage);
+const PageNav: React.FC<PageNavProps> = ({ totalTasks, perPage, currentPage, changePage }) => {
+  const isLastPage = currentPage === Math.ceil(totalTasks / perPage);
   const page = currentPage;
 
   return (
@@ -24,10 +24,10 @@ const PageNav: React.FC<PageNavProps> = ({ totalAnnotations, perPage, currentPag
 <i className="m-1 fa fa-angle-left"></i>      </button>
       <div className="flex items-center text-sm text-center text-black">
         <p className="font-semibold mr-2">
-          Page {page} of {Math.ceil(totalAnnotations / perPage)}
+          Page {page} of {Math.ceil(totalTasks / perPage)}
         </p>
         <p>
-          {Math.max(page * perPage - perPage + 1, 0)}-{Math.min(page * perPage, totalAnnotations)} of {totalAnnotations}
+          {Math.max(page * perPage - perPage + 1, 0)}-{Math.min(page * perPage, totalTasks)} of {totalTasks}
         </p>
       </div>
       <button

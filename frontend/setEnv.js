@@ -16,7 +16,7 @@ function getLocalIpAddress() {
 
 const ipAddress = getLocalIpAddress();
 const envFilePath = path.join(__dirname, '.env');
-const envFileContent = `NEXT_PUBLIC_API_BASE_URL=http://${ipAddress}:5000\n`;
+const envFileContent = `NEXT_PUBLIC_API_BASE_URL=http://${ipAddress}:8000\n`;
 
 fs.writeFileSync(envFilePath, envFileContent, { encoding: 'utf8' });
 

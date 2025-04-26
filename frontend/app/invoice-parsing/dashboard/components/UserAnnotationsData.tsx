@@ -4,7 +4,7 @@ import axiosInstance from "../../utils/axiosInstance";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Link from "next/link";
-import PageNav from '@/app/utils/PageNav';
+import PageNav from '@/app/components/PageNav';
 import Page from '@/app/page';
 
 interface FileData {

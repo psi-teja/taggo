@@ -1,5 +1,5 @@
 import React from 'react';
-import axiosInstance from '@/app/utils/axiosInstance';
+import axiosInstance from '@/app/components/axiosInstance';
 import { useEffect, useState } from 'react';
 interface SelectUserProps {
     handleUserChange: (selection: { username: string, group: string }) => void;

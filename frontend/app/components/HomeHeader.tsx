@@ -1,11 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, ChangeEvent, use } from "react";
-import axiosInstance from "../../utils/axiosInstance";
-import AccountDetails from "../../utils/AccountDetails";
+import axiosInstance from "./axiosInstance";
+import AccountDetails from "./AccountDetails";
 import { PlusIcon } from "@heroicons/react/24/outline";
-import UploadModal from "../../utils/UploadModal";
-import Header from "@/app/utils/Header";
+import UploadModal from "./UploadModal";
+import Header from "@/app/components/Header";
+import Logo from "./Logo";
 
 interface HomeHeaderProps {
   userData: {
@@ -93,13 +94,7 @@ const HomeHeader = ({ userData }: HomeHeaderProps) => {
     <Header>
       <div className="flex items-center space-x-2">
         <Link href="/">
-          <Image
-            src={"/Tally-Logo.webp"}
-            alt="Image"
-            width={60}
-            height={60}
-            className=""
-          />
+          <Logo />
         </Link>
       </div>
       <h1 className="text-xl font-bold text-teal-900 p-1">Annotation</h1>
@@ -115,12 +110,7 @@ const HomeHeader = ({ userData }: HomeHeaderProps) => {
             {isLoading ? "Uploading..." : "Upload Files"}
           </button>
         )}
-
-        {userData ? (
-          <AccountDetails userData={userData} />
-        ) : (
-          <div className="loader border-t-4 border-blue-500 rounded-full w-6 h-6 mx-auto animate-spin"></div>
-        )}
+        <AccountDetails />
       </div>
       {userData?.is_superuser && (
         <UploadModal

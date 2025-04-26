@@ -1,8 +1,8 @@
 "use client"
 import { useState } from "react";
-import axiosInstance from "../utils/axiosInstance";
-import Header from "../utils/Header";
-import TallyLogo from "../utils/TallyLogo";
+import axiosInstance from "../components/axiosInstance";
+import Header from "../components/Header";
+import Logo from "../components/Logo";
 
 export default function ChangePasswordForm() {
     const [oldPassword, setOldPassword] = useState("");
@@ -54,7 +54,7 @@ export default function ChangePasswordForm() {
     return (
         <div>
         <Header>
-            <TallyLogo />
+            <Logo />
             <h1 className="text-2xl font-extrabold text-teal-900 sm:p-0 md:p-1 lg:p-2 xl:p-3">
                 Taggo
             </h1>

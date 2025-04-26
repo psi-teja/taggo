@@ -1,9 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-import Submissions from "./components/Submissions";
-import HomeHeader from "./components/HomeHeader";
-import withAuth from "@/app/utils/withAuth";
-import axiosInstance from "@/app/utils/axiosInstance";
+import Tasks from "@/app/components/Tasks";
+import HomeHeader from "@/app/components/HomeHeader";
+import axiosInstance from "@/app/components/axiosInstance";
 
 const Labelling = () => {
   interface UserData {
@@ -29,7 +28,7 @@ const Labelling = () => {
   return (
     <div className="flex flex-col h-screen">
       <HomeHeader userData={userData} />
-      <Submissions userData={userData} />
+      <Tasks userData={userData} />
     </div>
   );
 };

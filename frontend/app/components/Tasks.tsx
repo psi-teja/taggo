@@ -1,12 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import axiosInstance from "../../utils/axiosInstance";
-import SmartAssign from "../../utils/SmartAssign";
-import MultiSelect from "../../utils/MultiSelect";
-import PageNav from "../../utils/PageNav";
+import axiosInstance from "./axiosInstance";
+import SmartAssign from "./SmartAssign";
+import MultiSelect from "./MultiSelect";
+import PageNav from "./PageNav";
 
-interface Annotation {
+interface Task {
   id: string;
   selected: boolean;
   batch_name: string;
@@ -25,11 +25,11 @@ interface SubmissionsProps {
   } | null;
 }
 
-const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
-  const [data, setData] = useState<Annotation[]>([]);
+const Tasks: React.FC<SubmissionsProps> = ({ userData }) => {
+  const [data, setData] = useState<Task[]>([]);
   const [isLoading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [totalAnnotations, setTotalAnnotations] = useState<number>(0);
+  const [totalTasks, setTotalTasks] = useState<number>(0);
   const [isLastPage, setIsLastPage] = useState<boolean>(false);
   const [hoveredRowID, sethoveredRowID] = useState<string | null>(null);
   const [hoveredLink, setHoveredLink] = useState<boolean>(false);
@@ -50,7 +50,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const perPage = 20;
 
-  const fetchAnnotations = async (
+  const fetchTasks = async (
     assignee: string,
     status: string,
     page: number,
@@ -64,16 +64,16 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
     }
     try {
       const response = await axiosInstance.get(
-        `/get_annotations/${assignee}/${status}/${perPage}/${page}/${searchID}/${batch}`
+        `/get_Tasks/${assignee}/${status}/${perPage}/${page}/${searchID}/${batch}`
       );
       if (response.status !== 200) {
         throw new Error("Failed to fetch data");
       }
-      const data: Annotation[] = await response.data.annotations;
+      const data: Task[] = await response.data.Tasks;
       setData(data);
       setLoading(false);
       setIsLastPage(response.data.is_last_page);
-      setTotalAnnotations(response.data.total_annotations);
+      setTotalTasks(response.data.total_Tasks);
     } catch (error: any) {
       setError(error.message);
       setLoading(false);
@@ -81,7 +81,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
   };
 
   useEffect(() => {
-    fetchAnnotations(
+    fetchTasks(
       selectedAssignee,
       selectedStatus,
       currentPage,
@@ -141,24 +141,24 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
 
   const handleUserChange = async (id: string, username: string | null) => {
     try {
-      const response = await axiosInstance.post("/assign_annotation", {
+      const response = await axiosInstance.post("/assign_Task", {
         id,
         username,
       });
 
       if (response.status === 200) {
         console.log("User assigned successfully");
-        setData((prevData: Annotation[]) =>
-          prevData.map((annotation: Annotation) =>
-            annotation.id === id
+        setData((prevData: Task[]) =>
+          prevData.map((Task: Task) =>
+            Task.id === id
               ? {
-                  ...annotation,
+                  ...Task,
                   assigned_to_user:
                     Object.values(groupsWithUsers)
                       .flat()
                       .find((user: string) => user === username) || null,
                 }
-              : annotation
+              : Task
           )
         );
         return true;
@@ -237,7 +237,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
         userFileDistribution: userPercentagesArray,
       });
       if (response.status === 200) {
-        fetchAnnotations(
+        fetchTasks(
           selectedAssignee,
           selectedStatus,
           currentPage,
@@ -285,17 +285,17 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
     const selectedIdsArray = Array.from(selectedIds);
     setIsDeleting(true);
     try {
-      const response = await axiosInstance.post("/delete_annotations/", {
+      const response = await axiosInstance.post("/delete_Tasks/", {
         ids: selectedIdsArray,
       });
       if (response.status === 200) {
         setData((prevData) =>
-          prevData.filter((annotation) => !selectedIds.has(annotation.id))
+          prevData.filter((Task) => !selectedIds.has(Task.id))
         );
         setSelectedIds(new Set());
-        alert("Selected annotations deleted successfully");
+        alert("Selected Tasks deleted successfully");
       } else {
-        throw new Error("Failed to delete annotations");
+        throw new Error("Failed to delete Tasks");
       }
     } catch (error: any) {
       console.error(
@@ -320,7 +320,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
             <button
               onClick={() => setShowCheckboxes((prev) => !prev)}
               className="bg-blue-500 hover:bg-blue-700 text-white px-2 rounded-xl ml-2 text-sm"
-              title="select annotations"
+              title="select Tasks"
             >
               select
             </button>
@@ -434,7 +434,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
           </div>
         ) : (
           <div className="">
-            {data.map((item: Annotation) => (
+            {data.map((item: Task) => (
               <div
                 className="p-3 bg-white border border-blue-300 rounded-md shadow-md hover:shadow-lg transition duration-600 ease-in-out"
                 key={item.id}
@@ -548,7 +548,7 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
         )}
       </div>
       <PageNav
-        totalAnnotations={totalAnnotations}
+        totalTasks={totalTasks}
         perPage={perPage}
         currentPage={currentPage}
         changePage={changePage}
@@ -565,4 +565,4 @@ const Submissions: React.FC<SubmissionsProps> = ({ userData }) => {
   );
 };
 
-export default Submissions;
+export default Tasks;
