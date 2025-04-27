@@ -1,19 +1,31 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode"; // 👈 Add this
 import Header from "../components/Header";
 import Logo from "../components/Logo";
 
+// Response from /token/
 interface LoginResponse {
   access: string;
   refresh: string;
 }
 
+// Data we want to save from decoded token
+interface UserData {
+  username: string;
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  is_superuser?: boolean;
+  groups?: string[];
+}
+
 const Login = () => {
   const router = useRouter();
-  
+  const searchParams = useSearchParams();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -21,18 +33,41 @@ const Login = () => {
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
+  // Get the 'next' parameter from the URL
+  const next = searchParams.get("next") || "/"; // Default to '/' if no 'next' query param is found
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    setError(null); // Clear previous errors
+    setError(null);
+
     try {
       const { data } = await axios.post<LoginResponse>(`${API_BASE_URL}/token/`, {
         username,
         password,
       });
+
+      // Save tokens
       localStorage.setItem("access_token", data.access);
       localStorage.setItem("refresh_token", data.refresh);
-      router.push("/"); // Navigate using Next.js router
+
+      // Decode access token
+      const decoded: any = jwtDecode(data.access);
+
+      const userData: UserData = {
+        username: decoded.username,
+        email: decoded.email,
+        first_name: decoded.first_name,
+        last_name: decoded.last_name,
+        is_superuser: decoded.is_superuser,
+        groups: decoded.groups,
+      };
+
+      // Save userData
+      localStorage.setItem("userData", JSON.stringify(userData));
+
+      // Redirect to the 'next' page or homepage
+      router.push(next); // Redirect to the 'next' URL (or '/' if not provided)
     } catch (err) {
       console.error(err);
       setError("Invalid username or password");

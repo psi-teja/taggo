@@ -8,22 +8,17 @@ import UploadModal from "./UploadModal";
 import Header from "@/app/components/Header";
 import Logo from "./Logo";
 
-interface HomeHeaderProps {
+interface AppHeaderProps {
   userData: {
     username: string;
     email: string;
     groups: string[];
     is_superuser: boolean;
   } | null;
+  task_type: string;
 }
 
-interface Batch {
-  id: number;
-  name: string;
-  description: string;
-}
-
-const HomeHeader = ({ userData }: HomeHeaderProps) => {
+const AppHeader = ({ userData, task_type}: AppHeaderProps) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
@@ -34,7 +29,6 @@ const HomeHeader = ({ userData }: HomeHeaderProps) => {
 
   const handleFileUpload = async (
     files: FileList,
-    batch: Batch
   ): Promise<void> => {
     setIsLoading(true); // Set loading state to true
     setFailedFiles([]); // Reset failed files
@@ -44,11 +38,10 @@ const HomeHeader = ({ userData }: HomeHeaderProps) => {
     const uploadPromises = Array.from(files).map(async (file) => {
       const formData = new FormData();
       formData.append("document", file);
-      formData.append("batch_id", batch.id.toString());
-
+      formData.append("task_type", task_type); // Assuming task_type is a string
       try {
         const response = await axiosInstance.post(
-          "/upload_document/",
+          "/tasks/create",
           formData, // Pass FormData directly
           {
             headers: {
@@ -97,7 +90,9 @@ const HomeHeader = ({ userData }: HomeHeaderProps) => {
           <Logo />
         </Link>
       </div>
-      <h1 className="text-xl font-bold text-teal-900 p-1">Annotation</h1>
+      <h1 className="text-xl font-bold text-teal-900 p-1">
+        {task_type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+      </h1>
       <div className="flex items-center space-x-2">
         {userData?.is_superuser && (
           <button
@@ -110,18 +105,16 @@ const HomeHeader = ({ userData }: HomeHeaderProps) => {
             {isLoading ? "Uploading..." : "Upload Files"}
           </button>
         )}
-        <AccountDetails />
+        {userData && <AccountDetails userData={userData} />}
       </div>
       {userData?.is_superuser && (
         <UploadModal
           isOpen={isUploadModalOpen}
           onClose={() => setIsUploadModalOpen(false)}
-          onUpload={(files, batch) => {
-            if (batch) {
-              handleFileUpload(files, batch);
-            } else {
-              console.error("Batch is undefined");
-            }
+          onUpload={(files) => {
+            
+              handleFileUpload(files);
+            
           }}
           uploadProgress={uploadProgress}
           failedFiles={failedFiles}
@@ -137,4 +130,4 @@ const HomeHeader = ({ userData }: HomeHeaderProps) => {
   );
 };
 
-export default HomeHeader;
+export default AppHeader;

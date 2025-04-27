@@ -17,10 +17,11 @@ from datetime import datetime
 
 from api.models import Task
 
-# Function to get the current time in IST
+# Function to get the current time
 def get_current_time_ist():
     ist = pytz.timezone("Asia/Kolkata")
     return datetime.now(ist).strftime("%Y-%m-%d %H:%M:%S")
+    
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -116,42 +117,49 @@ def TaskDetailsView(request, id: str):
 @permission_classes([IsAuthenticated])
 def TaskCreateView(request):
     try:
-        data = json.loads(request.body)
-        task_type = data.get("task_type")
+        task_type = request.POST.get("task_type")
         document = request.FILES.get("document")
+
+        print("task_type", task_type)
+        print("document", document)
 
         if not task_type or not document:
             return JsonResponse(
-                {"error": "task_type, document, and json are required fields"},
+                {"error": "task_type and document are required fields"},
                 status=400,
             )
-
-        task_type_instance, _ = Task.objects.get_or_create(
-            task_type=task_type
-        )
 
         # Define the directory path for the task type
         task_directory = os.path.join(settings.MEDIA_ROOT, task_type, "documents")
         os.makedirs(task_directory, exist_ok=True)
 
+        file_extension = os.path.splitext(document.name)[1]
+        
+        task = Task.objects.create(
+            task_type=task_type,
+            history = [
+                    {
+                        "timestamp": get_current_time_ist(),
+                        "action": f"file uploaded by {request.user.username}",
+                    }
+                ]
+        )
+
+        task.filename = f'{task.id}.{file_extension}'
+    
         # Save the uploaded file to the specified directory
-        file_path = os.path.join(task_directory, document.name)
+        file_path = os.path.join(task_directory, f'{task.filename}')
         with open(file_path, "wb") as f:
             for chunk in document.chunks():
                 f.write(chunk)
 
-        task = Task(
-            task_id=str(uuid.uuid4()),
-            task_type=task_type_instance,
-            filename=document.name,
-        )
         task.save()
 
-        return JsonResponse({"message": "Task created successfully"}, status=201)
+
+        return JsonResponse({"message": "Task created successfully"}, status=200)
     except Exception as e:
         logger.error(f"Error creating task: {e}")
         return JsonResponse({"error": str(e)}, status=500)
-    
 
 @api_view(["PUT"])
 @permission_classes([IsAuthenticated])

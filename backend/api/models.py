@@ -21,7 +21,10 @@ class Task(models.Model):
     assigned_to_user = models.ForeignKey(
         User, null=True, blank=True, on_delete=models.SET_NULL
     )
-    history = models.JSONField(default=list)
+    history = models.JSONField(
+        default=list,
+        help_text="List of history records, each containing a timestamp and an action."
+    )
     labelled_by = models.ForeignKey(
         User,
         null=True,
@@ -67,4 +70,4 @@ class Task(models.Model):
         ordering = ["-inserted_time"]
 
     def __str__(self):
-        return f"Task {self.task_id} - {self.task_type} - {self.status}"
+        return f"Task {self.id} - {self.task_type} - {self.status}"

@@ -1,5 +1,6 @@
 "use client";
-
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Header from './components/Header';
 import Logo from './components/Logo';
@@ -41,11 +42,28 @@ const tools = [
 ];
 
 function Home() {
+
+  const router = useRouter();
+
+  const [userData, setUserData] = useState(null);
+  useEffect(() => {
+    const storedUserData = localStorage.getItem("userData");
+    if (storedUserData) {
+      const parsedUserData = JSON.parse(storedUserData);
+      setUserData(parsedUserData);
+    } else {
+      console.log("No user data found in local storage.");
+      const currentPath = window.location.pathname + window.location.search;
+      router.replace(`/login?next=${encodeURIComponent(currentPath)}`);
+    }
+  }, []);
+
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50">
       <Header>
         <Logo />
-        <AccountDetails />
+        <AccountDetails userData={userData}/>
       </Header>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-10 py-20">
         {tools.map((tool, index) => (

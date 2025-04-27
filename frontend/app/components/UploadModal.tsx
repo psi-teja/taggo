@@ -1,22 +1,13 @@
-import { useState, ChangeEvent, useEffect } from "react";
-import axiosInstance from "./axiosInstance";
-import CreateBatch from "./CreateBatch";
+import { useState, ChangeEvent } from "react";
 
 interface UploadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUpload: (files: FileList, batch?: Batch) => void;
+  onUpload: (files: FileList) => void;
   handleOk: () => void;
   uploadProgress: number;
   failedFiles: { name: string; message: string }[];
   uploadDone: boolean;
-  showBatch?: boolean;
-}
-
-interface Batch {
-  id: number;
-  name: string;
-  description: string;
 }
 
 const FileList = ({
@@ -78,28 +69,9 @@ const UploadModal = ({
   uploadProgress,
   failedFiles,
   uploadDone,
-  showBatch = true,
 }: UploadModalProps) => {
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
-  const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
   const [submitted, setSubmitted] = useState<boolean>(false);
-  const [batches, setBatches] = useState<Batch[]>([]);
-  const [createBatchOpen, setCreateBatchOpen] = useState<boolean>(false);
-
-  const fetchBatches = async () => {
-    setCreateBatchOpen(false);
-    try {
-      const response = await axiosInstance.get("/get_batches");
-      const data = response.data;
-      setBatches(data);
-    } catch (error) {
-      console.error("Error fetching batches:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchBatches();
-  }, []);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -107,15 +79,8 @@ const UploadModal = ({
     }
   };
 
-  const handleBatchChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const selectedBatch =
-      batches.find((batch) => batch.name === event.target.value) || null;
-    setSelectedBatch(selectedBatch);
-  };
-
   const handleClose = () => {
     setSelectedFiles(null);
-    setSelectedBatch(null);
     setSubmitted(false);
     onClose();
   };
@@ -131,20 +96,11 @@ const UploadModal = ({
   };
 
   const handleSubmit = () => {
-    if (showBatch) {
-      if (selectedFiles && selectedBatch) {
-        setSubmitted(true);
-        onUpload(selectedFiles, selectedBatch);
-      } else {
-        alert("Please select files and enter a batch name.");
-      }
+    if (selectedFiles) {
+      setSubmitted(true);
+      onUpload(selectedFiles);
     } else {
-      if (selectedFiles) {
-        setSubmitted(true);
-        onUpload(selectedFiles);
-      } else {
-        alert("Please select files.");
-      }
+      alert("Please select files.");
     }
   };
 
@@ -213,75 +169,35 @@ const UploadModal = ({
       role="dialog"
       aria-modal="true"
     >
-      {createBatchOpen ? (
-        <CreateBatch handleClose={fetchBatches}></CreateBatch>
-      ) : (
-        <div className="bg-white w-1/3 p-4 rounded-lg shadow-lg">
-          <h2 className="text-xl font-bold mb-4 text-blue-700">Upload Files</h2>
-          {showBatch && (
-            <>
-              <div className="flex items-center space-x-2 mb-4">
-                <select
-                  value={selectedBatch?.name || ""}
-                  onChange={handleBatchChange}
-                  className="border border-blue-300 p-2 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  aria-label="Batch Name"
-                >
-                  <option value="" disabled>
-                    -- Select Batch --
-                  </option>
-                  {batches?.map((batch) => (
-                    <option key={batch.id} value={batch.name}>
-                      {batch.name}
-                    </option>
-                  ))}
-                </select>
-
-                <button
-                  onClick={() => setCreateBatchOpen(true)}
-                  className="bg-blue-500 text-sm text-white py-1 px-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-700"
-                >
-                  Create batch
-                </button>
-              </div>
-              {selectedBatch && (
-                <div className="mb-4 p-2 border border-blue-300 rounded-lg bg-blue-50">
-                  <h3 className="text-lg font-semibold text-blue-700">
-                    Description
-                  </h3>
-                  <p className="text-blue-600">{selectedBatch.description}</p>
-                </div>
-              )}
-            </>
-          )}
-          <input
-            type="file"
-            multiple
-            accept=".pdf, .jpeg, .png, .jpg"
-            onChange={handleFileChange}
-            className="border border-blue-300 p-2 mb-4 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="Upload Files"
-          />
-          {selectedFiles && !submitted && (
-            <FileList files={selectedFiles} onDelete={handleDeleteFile} />
-          )}
-          {submitted && <ProgressBar progress={uploadProgress} />}
-          <div className="flex justify-end space-x-2">
-            <button
-              onClick={handleClose}
-              className="bg-gray-300 text-gray-700 p-2 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSubmit}
-              className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-700"
-            >
-              Upload
-            </button>
-          </div>
+      <div className="bg-white w-1/3 p-4 rounded-lg shadow-lg">
+        <h2 className="text-xl font-bold mb-4 text-blue-700">Upload Files</h2>
+        <input
+          type="file"
+          multiple
+          accept=".pdf, .jpeg, .png, .jpg"
+          onChange={handleFileChange}
+          className="border border-blue-300 p-2 mb-4 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label="Upload Files"
+        />
+        {selectedFiles && !submitted && (
+          <FileList files={selectedFiles} onDelete={handleDeleteFile} />
+        )}
+        {submitted && <ProgressBar progress={uploadProgress} />}
+        <div className="flex justify-end space-x-2">
+          <button
+            onClick={handleClose}
+            className="bg-gray-300 text-gray-700 p-2 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-700"
+          >
+            Upload
+          </button>
         </div>
-      )}
+      </div>
     </div>
   );
 };
