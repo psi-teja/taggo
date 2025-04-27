@@ -54,7 +54,7 @@ const Login = () => {
       // Decode access token
       const decoded: any = jwtDecode(data.access);
 
-      const userData: UserData = {
+      const loggedInUser: UserData = {
         username: decoded.username,
         email: decoded.email,
         first_name: decoded.first_name,
@@ -63,8 +63,8 @@ const Login = () => {
         groups: decoded.groups,
       };
 
-      // Save userData
-      localStorage.setItem("userData", JSON.stringify(userData));
+      // Save loggedInUser
+      localStorage.setItem("loggedInUser", JSON.stringify(loggedInUser));
 
       // Redirect to the 'next' page or homepage
       router.push(next); // Redirect to the 'next' URL (or '/' if not provided)

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import axiosInstance from "./axiosInstance";
+import axiosInstance from "../hooks/axiosInstance";
 
 interface Task {
   id: string;
@@ -14,15 +14,10 @@ interface Task {
 
 interface TasksProps {
   task_type: string;
-  userData: {
-    username: string;
-    email: string;
-    is_superuser: boolean;
-    groups: string[];
-  } | null;
+  loggedInUser: any;
 }
 
-const Tasks: React.FC<TasksProps> = ({ task_type, userData }) => {
+const Tasks: React.FC<TasksProps> = ({ task_type, loggedInUser }) => {
   const [data, setData] = useState<Task[]>([]);
   const [isLoading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,14 +76,14 @@ const Tasks: React.FC<TasksProps> = ({ task_type, userData }) => {
   }, [currentPage, selectedAssignee, selectedStatus, searchID]);
 
   useEffect(() => {
-    if (userData?.is_superuser) {
+    if (loggedInUser?.is_superuser) {
       const fetchGroupsWithUsers = async () => {
         const response = await axiosInstance.get("/get_groups_with_users");
         setGroupsWithUsers(response.data);
       };
       fetchGroupsWithUsers();
     }
-  }, [userData]);
+  }, [loggedInUser]);
 
   const changePage = (page: number) => {
     setCurrentPage(page);
@@ -141,7 +136,7 @@ const Tasks: React.FC<TasksProps> = ({ task_type, userData }) => {
                 >
                   <td className="border border-gray-300 px-4 py-2">{item.id}</td>
                   <td className="border border-gray-300 px-4 py-2">
-                    {userData && userData.is_superuser ? (
+                    {loggedInUser && loggedInUser.is_superuser ? (
                       <select
                         id="user-select"
                         className="select-user-dropdown text-black rounded-md p-2 border"

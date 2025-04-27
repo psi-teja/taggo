@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, ChangeEvent, use } from "react";
-import axiosInstance from "./axiosInstance";
+import axiosInstance from "../hooks/axiosInstance";
 import AccountDetails from "./AccountDetails";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import UploadModal from "./UploadModal";
@@ -9,16 +9,11 @@ import Header from "@/app/components/Header";
 import Logo from "./Logo";
 
 interface AppHeaderProps {
-  userData: {
-    username: string;
-    email: string;
-    groups: string[];
-    is_superuser: boolean;
-  } | null;
+  loggedInUser: any;
   task_type: string;
 }
 
-const AppHeader = ({ userData, task_type}: AppHeaderProps) => {
+const AppHeader = ({ loggedInUser, task_type}: AppHeaderProps) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
@@ -94,7 +89,7 @@ const AppHeader = ({ userData, task_type}: AppHeaderProps) => {
         {task_type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
       </h1>
       <div className="flex items-center space-x-2">
-        {userData?.is_superuser && (
+        {loggedInUser?.is_superuser && (
           <button
             onClick={() => setIsUploadModalOpen(true)}
             className={`cursor-pointer text-sm bg-blue-500 hover:bg-blue-700 text-white p-2 rounded-lg flex items-center shadow-md hover:shadow-lg transition duration-200 ${
@@ -105,9 +100,9 @@ const AppHeader = ({ userData, task_type}: AppHeaderProps) => {
             {isLoading ? "Uploading..." : "Upload Files"}
           </button>
         )}
-        {userData && <AccountDetails userData={userData} />}
+        {loggedInUser && <AccountDetails loggedInUser={loggedInUser} />}
       </div>
-      {userData?.is_superuser && (
+      {loggedInUser?.is_superuser && (
         <UploadModal
           isOpen={isUploadModalOpen}
           onClose={() => setIsUploadModalOpen(false)}

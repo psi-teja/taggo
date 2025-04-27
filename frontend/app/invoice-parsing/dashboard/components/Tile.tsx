@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axiosInstance from '@/app/components/axiosInstance';
+import axiosInstance from '@/app/hooks/axiosInstance';
 
 const Tile = () => {
     const [data, setData] = useState<{

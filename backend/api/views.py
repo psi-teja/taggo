@@ -100,13 +100,12 @@ def TaskDetailsView(request, id: str):
         task_data = {
             "id": task.id,
             "status": task.status,
-            "task_type": task.task_type.task_type if task.task_type else None,
+            "task_type": task.task_type,
+            "filename": task.filename,
             "assigned_to_user": task.assigned_to_user.username
             if task.assigned_to_user
             else None,
             "history": task.history,
-            "document": task.document.url if task.document else None,
-            "json": task.json if task.json else None,
         }
         return JsonResponse(task_data, status=200)
     except Task.DoesNotExist:
@@ -145,7 +144,7 @@ def TaskCreateView(request):
                 ]
         )
 
-        task.filename = f'{task.id}.{file_extension}'
+        task.filename = f'{task.id}{file_extension}'
     
         # Save the uploaded file to the specified directory
         file_path = os.path.join(task_directory, f'{task.filename}')

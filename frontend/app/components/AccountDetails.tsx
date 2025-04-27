@@ -2,15 +2,10 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import Link from "next/link";
 
 interface AccountDetailsProps {
-    userData: {
-        username: string;
-        email: string;
-        is_superuser: boolean;
-        groups: string[];
-    } | null;
+    loggedInUser: any;
 }
 
-const AccountMenu: React.FC<{ userData: AccountDetailsProps['userData'], dashboardLoading: boolean, settingsLoading: boolean, changePasswordLoading: boolean, onDashboardClick: () => void, onSettingsClick: () => void, onChangePasswordClick: () => void }> = ({ userData, dashboardLoading, settingsLoading, changePasswordLoading, onDashboardClick, onSettingsClick, onChangePasswordClick }) => {
+const AccountMenu: React.FC<{ loggedInUser: AccountDetailsProps['loggedInUser'], dashboardLoading: boolean, settingsLoading: boolean, changePasswordLoading: boolean, onDashboardClick: () => void, onSettingsClick: () => void, onChangePasswordClick: () => void }> = ({ loggedInUser, dashboardLoading, settingsLoading, changePasswordLoading, onDashboardClick, onSettingsClick, onChangePasswordClick }) => {
     const [logingout, setLogingout] = useState<boolean>(false);
 
     const handleLogout = useCallback((): void => {
@@ -21,11 +16,11 @@ const AccountMenu: React.FC<{ userData: AccountDetailsProps['userData'], dashboa
 
     return (
         <div className="absolute top-full mt-2 right-0 bg-blue-100 border border-blue-300 rounded-lg shadow-lg p-4 w-60 z-40">
-            <div className="text-xl font-semibold text-blue-900 mb-4 text-center truncate" title={userData?.username}>
-                {userData?.username}
+            <div className="text-xl font-semibold text-blue-900 mb-4 text-center truncate" title={loggedInUser?.username}>
+                {loggedInUser?.username}
             </div>
 
-            {userData?.is_superuser && <Link
+            {loggedInUser?.is_superuser && <Link
                 href="/settings"
                 onClick={onSettingsClick}
                 className="block text-lg font-semibold text-blue-600 hover:text-blue-800 transition duration-150 mb-4 text-center flex items-center justify-center"
@@ -56,7 +51,7 @@ const AccountMenu: React.FC<{ userData: AccountDetailsProps['userData'], dashboa
                     pathname: '/dashboard',
                 }}
                 onClick={() => {
-                    localStorage.setItem('userData', JSON.stringify(userData));
+                    localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
                     onDashboardClick();
                 }}
                 className="block text-lg font-semibold text-blue-600 hover:text-blue-800 transition duration-150 mb-4 text-center flex items-center justify-center"
@@ -136,7 +131,7 @@ const AccountMenu: React.FC<{ userData: AccountDetailsProps['userData'], dashboa
     )
 };
 
-const AccountDetails: React.FC<AccountDetailsProps> = ({ userData }) => {
+const AccountDetails: React.FC<AccountDetailsProps> = ({ loggedInUser }) => {
     const [showAccountMenu, setShowAccountMenu] = useState<boolean>(false);
     const [dashboardLoading, setDashboardLoading] = useState<boolean>(false);
     const [changePasswordLoading, setChangePasswordLoading] = useState<boolean>(false);
@@ -172,7 +167,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ userData }) => {
         setChangePasswordLoading(true);
     }
 
-    if (!userData) {
+    if (!loggedInUser) {
         return (
             <div className="flex items-center justify-center h-16">
                 <div className="loader border-t-4 border-blue-500 rounded-full w-8 h-8 animate-spin"></div>
@@ -183,17 +178,17 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ userData }) => {
     return (
         <div
             className="ml-4 font-semibold text-blue-900 flex items-center relative"
-            title={userData.username ? `Logged in as ${userData.username}` : 'Welcome!'}
-            aria-label={userData.username ? `Logged in as ${userData.username}` : 'Welcome!'}
+            title={loggedInUser.username ? `Logged in as ${loggedInUser.username}` : 'Welcome!'}
+            aria-label={loggedInUser.username ? `Logged in as ${loggedInUser.username}` : 'Welcome!'}
         >
-            {userData.username ? (
+            {loggedInUser.username ? (
                 <div
                     className="w-10 h-10 flex items-center justify-center bg-blue-900 text-white rounded-full cursor-pointer hover:bg-blue-800 transition duration-150"
                     onClick={() => setShowAccountMenu(!showAccountMenu)}
                     aria-expanded={showAccountMenu}
                     aria-controls="logout-menu"
                 >
-                    {userData.username.charAt(0).toUpperCase()}
+                    {loggedInUser.username.charAt(0).toUpperCase()}
                 </div>
             ) : (
                 null
@@ -203,7 +198,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ userData }) => {
                 <div 
                 onMouseLeave={() => setShowAccountMenu(false)}
                 ref={menuRef} id="logout-menu">
-                    <AccountMenu userData={userData} dashboardLoading={dashboardLoading} settingsLoading={settingsLoading} changePasswordLoading={changePasswordLoading} onDashboardClick={handleDashboardClick} onSettingsClick={handleSettingsClick} onChangePasswordClick={handleChangePasswordClick} />
+                    <AccountMenu loggedInUser={loggedInUser} dashboardLoading={dashboardLoading} settingsLoading={settingsLoading} changePasswordLoading={changePasswordLoading} onDashboardClick={handleDashboardClick} onSettingsClick={handleSettingsClick} onChangePasswordClick={handleChangePasswordClick} />
                 </div>
             )}
         </div>

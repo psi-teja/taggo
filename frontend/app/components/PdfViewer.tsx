@@ -3,7 +3,7 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/esm/Page/TextLayer.css";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import PdfTools from "@/app/components/PdfTools";
-import axiosInstance from "@/app/components/axiosInstance";
+import axiosInstance from "@/app/hooks/axiosInstance";
 import "./styles.css"; // Assuming this file contains the .no-select class
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;

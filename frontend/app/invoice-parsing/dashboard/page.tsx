@@ -24,14 +24,14 @@ const Dashboard: React.FC = () => {
     username: "",
     group: "",
   });
-  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loggedInUser, setLoggedInUser] = useState<UserData | null>(null);
 
   useEffect(() => {
-    const storedUserData = localStorage.getItem("userData");
+    const storedUserData = localStorage.getItem("loggedInUser");
 
     if (storedUserData) {
       const parsedUserData: UserData = JSON.parse(storedUserData);
-      setUserData(parsedUserData);
+      setLoggedInUser(parsedUserData);
     }
   }, []);
 
@@ -83,7 +83,7 @@ const Dashboard: React.FC = () => {
         </div>
       </Header>
       <main className="mt-4">
-        {userData?.is_superuser ? (
+        {loggedInUser?.is_superuser ? (
           <>
             <Tile />
             <div className="mt-4">
@@ -99,8 +99,8 @@ const Dashboard: React.FC = () => {
         ) : (
           <div className="mt-4">
             <UserDashboard
-              username={userData?.username ?? null}
-              role={userData?.groups[0] ?? null}
+              username={loggedInUser?.username ?? null}
+              role={loggedInUser?.groups[0] ?? null}
             />
           </div>
         )}

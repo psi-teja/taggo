@@ -1,7 +1,7 @@
 import React, { use } from 'react';
 import Select from "react-select";
 import { useState, useEffect } from 'react';
-import axiosInstance from './axiosInstance';
+import axiosInstance from '../hooks/axiosInstance';
 
 interface SmartAssignProps {
     handleCloseClick: () => void;
