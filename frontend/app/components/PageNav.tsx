@@ -8,20 +8,25 @@ interface PageNavProps {
 }
 
 const PageNav: React.FC<PageNavProps> = ({ totalTasks, perPage, currentPage, changePage }) => {
+  
+  console.log("PageNav props:", { totalTasks, perPage, currentPage });
+  
   const isLastPage = currentPage === Math.ceil(totalTasks / perPage);
   const page = currentPage;
 
+
+
   return (
-    <div className="flex justify-between items-center shadow-md rounded-md bg-blue-300 text-white">
+    <div className="flex justify-between items-center shadow-md rounded-md bg-gray-300 text-white">
       <button
         onClick={() => changePage(Math.max(page - 1, 1))}
         disabled={page === 1}
-        className={`px-2 py-1 rounded-l-md transition-colors duration-300 ${page === 1
+        className={`px-2 py-1 transition-colors duration-300 ${page === 1
           ? "bg-gray-300 cursor-not-allowed text-gray-700"
           : "bg-blue-500 hover:bg-blue-700 text-white"
           }`}
       >
-<i className="m-1 fa fa-angle-left"></i>      </button>
+        <i className="m-1 fa fa-angle-left"></i>      </button>
       <div className="flex items-center text-sm text-center text-black">
         <p className="font-semibold mr-2">
           Page {page} of {Math.ceil(totalTasks / perPage)}
@@ -33,12 +38,12 @@ const PageNav: React.FC<PageNavProps> = ({ totalTasks, perPage, currentPage, cha
       <button
         onClick={() => changePage(page + 1)}
         disabled={isLastPage}
-        className={`px-2 py-1 rounded-r-md transition-colors duration-300 ${isLastPage
+        className={`px-2 py-1 transition-colors duration-300 ${isLastPage
           ? "bg-gray-300 cursor-not-allowed text-gray-700"
           : "bg-blue-500 hover:bg-blue-700 text-white"
           }`}
       >
-        <i className="m-1 fa fa-angle-right"></i>      
+        <i className="m-1 fa fa-angle-right"></i>
       </button>
     </div>
   );
