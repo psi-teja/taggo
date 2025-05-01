@@ -121,7 +121,6 @@ const Tasks: React.FC<TasksProps> = ({ task_type, loggedInUser }) => {
                       onChange={(e) => setSearchID(e.target.value)}
                       placeholder="Search by ID"
                       className="text-black w-40 rounded-md border px-2"
-
                     />
                   </div>
                 </th>
@@ -152,11 +151,11 @@ const Tasks: React.FC<TasksProps> = ({ task_type, loggedInUser }) => {
 
                       <FaHistory
                         onClick={() => setSelectedTaskHistory(item.history)}
-                        className="hover:text-blue-500 cursor-pointer"
+                        className="hover:text-blue-600 text-blue-500 cursor-pointer h-3 w-3"
                       />
                       {/* Optionally display the last action or timestamp, or remove this line if not needed */}
                       {item.history.length > 0 && (
-                        <span className="text-xs text-blue-500 ml-2">
+                        <span className="text-sm text-blue-500 ml-2">
                           {item.history[item.history.length - 1].action}
                         </span>
                       )}

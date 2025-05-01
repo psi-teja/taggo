@@ -55,7 +55,6 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                     leftWidth={leftWidth}
                 />
             </div>
-
             <div
                 className="relative z-10 w-2 cursor-col-resize group border-x border-gray-400 bg-gray-200 hover:bg-gray-300"
                 style={{ minWidth: "8px" }}
@@ -71,7 +70,6 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                 <div className="absolute inset-0 bg-gray-300 transition-colors rounded" />
                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-8 bg-gray-500 rounded" />
             </div>
-
             <div className="flex-1 overflow-auto">
                 <div className="flex justify-between bg-gray-100 p-1 shadow items-center space-x-4 bg-slate-300 sticky top-0 left-0 z-10">
                     <div className="font-semibold">ID:</div>
