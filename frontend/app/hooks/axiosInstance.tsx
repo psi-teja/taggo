@@ -45,6 +45,9 @@ axiosInstance.interceptors.response.use(
 
                 // Update access token in local storage
                 localStorage.setItem('access_token', response.data.access);
+                if (response.data.refresh) {
+                    localStorage.setItem('refresh_token', response.data.refresh);
+                }
 
                 // Retry the original request with the new token
                 originalRequest.headers.Authorization = `Bearer ${response.data.access}`;

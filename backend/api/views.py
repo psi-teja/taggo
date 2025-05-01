@@ -20,7 +20,7 @@ from api.models import Task
 # Function to get the current time
 def get_current_time_ist():
     ist = pytz.timezone("Asia/Kolkata")
-    return datetime.now(ist).strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.now(ist).strftime(" %H:%M:%S %d-%m-%Y ")
     
 
 # Configure logging
@@ -204,4 +204,3 @@ def TaskDeleteView(request, id: str):
     except Exception as e:
         logger.error(f"Error deleting task: {e}")
         return JsonResponse({"error": str(e)}, status=500)
-    

@@ -11,8 +11,8 @@ const InvoiceParsing = () => {
 
   return (
     <div className="flex flex-col h-screen">
-      <AppHeader loggedInUser={loggedInUser} task_type={'invoice-parsing'} />
-      <Tasks task_type={'invoice-parsing'}loggedInUser={loggedInUser}/>
+      <AppHeader loggedInUser={loggedInUser} task_type={'invoice-annotation'} />
+      <Tasks task_type={'invoice-annotation'}loggedInUser={loggedInUser}/>
     </div>
   );
 };

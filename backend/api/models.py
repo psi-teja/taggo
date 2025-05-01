@@ -9,7 +9,7 @@ class Task(models.Model):
         primary_key=True, max_length=100, editable=False, default=uuid.uuid4
     )
     TASK_TYPE_CHOICES = [
-        ("invoice-parsing", "Invoice Parsing"),
+        ("invoice-annotation", "Invoice Annotation"),
         ("object-detection", "Object Detection"),
         ("document-classification", "Document Classification"),
         ("image-segmentation", "Image Segmentation"),

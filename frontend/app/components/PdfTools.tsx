@@ -1,4 +1,5 @@
 import React, { ChangeEvent } from "react";
+import { downloadFile } from "../hooks/downloadFile";
 
 interface PdfToolsProps {
   scale: number;
@@ -6,9 +7,9 @@ interface PdfToolsProps {
   pageNumber: number;
   numPages: number | undefined;
   downloadFile: (file: any, docType: string) => void;
-  file: string;
+  fileUrl: string;
   handleScaleChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  docType: string;
+  filename: string;
 }
 
 const PdfTools: React.FC<PdfToolsProps> = ({
@@ -17,18 +18,18 @@ const PdfTools: React.FC<PdfToolsProps> = ({
   pageNumber,
   numPages,
   downloadFile,
-  file,
+  fileUrl,
   handleScaleChange,
-  docType,
+  filename,
 }) => {
   return (
-    <div className="p-1 flex justify-between text-xs bg-slate-300 sticky top-0 left-0 z-10"> 
+    <div className="p-1 pt-2 flex justify-between text-xs bg-slate-300 sticky top-0 left-0 z-10 shadow"> 
       <input
         className="sm:w-20 md:w-30 lg:w-40 xl:w-50"
         id="scaleSlider"
         type="range"
         min="0.1"
-        max="4"
+        max="10"
         step="0.1"
         value={scale}
         onChange={handleScaleChange}
@@ -45,12 +46,12 @@ const PdfTools: React.FC<PdfToolsProps> = ({
       <div
         className="hover:bg-gray-200 rounded mr-4"
         title="Download File" 
-        onClick={() => downloadFile(file, docType)}
+        onClick={() => downloadFile(fileUrl, filename)}
       >
         <svg
           className="h-5 w-5 text-black "
-          width="24"
-          height="24"
+          width="26"
+          height="26"
           viewBox="0 0 24 24"
           stroke-width="2"
           stroke="currentColor"

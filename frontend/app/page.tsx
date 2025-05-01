@@ -11,9 +11,9 @@ import { FaFileInvoice, FaObjectGroup, FaFileAlt, FaTags, FaImage } from 'react-
 
 const tools = [
   {
-    title: 'Invoice Parsing',
-    description: 'Extract fields from invoice documents.',
-    href: '/invoice-parsing',
+    title: 'Invoice Annotation',
+    description: 'Mark key-value pairs in invoices.',
+    href: '/invoice-annotation',
     icon: <FaFileInvoice />,
   },
   {

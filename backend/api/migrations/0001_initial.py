@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
                     "task_type",
                     models.CharField(
                         choices=[
-                            ("invoice-parsing", "Invoice Parsing"),
+                            ("invoice-annotation", "Invoice Annotation"),
                             ("object-detection", "Object Detection"),
                             ("document-classification", "Document Classification"),
                             ("image-segmentation", "Image Segmentation"),

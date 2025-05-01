@@ -14,10 +14,8 @@ const PageNav: React.FC<PageNavProps> = ({ totalTasks, perPage, currentPage, cha
   const isLastPage = currentPage === Math.ceil(totalTasks / perPage);
   const page = currentPage;
 
-
-
   return (
-    <div className="flex justify-between items-center shadow-md rounded-md bg-gray-300 text-white">
+    <div className="flex justify-between items-center shadow-md rounded-md bg-gradient-to-r from-blue-50 to-cyan-50 text-blue-800 text-white">
       <button
         onClick={() => changePage(Math.max(page - 1, 1))}
         disabled={page === 1}

@@ -168,12 +168,12 @@ DEBUG = True
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.mysql",  # Change to MySQL backend
-        "NAME": "taggo",                      # Your database name
-        "USER": "root",                   # Change this to your MySQL user if different
-        "PASSWORD": "pravesh@123",             # Your MySQL password
+        "ENGINE": "django.db.backends.mysql",  
+        "NAME": "taggo",                     
+        "USER": "root",
+        "PASSWORD": "pravesh@123",            
         "HOST": "localhost",
-        "PORT": "3306",                       # Default port for MySQL
+        "PORT": "3306",                      
     }
 }
 

@@ -11,7 +11,7 @@ Taggo is a robust system for parsing invoices using a combination of LayoutLM an
 ## Stack Used
 - **Next.js** (Frontend)
 - **Django** (Backend)
-- **LayoutLM + YOLO** (Invoice Parsing Models)
+- **LayoutLM + YOLO** (Invoice Annotation Models)
 
 ## Components
 
@@ -63,7 +63,7 @@ The extractor subscribes to the Redis queue and processes invoices using models 
 For detailed documentation, refer to the [README.md](extractor/README.md) file in the `extractor` folder.
 
 ### 3. frontend
-The frontend is built with Next.js and provides a user interface for interacting with the invoice parsing system.
+The frontend is built with Next.js and provides a user interface for interacting with the Invoice Annotation system.
 
 #### Setup:
 1. Navigate to the `frontend` folder:
