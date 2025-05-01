@@ -50,7 +50,7 @@ const TaskPage: React.FC = () => {
                     href="/invoice-annotation"
                     className="flex items-center gap-2 text-xl font-bold text-teal-900 hover:text-blue-900 transition-colors"
                 >
-                    <FaFileInvoice className="text-xl" />
+                    <FaFileInvoice className="text-purple-500 text-xl" />
                     <span>Invoice Annotation</span>
                 </Link>
                 <AccountDetails loggedInUser={loggedInUser} />

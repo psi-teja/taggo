@@ -7,11 +7,11 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ children, items = [] }) => {
   return (
-    <header className="flex justify-between items-center bg-blue-300 to-gray-200 p-2 shadow-md">
-        {children}
-        {items.map((item, index) => (
-          <div key={index}>{item}</div>
-        ))}
+    <header className="flex justify-between items-center p-2 shadow-md bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100">
+      {children}
+      {items.map((item, index) => (
+        <div key={index}>{item}</div>
+      ))}
     </header>
   );
 };

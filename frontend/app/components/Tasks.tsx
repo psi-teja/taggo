@@ -67,11 +67,6 @@ const Tasks: React.FC<TasksProps> = ({ task_type, loggedInUser }) => {
     }
   }, [loggedInUser]);
 
-  const changePage = (page: number) => setCurrentPage(page);
-
-  const openHistoryModal = (history: { timestamp: string; action: string }[]) => setSelectedTaskHistory(history);
-  const closeHistoryModal = () => setSelectedTaskHistory(null);
-
   const uniqueStatuses = [
     "uploaded", "pre-labelled", "in-labelling", "in-review", "accepted", "completed"
   ].map(status => ({ value: status, label: status }));
@@ -107,15 +102,15 @@ const Tasks: React.FC<TasksProps> = ({ task_type, loggedInUser }) => {
   }
 
   return (
-    <div className="flex flex-col bg-gray-50 overflow-hidden">
+    <div className="flex flex-col bg-gray-500 overflow-hidden">
       {isLoading ? (
         <div className="flex items-center justify-center h-screen bg-gray-100">
           <div className="border-t-4 border-blue-500 rounded-full w-16 h-16 animate-spin"></div>
         </div>
       ) : (
         <div className="overflow-y-auto">
-          <table className="table-auto w-full border-collapse border border-gray-200">
-            <thead className="sticky top-0 bg-gradient-to-r from-blue-50 to-cyan-50 text-blue-800 z-10">
+          <table className="table-auto w-full border-collapse">
+            <thead className="sticky top-0 bg-gradient-to-r from-cyan-200 via-blue-100 to-cyan-100 text-blue-900 z-10 shadow-md">
               <tr>
                 <th className="border border-gray-200 px-6 py-3 text-left font-semibold">
                   <div className="flex items-center text-sm space-x-2">
@@ -126,6 +121,7 @@ const Tasks: React.FC<TasksProps> = ({ task_type, loggedInUser }) => {
                       onChange={(e) => setSearchID(e.target.value)}
                       placeholder="Search by ID"
                       className="text-black w-40 rounded-md border px-2"
+
                     />
                   </div>
                 </th>
@@ -186,7 +182,7 @@ const Tasks: React.FC<TasksProps> = ({ task_type, loggedInUser }) => {
                       <p>{item.assigned_to_user}</p>
                     )}
                   </td>
-                    <td className="border border-gray-200 px-6 py-4">
+                  <td className="border border-gray-200 px-6 py-4">
                     <Link
                       href={`/${task_type}/${item.id}`}
                       title="view"
@@ -194,15 +190,14 @@ const Tasks: React.FC<TasksProps> = ({ task_type, loggedInUser }) => {
                     >
                       {getStatusBadge(item.status)}
                     </Link>
-                    </td>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
-      {!isLoading && <PageNav totalTasks={totalTasks} perPage={perPage} currentPage={currentPage} changePage={changePage} />}
-      {/* History Modal */}
+      {!isLoading && <PageNav totalTasks={totalTasks} perPage={perPage} currentPage={currentPage} changePage={(page: number) => setCurrentPage(page)} />}
       {selectedTaskHistory && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-3/4 max-w-2xl shadow-xl">
@@ -216,7 +211,7 @@ const Tasks: React.FC<TasksProps> = ({ task_type, loggedInUser }) => {
               ))}
             </ul>
             <button
-              onClick={closeHistoryModal}
+              onClick={() => setSelectedTaskHistory(null)}
               className="mt-6 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold py-2 px-6 rounded shadow"
             >
               Close
