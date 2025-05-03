@@ -19,7 +19,6 @@ export const useAuth = () => {
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       setLoggedInUser(parsedUser);
-      console.log("User data found in local storage:", parsedUser);
     } else {
       console.log("No user data found in local storage.");
       const currentPath = window.location.pathname + window.location.search;

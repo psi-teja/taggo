@@ -2,15 +2,10 @@ from django.http import JsonResponse
 from django.contrib.auth.models import User
 from django.conf import settings
 import logging
-from django.db import transaction
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 import json
-from django.contrib.auth.models import Group
-from rest_framework import status
-from django.db.models import Count, Q
-import uuid
 import pytz
 import os
 from datetime import datetime

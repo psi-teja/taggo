@@ -24,7 +24,6 @@ const TaskPage: React.FC = () => {
                 const response = await axiosInstance.get(`/tasks/${taskId}`);
                 const data = response.data;
                 setTaskDetails(data);
-                console.log('Task details:', data);
                 if (data && data.assigned_to_user === loggedInUser?.username) {
                     setIsEditor(true);
                 } else {
@@ -41,7 +40,6 @@ const TaskPage: React.FC = () => {
         fetchTaskDetails();
     }, [taskId]);
 
-    console.log(setIsEditor);
 
     return (
         <div className="flex flex-col h-screen">

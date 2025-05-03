@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PdfViewer from "@/app/components/PdfViewer";
+import FieldsDisplay from "./fieldsDisplay";
 
 interface InteractiveSpaceProps {
     taskDetails: any;
@@ -13,8 +14,28 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
     const [boxLocation, setBoxLocation] = useState<Record<string, any> | null>(
         null
     );
+    const [jsonData, setJsonData] = useState<any>(null);
 
-    // width in percentage (initially 70%)
+    const jsonURL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/invoice-annotation/annotations/${taskDetails?.id}.json`;
+
+    const fetchJsonData = async () => {
+        try {
+            const response = await fetch(jsonURL);
+            if (!response.ok) throw new Error("Failed to fetch JSON data");
+            const data = await response.json();
+            setJsonData(data);
+        } catch (error) {
+            console.error("Error fetching JSON data:", error);
+        }
+
+    };
+
+    useEffect(() => {
+        if (taskDetails) {
+            fetchJsonData();
+        }
+    }, [taskDetails])
+
     const [leftWidth, setLeftWidth] = useState<number>(70);
     const minWidth = 20; // prevent collapsing too much
     const maxWidth = 90;
@@ -70,15 +91,11 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                 <div className="absolute inset-0 bg-gray-300 transition-colors rounded" />
                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-8 bg-gray-500 rounded" />
             </div>
-            <div className="flex-1 overflow-auto">
-                <div className="flex justify-between bg-gray-100 p-1 shadow items-center space-x-4 bg-slate-300 sticky top-0 left-0 z-10">
-                    <div className="font-semibold">ID:</div>
-                    <div className="truncate text-ellipsis overflow-hidden text-right">
-                        {taskDetails && taskDetails.id}
-                    </div>
-                </div>
-                
-            </div>
+            <FieldsDisplay
+                taskDetails={taskDetails}
+                jsonData={jsonData}
+                setJsonData={setJsonData}
+            />
         </div>
     );
 };

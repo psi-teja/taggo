@@ -109,7 +109,7 @@ const Tasks: React.FC<TasksProps> = ({ task_type, loggedInUser }) => {
         </div>
       ) : (
         <div className="overflow-y-auto">
-          <table className="table-auto w-full border-collapse">
+          <table className="table-auto w-full">
             <thead className="sticky top-0 bg-gradient-to-r from-cyan-200 via-blue-100 to-cyan-100 text-blue-900 z-10 shadow-md">
               <tr>
                 <th className="border border-gray-200 px-6 py-3 text-left font-semibold">
