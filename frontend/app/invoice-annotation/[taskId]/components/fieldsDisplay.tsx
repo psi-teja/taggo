@@ -1,14 +1,30 @@
 import { useEffect, useState } from "react";
 
+interface SelectedElement {
+    section: string;
+    id: string;
+    target: string;
+    boxLocation: {
+        BoundingBox: {
+            left: number;
+            top: number;
+            width: number;
+            height: number;
+        };
+        Page: number;
+    };
+}
+
 interface FieldsDisplayProps {
     taskDetails?: { id?: string | number };
     jsonData: any;
     setJsonData: React.Dispatch<React.SetStateAction<any>>;
     handleFieldClick: (element: any) => void;
+    selectedElement: SelectedElement | null;
+    setSelectedElement: React.Dispatch<React.SetStateAction<SelectedElement | null>>;
 }
 
-
-const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, setJsonData, handleFieldClick }) => {
+const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, setJsonData, handleFieldClick, selectedElement, setSelectedElement }) => {
 
     if (!jsonData) {
         return (
@@ -18,7 +34,18 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
         );
     }
 
-    const [selectedID, setSelectedID] = useState<string | null>(null);
+    const [dropDownOptions, setDropDownOptions] = useState<{ [key: string]: string[] }>({});
+
+    useEffect(() => {
+        fetch("/fields.json")
+            .then((res) => res.json())
+            .then((data) => setDropDownOptions(data))
+            .catch((err) => {
+                console.error("Failed to load fields.json", err);
+                setDropDownOptions({});
+            });
+    }, []);
+
 
     return (
         <div className="flex-1 overflow-auto">
@@ -31,42 +58,94 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
 
             {jsonData && Object.entries(jsonData).map(([section, fields]) => (
                 <div key={section} className="p-2">
-                    <div className="font-bold mb-2">{section}</div>
                     <div className="space-y-2">
                         {Array.isArray(fields) && fields.map((field: any) => (
-                            <div key={field.id} className="bg-white rounded-lg shadow p-2 flex flex-col gap-2">
+                            <div key={field.id} className={`rounded-lg shadow p-2 space-y-2 ${selectedElement?.id === String(field.id) ? "border border-blue-500 bg-blue-100" : "bg-white hover:bg-gray-200"}  transition duration-300 cursor-pointer`}
+                                
+                                    
+                                    >
                                 <div className="items-center gap-2">
-                                    <p className="text-gray-600 font-semibold min-w-[120px]">{field.Name}</p>
-                                    <div>
+                                    <select value={field.Name || ""}
+                                        onChange={(e) => {
+                                            const newJsonData = { ...jsonData };
+                                            const newField = { ...field, Name: e.target.value };
+                                            newJsonData[section] = fields.map((f: any) => f.id === field.id ? newField : f);
+                                            setJsonData(newJsonData);
+                                        }}
+                                        className="bg-gradient-to-b from-gray-200 via-white to-gray-200 p-2 outline-none border border-gray-300 focus:border-blue-500 rounded transition w-full shadow-sm">
+                                        <option value="" disabled>
+                                            -- select --
+                                        </option>
+                                        {dropDownOptions[section]?.map((option: string) => (
+                                            <option key={option} value={option}>
+                                                {option}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <div
+                                    onClick={() =>
+                                    setSelectedElement({
+                                        section: section,
+                                        id: field.id,
+                                        target: "Label",
+                                        boxLocation: {
+                                            BoundingBox: field.Value.LabelBoundingBox,
+                                            Page: field.Value.Page,
+                                        }
+                                    })}>
                                         <input
                                             type="text"
                                             value={field.Value?.Label || ""}
                                             placeholder="label"
-                                            className="bg-white p-2 outline-none border border-gray-300 focus:border-blue-500 rounded transition w-full shadow-sm"
-                                            readOnly
+                                            className="bg-white p-2 outline-none border border-gray-300  rounded transition w-full shadow-sm"
+                                            onChange={(e) => {
+                                                const newJsonData = { ...jsonData };
+                                                const newField = { ...field, Value: { ...field.Value, Label: e.target.value } };
+                                                newJsonData[section] = fields.map((f: any) => f.id === field.id ? newField : f);
+                                                setJsonData(newJsonData);
+                                            }
+                                            }
+
                                         />
                                         {field.Value?.LabelBoundingBox && (
                                             <img
-                                            src="/rect.png"
-                                            alt="Draw Box"
-                                            className="h-5 w-5 ml-2 opacity-80 hover:opacity-100 transition"
-                                        />
+                                                src="/rect.png"
+                                                alt="Draw Box"
+                                                className="h-5 w-5 ml-2 opacity-80 hover:opacity-100 transition"
+                                            />
                                         )}
                                     </div>
-                                    <div className="flex items-center gap-1">
-                                    <input
-                                        type="text"
-                                        value={field.Value?.Text || ""}
-                                        placeholder="value"
-                                        className="bg-white p-2 outline-none border border-gray-300 focus:border-blue-500 rounded transition w-full shadow-sm"
-                                        readOnly
-                                    />
-                                    {field.Value?.BoundingBox && (
-                                            <img
-                                            src="/rect.png"
-                                            alt="Draw Box"
-                                            className="h-4 w-4 ml-2 opacity-80 hover:opacity-100 transition"
+                                    <div className="flex items-center gap-1"
+                                    onClick={() =>
+                                    setSelectedElement({
+                                        section: section,
+                                        id: field.id,
+                                        target: "Value",
+                                        boxLocation: {
+                                            BoundingBox: field.Value.BoundingBox,
+                                            Page: field.Value.Page,
+                                        }
+                                    })}
+                                    >
+                                        <input
+                                            type="text"
+                                            value={field.Value?.Text || ""}
+                                            placeholder="value"
+                                            className="bg-white p-2 outline-none border border-gray-300 focus:border-red-300 focus:border-2 rounded transition w-full shadow-sm"
+                                            onChange={(e) => {
+                                                const newJsonData = { ...jsonData };
+                                                const newField = { ...field, Value: { ...field.Value, Text: e.target.value } };
+                                                newJsonData[section] = fields.map((f: any) => f.id === field.id ? newField : f);
+                                                setJsonData(newJsonData);
+                                            }
+                                            }
                                         />
+                                        {field.Value?.BoundingBox && (
+                                            <img
+                                                src="/rect.png"
+                                                alt="Draw Box"
+                                                className="h-4 w-4 m-2 opacity-80 hover:opacity-100 transition"
+                                            />
                                         )}
                                     </div>
                                 </div>

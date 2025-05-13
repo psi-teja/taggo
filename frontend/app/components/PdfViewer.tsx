@@ -10,14 +10,29 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 
 interface PdfViewerProps {
   taskDetails: any;
-  boxLocation: any;
+  selectedElement: SelectedElement | null;
   isEditor: boolean;
   leftWidth: number; // Added leftWidth prop
 }
 
+interface SelectedElement {
+    section: string;
+    id: string;
+    target: string;
+    boxLocation: {
+        "BoundingBox": {
+            "left": number;
+            "top": number;
+            "width": number;
+            "height": number;
+        },
+        "Page": number;
+    }
+}
+
 const PdfViewer: React.FC<PdfViewerProps> = ({
   taskDetails,
-  boxLocation,
+  selectedElement,
   isEditor,
   leftWidth
 }) => {

@@ -8,11 +8,27 @@ interface InteractiveSpaceProps {
     isEditor: boolean;
 }
 
+interface SelectedElement {
+    section: string;
+    id: string;
+    target: string;
+    boxLocation: {
+        "BoundingBox": {
+            "left": number;
+            "top": number;
+            "width": number;
+            "height": number;
+        },
+        "Page": number;
+    }
+}
+
 const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
     taskDetails,
     isEditor
 }) => {
-    const [boxLocation, setBoxLocation] = useState<Record<string, any> | null>(null);
+
+    const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null);
     const [jsonData, setJsonData] = useState<any>(null);
 
     const jsonURL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/invoice-annotation/annotations/${taskDetails?.id}.json`;
@@ -41,7 +57,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
 
 
     const handleFieldClick = (element: any) => {
-        setBoxLocation(element.location.ltwh)
+        console.log("Clicked field:", element);
     }
 
 
@@ -81,7 +97,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                 <PdfViewer
                     taskDetails={taskDetails}
                     isEditor={isEditor}
-                    boxLocation={boxLocation}
+                    selectedElement={selectedElement}
                     leftWidth={leftWidth}
                 />
             </div>
@@ -105,6 +121,8 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                 jsonData={jsonData}
                 setJsonData={setJsonData}
                 handleFieldClick={handleFieldClick}
+                selectedElement={selectedElement}
+                setSelectedElement={setSelectedElement}
             />
         </div>
     );
