@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, use } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { downloadFile } from "../hooks/downloadFile";
 import "react-pdf/dist/esm/Page/TextLayer.css";
@@ -92,6 +92,46 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     }
   }, [pdfDim, viewerRef, leftWidth]);
 
+
+  const renderBoundingBox = () => {
+    if (selectedElement && boundingBoxRef.current) {
+      const { left, top, width, height } = selectedElement.boxLocation.BoundingBox;
+      console.log("Bounding Box:", selectedElement.boxLocation.BoundingBox);
+      const page = selectedElement.boxLocation.Page;
+
+      const boundingBoxStyle = {
+        position: "absolute" as const,
+        left: `${left}px`,
+        top: `${top}px`,
+        width: `${width}px`,
+        height: `${height}px`,
+        border: "2px solid red",
+        pointerEvents: "none" as const,
+      };
+
+      return (
+        <div
+          ref={boundingBoxRef}
+          style={boundingBoxStyle}
+          className="absolute"
+        />
+      );
+    }}
+
+  useEffect(() => {
+    if (boundingBoxRef.current && viewerLoc) {
+      const boundingBox = boundingBoxRef.current;
+      const boundingBoxRect = boundingBox.getBoundingClientRect();
+      const leftOffset = boundingBoxRect.left - viewerLoc.left;
+      const topOffset = boundingBoxRect.top - viewerLoc.top;
+
+      boundingBox.style.left = `${leftOffset}px`;
+      boundingBox.style.top = `${topOffset}px`;
+    }
+  }, [boundingBoxRef, viewerLoc]);
+
+
+
   return (
     <div className="relative">
       <PdfTools
@@ -117,6 +157,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
             pageNumber={pageNumber}
             scale={scale}
           >
+            {renderBoundingBox()}
           </Page>
         </Document>
       </div>
