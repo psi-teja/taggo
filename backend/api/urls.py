@@ -1,8 +1,9 @@
 from .views import TaskListView, TaskDetailsView, TaskCreateView, TaskUpdateView, TaskDeleteView
-from .utils import ConvertToPdfView
+from .utils import ConvertToPdfView, save_json_data
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
+
 
 urlpatterns = [
     path('tasks/', TaskListView, name='task-list'),
@@ -11,4 +12,5 @@ urlpatterns = [
     path('tasks/update/<str:id>/', TaskUpdateView, name='task-update'),
     path('tasks/delete/<str:id>/', TaskDeleteView, name='task-delete'),
     path('convert_to_pdf/<str:task_type>/<str:filename>/', ConvertToPdfView, name='convert-to-pdf'),
+    path('save_json_data/', save_json_data, name='save-json-data'),
 ]

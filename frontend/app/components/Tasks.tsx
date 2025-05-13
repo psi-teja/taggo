@@ -57,15 +57,15 @@ const Tasks: React.FC<TasksProps> = ({ task_type, loggedInUser }) => {
     fetchTasks(selectedAssignee, selectedStatus, currentPage, searchID);
   }, [currentPage, selectedAssignee, selectedStatus, searchID]);
 
-  useEffect(() => {
-    if (loggedInUser?.is_superuser) {
-      const fetchGroupsWithUsers = async () => {
-        const response = await axiosInstance.get("/get_groups_with_users");
-        setGroupsWithUsers(response.data);
-      };
-      fetchGroupsWithUsers();
-    }
-  }, [loggedInUser]);
+  // useEffect(() => {
+  //   if (loggedInUser?.is_superuser) {
+  //     const fetchGroupsWithUsers = async () => {
+  //       const response = await axiosInstance.get("/get_groups_with_users");
+  //       setGroupsWithUsers(response.data);
+  //     };
+  //     fetchGroupsWithUsers();
+  //   }
+  // }, [loggedInUser]);
 
   const uniqueStatuses = [
     "uploaded", "pre-labelled", "in-labelling", "in-review", "accepted", "completed"

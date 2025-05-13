@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PdfViewer from "@/app/components/PdfViewer";
+import { addIdsToJsonData, saveJsonData } from "@/app/hooks/utils";
 import FieldsDisplay from "./fieldsDisplay";
 
 interface InteractiveSpaceProps {
@@ -9,11 +10,9 @@ interface InteractiveSpaceProps {
 
 const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
     taskDetails,
-    isEditor,
+    isEditor
 }) => {
-    const [boxLocation, setBoxLocation] = useState<Record<string, any> | null>(
-        null
-    );
+    const [boxLocation, setBoxLocation] = useState<Record<string, any> | null>(null);
     const [jsonData, setJsonData] = useState<any>(null);
 
     const jsonURL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/invoice-annotation/annotations/${taskDetails?.id}.json`;
@@ -23,18 +22,28 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
             const response = await fetch(jsonURL);
             if (!response.ok) throw new Error("Failed to fetch JSON data");
             const data = await response.json();
-            setJsonData(data);
+            const updatedData = addIdsToJsonData(data);
+            setJsonData(updatedData);
+            if (JSON.stringify(data) !== JSON.stringify(updatedData)) {
+                saveJsonData(updatedData, taskDetails);
+            }
         } catch (error) {
             console.error("Error fetching JSON data:", error);
         }
-
     };
+
 
     useEffect(() => {
         if (taskDetails) {
             fetchJsonData();
         }
     }, [taskDetails])
+
+
+    const handleFieldClick = (element: any) => {
+        setBoxLocation(element.location.ltwh)
+    }
+
 
     const [leftWidth, setLeftWidth] = useState<number>(70);
     const minWidth = 20; // prevent collapsing too much
@@ -95,6 +104,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                 taskDetails={taskDetails}
                 jsonData={jsonData}
                 setJsonData={setJsonData}
+                handleFieldClick={handleFieldClick}
             />
         </div>
     );

@@ -77,19 +77,6 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     }
   }, [pdfDim, viewerRef, leftWidth]);
 
-  useEffect(() => {
-    if (boundingBoxRef.current) {
-      boundingBoxRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-        inline: "center",
-      });
-    }
-    if (boxLocation) {
-      setPageNumber(boxLocation.pageNo);
-    }
-  }, [boxLocation]);
-
   return (
     <div className="relative">
       <PdfTools
