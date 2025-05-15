@@ -5,7 +5,7 @@ interface SelectedElement {
     id: string;
     target: string;
     boxLocation: {
-        BoundingBox: {
+        BBox: {
             left: number;
             top: number;
             width: number;
@@ -54,115 +54,113 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                 <div className="truncate text-ellipsis overflow-hidden text-right font-medium">
                     {taskDetails && taskDetails.id}
                 </div>
-                
+
             </div>
 
             {jsonData && Object.entries(jsonData).map(([section, fields]) => (
-                <div key={section} className="p-3">
-                    <div className="space-y-3">
-                        {Array.isArray(fields) && fields.map((field: any) => (
-                            <div
-                                key={field.id}
-                                className={`rounded-lg shadow-md p-3 space-y-3 ${selectedElement?.id === String(field.id)
-                                        ? "border-2 border-blue-500 bg-blue-50"
-                                        : "bg-white hover:bg-gray-50"
-                                    } transition duration-200 cursor-pointer`}
-                            >
-                                <div className="items-center gap-3">
-                                    <select
-                                        value={field.Name || ""}
+                <div className="space-y-2 bg-gray-100 p-2" key={section}>
+                    {Array.isArray(fields) && fields.map((field: any) => (
+                        <div
+                            key={field.id}
+                            className={`rounded-lg shadow-md p-3 space-y-3 ${selectedElement?.id === String(field.id)
+                                ? "border-2 border-blue-500 bg-blue-50"
+                                : "bg-white hover:bg-gray-50 border border-gray-400"
+                                } transition duration-200 cursor-pointer`}
+                        >
+                            <div className="items-center gap-3">
+                                <select
+                                    value={field.Name || ""}
+                                    onChange={(e) => {
+                                        const newJsonData = { ...jsonData };
+                                        const newField = { ...field, Name: e.target.value };
+                                        newJsonData[section] = fields.map((f: any) => f.id === field.id ? newField : f);
+                                        setJsonData(newJsonData);
+                                    }}
+                                    className="bg-gradient-to-b from-white to-gray-300 p-2 outline-none border border-gray-400 focus:border-blue-400 rounded-md transition w-full shadow-sm font-medium text-gray-700"
+                                >
+                                    <option value="" disabled className="text-gray-400">
+                                        -- select --
+                                    </option>
+                                    {dropDownOptions[section]?.map((option: string) => (
+                                        <option key={option} value={option} className="text-gray-700">
+                                            {option}
+                                        </option>
+                                    ))}
+                                </select>
+
+                                <div
+                                    onClick={() =>
+                                        setSelectedElement({
+                                            section: section,
+                                            id: field.id,
+                                            target: "Label",
+                                            boxLocation: {
+                                                BBox: field.Value.LabelBoundingBox,
+                                                Page: field.Value.Page,
+                                            }
+                                        })}
+                                    className="flex items-center gap-2"
+                                >
+                                    <input
+                                        type="text"
+                                        value={field.Value?.Label || ""}
+                                        placeholder="label"
+                                        className="bg-white p-2 outline-none border border-gray-200 focus:border-red-400 focus:border-2 rounded-md transition w-full shadow-sm text-gray-700"
                                         onChange={(e) => {
                                             const newJsonData = { ...jsonData };
-                                            const newField = { ...field, Name: e.target.value };
+                                            const newField = { ...field, Value: { ...field.Value, Label: e.target.value } };
                                             newJsonData[section] = fields.map((f: any) => f.id === field.id ? newField : f);
                                             setJsonData(newJsonData);
                                         }}
-                                        className="bg-gradient-to-b from-white to-gray-100 p-2 outline-none border border-gray-200 focus:border-blue-400 rounded-md transition w-full shadow-sm font-medium text-gray-700"
-                                    >
-                                        <option value="" disabled className="text-gray-400">
-                                            -- select --
-                                        </option>
-                                        {dropDownOptions[section]?.map((option: string) => (
-                                            <option key={option} value={option} className="text-gray-700">
-                                                {option}
-                                            </option>
-                                        ))}
-                                    </select>
-
-                                    <div
-                                        onClick={() =>
-                                            setSelectedElement({
-                                                section: section,
-                                                id: field.id,
-                                                target: "Label",
-                                                boxLocation: {
-                                                    BoundingBox: field.Value.LabelBoundingBox,
-                                                    Page: field.Value.Page,
-                                                }
-                                            })}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <input
-                                            type="text"
-                                            value={field.Value?.Label || ""}
-                                            placeholder="label"
-                                            className="bg-white p-2 outline-none border border-gray-200 focus:border-red-400 focus:border-2 rounded-md transition w-full shadow-sm text-gray-700"
-                                            onChange={(e) => {
-                                                const newJsonData = { ...jsonData };
-                                                const newField = { ...field, Value: { ...field.Value, Label: e.target.value } };
-                                                newJsonData[section] = fields.map((f: any) => f.id === field.id ? newField : f);
-                                                setJsonData(newJsonData);
-                                            }}
+                                    />
+                                    {field.Value?.LabelBoundingBox && (
+                                        <img
+                                            src="/rect.png"
+                                            alt="Draw Box"
+                                            className="h-5 w-5 opacity-70 hover:opacity-100 transition hover:text-red-500"
                                         />
-                                        {field.Value?.LabelBoundingBox && (
-                                            <img
-                                                src="/rect.png"
-                                                alt="Draw Box"
-                                                className="h-5 w-5 opacity-70 hover:opacity-100 transition hover:text-red-500"
-                                            />
-                                        )}
-                                    </div>
+                                    )}
+                                </div>
 
-                                    <div
-                                        className="flex items-center gap-2"
-                                        onClick={() =>
-                                            setSelectedElement({
-                                                section: section,
-                                                id: field.id,
-                                                target: "Value",
-                                                boxLocation: {
-                                                    BoundingBox: field.Value.BoundingBox,
-                                                    Page: field.Value.Page,
-                                                }
-                                            })}
-                                    >
-                                        <input
-                                            type="text"
-                                            value={field.Value?.Text || ""}
-                                            placeholder="value"
-                                            className="bg-white p-2 outline-none border border-gray-200 focus:border-red-400 focus:border-2 rounded-md transition w-full shadow-sm text-gray-700"
-                                            onChange={(e) => {
-                                                const newJsonData = { ...jsonData };
-                                                const newField = { ...field, Value: { ...field.Value, Text: e.target.value } };
-                                                newJsonData[section] = fields.map((f: any) => f.id === field.id ? newField : f);
-                                                setJsonData(newJsonData);
-                                            }}
+                                <div
+                                    className="flex items-center gap-2"
+                                    onClick={() =>
+                                        setSelectedElement({
+                                            section: section,
+                                            id: field.id,
+                                            target: "Value",
+                                            boxLocation: {
+                                                BBox: field.Value.BoundingBox,
+                                                Page: field.Value.Page,
+                                            }
+                                        })}
+                                >
+                                    <input
+                                        type="text"
+                                        value={field.Value?.Text || ""}
+                                        placeholder="value"
+                                        className="bg-white p-2 outline-none border border-gray-200 focus:border-red-400 focus:border-2 rounded-md transition w-full shadow-sm text-gray-700"
+                                        onChange={(e) => {
+                                            const newJsonData = { ...jsonData };
+                                            const newField = { ...field, Value: { ...field.Value, Text: e.target.value } };
+                                            newJsonData[section] = fields.map((f: any) => f.id === field.id ? newField : f);
+                                            setJsonData(newJsonData);
+                                        }}
+                                    />
+                                    {field.Value?.BoundingBox && (
+                                        <img
+                                            src="/rect.png"
+                                            alt="Draw Box"
+                                            className="h-5 w-6"
                                         />
-                                        {field.Value?.BoundingBox && (
-                                                <img
-                                                src="/rect.png"
-                                                alt="Draw Box"
-                                                className="h-5 w-6"
-                                            />
 
-                                            
 
-                                        )}
-                                    </div>
+
+                                    )}
                                 </div>
                             </div>
-                        ))}
-                    </div>
+                        </div>
+                    ))}
                 </div>
             ))}
         </div>

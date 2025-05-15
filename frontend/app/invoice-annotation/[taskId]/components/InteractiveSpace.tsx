@@ -13,7 +13,7 @@ interface SelectedElement {
     id: string;
     target: string;
     boxLocation: {
-        "BoundingBox": {
+        "BBox": {
             "left": number;
             "top": number;
             "width": number;
@@ -102,8 +102,8 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                 />
             </div>
             <div
-                className="relative z-10 w-2 cursor-col-resize group border-x border-gray-400 bg-gray-200 hover:bg-gray-300"
-                style={{ minWidth: "8px" }}
+                className="relative z-10 w-2 cursor-col-resize group border-x border-gray-500 bg-gray-200"
+                style={{ minWidth: "1px" }}
                 onMouseDown={handleMouseDown}
                 aria-label="Resize panel"
                 role="separator"
@@ -113,8 +113,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                     if (e.key === "ArrowRight") setLeftWidth(w => Math.min(maxWidth, w + 2));
                 }}
             >
-                <div className="absolute inset-0 bg-gray-300 transition-colors rounded" />
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-8 bg-gray-500 rounded" />
+                <div className="absolute inset-0 bg-gray-300 transition-colors rounded hover:bg-blue-400" />
             </div>
             <FieldsDisplay
                 taskDetails={taskDetails}

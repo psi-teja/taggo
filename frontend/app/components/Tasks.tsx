@@ -57,16 +57,6 @@ const Tasks: React.FC<TasksProps> = ({ task_type, loggedInUser }) => {
     fetchTasks(selectedAssignee, selectedStatus, currentPage, searchID);
   }, [currentPage, selectedAssignee, selectedStatus, searchID]);
 
-  // useEffect(() => {
-  //   if (loggedInUser?.is_superuser) {
-  //     const fetchGroupsWithUsers = async () => {
-  //       const response = await axiosInstance.get("/get_groups_with_users");
-  //       setGroupsWithUsers(response.data);
-  //     };
-  //     fetchGroupsWithUsers();
-  //   }
-  // }, [loggedInUser]);
-
   const uniqueStatuses = [
     "uploaded", "pre-labelled", "in-labelling", "in-review", "accepted", "completed"
   ].map(status => ({ value: status, label: status }));
@@ -110,32 +100,41 @@ const Tasks: React.FC<TasksProps> = ({ task_type, loggedInUser }) => {
       ) : (
         <div className="overflow-y-auto">
           <table className="table-auto w-full">
-            <thead className="sticky top-0 bg-gradient-to-r from-cyan-200 via-blue-100 to-cyan-100 text-blue-900 z-10 shadow-md">
+            <thead className="sticky top-0 bg-slate-400 z-50 shadow-md">
               <tr>
-                <th className="border border-gray-200 px-6 py-3 text-left font-semibold">
-                  <div className="flex items-center text-sm space-x-2">
-                    <span>ID</span>
+                {/* ID Column */}
+                <th className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold whitespace-nowrap">ID</span>
                     <input
                       type="text"
                       value={searchID || ""}
                       onChange={(e) => setSearchID(e.target.value)}
-                      placeholder="Search by ID"
-                      className="text-black w-40 rounded-md border px-2"
+                      placeholder="Search..."
+                      className="w-28 px-2 py-1 text-sm rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition"
                     />
                   </div>
                 </th>
-                <th className="border border-gray-200 px-6 py-3 text-left font-semibold">Assignee</th>
-                <th className="border border-gray-200 px-6 py-3 text-left font-semibold">
-                  <div className="flex items-center space-x-2">
-                    <span>Status</span>
+
+                {/* Assignee Column */}
+                <th className="px-4 py-3 text-left">
+                  <span className="text-sm font-semibold">Assignee</span>
+                </th>
+
+                {/* Status Column */}
+                <th className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold whitespace-nowrap">Status</span>
                     <select
-                      className="text-black rounded-md  border focus:ring-2 focus:ring-blue-400"
-                      onChange={(e) => setSelectedStatus(e.target.value)}
                       value={selectedStatus}
+                      onChange={(e) => setSelectedStatus(e.target.value)}
+                      className="px-2 py-1 text-sm rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition"
                     >
-                      <option value="all" className="text-gray-200">-- select --</option>
+                      <option value="all">All</option>
                       {uniqueStatuses.map((status) => (
-                        <option key={status.value} value={status.value}>{status.label}</option>
+                        <option key={status.value} value={status.value}>
+                          {status.label}
+                        </option>
                       ))}
                     </select>
                   </div>

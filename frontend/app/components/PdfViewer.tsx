@@ -4,7 +4,7 @@ import { downloadFile } from "../hooks/downloadFile";
 import "react-pdf/dist/esm/Page/TextLayer.css";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import PdfTools from "@/app/components/PdfTools";
-import "./styles.css"; 
+import "./styles.css";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
 
@@ -16,18 +16,18 @@ interface PdfViewerProps {
 }
 
 interface SelectedElement {
-    section: string;
-    id: string;
-    target: string;
-    boxLocation: {
-        "BoundingBox": {
-            "left": number;
-            "top": number;
-            "width": number;
-            "height": number;
-        },
-        "Page": number;
-    }
+  section: string;
+  id: string;
+  target: string;
+  boxLocation: {
+    "BBox": {
+      "left": number;
+      "top": number;
+      "width": number;
+      "height": number;
+    },
+    "Page": number;
+  }
 }
 
 const PdfViewer: React.FC<PdfViewerProps> = ({
@@ -93,43 +93,50 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   }, [pdfDim, viewerRef, leftWidth]);
 
 
-  const renderBoundingBox = () => {
-    if (selectedElement && boundingBoxRef.current) {
-      const { left, top, width, height } = selectedElement.boxLocation.BoundingBox;
-      console.log("Bounding Box:", selectedElement.boxLocation.BoundingBox);
-      const page = selectedElement.boxLocation.Page;
-
-      const boundingBoxStyle = {
-        position: "absolute" as const,
-        left: `${left}px`,
-        top: `${top}px`,
-        width: `${width}px`,
-        height: `${height}px`,
-        border: "2px solid red",
-        pointerEvents: "none" as const,
-      };
-
-      return (
-        <div
-          ref={boundingBoxRef}
-          style={boundingBoxStyle}
-          className="absolute"
-        />
-      );
-    }}
-
   useEffect(() => {
-    if (boundingBoxRef.current && viewerLoc) {
-      const boundingBox = boundingBoxRef.current;
-      const boundingBoxRect = boundingBox.getBoundingClientRect();
-      const leftOffset = boundingBoxRect.left - viewerLoc.left;
-      const topOffset = boundingBoxRect.top - viewerLoc.top;
-
-      boundingBox.style.left = `${leftOffset}px`;
-      boundingBox.style.top = `${topOffset}px`;
+    if (selectedElement && selectedElement.boxLocation && selectedElement.boxLocation.Page) {
+      setPageNumber(selectedElement.boxLocation.Page);
     }
-  }, [boundingBoxRef, viewerLoc]);
+  }, [selectedElement]);
 
+  const renderBoundingBox = () => {
+
+    if (selectedElement) {
+      if (selectedElement.boxLocation.BBox) {
+        const { left, top, width, height } = selectedElement.boxLocation.BBox;
+
+        const scaledLeft = left * scale * pdfDim.width;
+        const scaledTop = top * scale * pdfDim.height;
+        const scaledWidth = width * scale * pdfDim.width;
+        const scaledHeight = height * scale * pdfDim.height;
+
+        const boundingBoxStyle = {
+          position: "absolute" as const,
+          left: `${scaledLeft}px`,
+          top: `${scaledTop}px`,
+          width: `${scaledWidth}px`,
+          height: `${scaledHeight}px`,
+          border: "2px solid red",
+          pointerEvents: "none" as const,
+        };
+
+        return (
+          <div
+            ref={boundingBoxRef}
+            style={boundingBoxStyle}
+            className="absolute"
+          />
+        );
+      }
+      else {
+        return null;
+      }
+
+    }
+    else {
+      return null;
+    }
+  }
 
 
   return (
@@ -142,11 +149,11 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
         numPages={numPages}
         downloadFile={() => downloadFile(fileUrl, taskDetails.filename)}
         fileUrl={fileUrl}
-        handleScaleChange={(e)=> setScale(parseFloat(e.target.value))}
+        handleScaleChange={(e) => setScale(parseFloat(e.target.value))}
       />
 
-      <div className="w-full overflow-auto no-select h-[calc(100vh-100px)]"
-      ref={viewerRef}>
+      <div className={`w-full overflow-auto no-select h-[calc(100vh-100px)] ${selectedElement && !selectedElement.boxLocation.BBox ? "cursor-crosshair" : ""}`}
+        ref={viewerRef}>
         {loading && (
           <div className="relative inset-0 flex items-center justify-center bg-white bg-opacity-75 h-screen">
             <div className="loader border-t-4 border-blue-500 rounded-full w-12 h-12 mx-auto animate-spin"></div>
