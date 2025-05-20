@@ -13,19 +13,21 @@ interface PdfViewerProps {
   selectedElement: SelectedElement | null;
   isEditor: boolean;
   leftWidth: number; // Added leftWidth prop
+  handleFieldChange: (element: SelectedElement) => void;
 }
 
 interface SelectedElement {
   section: string;
   id: string;
   target: string;
+  text: string | null;
   boxLocation: {
     "BBox": {
       "left": number;
       "top": number;
       "width": number;
       "height": number;
-    },
+    }|null,
     "Page": number;
   }
 }
@@ -34,7 +36,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   taskDetails,
   selectedElement,
   isEditor,
-  leftWidth
+  leftWidth,
+  handleFieldChange
 }) => {
 
   if (!taskDetails) {
@@ -65,6 +68,16 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   const boundingBoxRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<HTMLDivElement | null>(null);
   const viewerLoc = viewerRef.current?.getBoundingClientRect();
+
+  const [startX, setStartX] = useState<number | null>(null)
+  const [endX, setEndX] = useState<number | null>(null)
+  const [startY, setStartY] = useState<number | null>(null)
+  const [endY, setEndY] = useState<number | null>(null)
+
+  const [drawingBox, setDrawingBox] = useState<boolean>(false)
+
+  const scrollSpeed = 10; // pixels per interval
+  const scrollMargin = 50; // pixels from edge to start scrolling
 
   useEffect(() => {
     const fetchPdfDimensions = async () => {
@@ -101,43 +114,155 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
 
   const renderBoundingBox = () => {
 
+    let scaledLeft = 0;
+    let scaledTop = 0;
+    let scaledWidth = 0;
+    let scaledHeight = 0;
+
     if (selectedElement) {
       if (selectedElement.boxLocation.BBox) {
         const { left, top, width, height } = selectedElement.boxLocation.BBox;
-
-        const scaledLeft = left * scale * pdfDim.width;
-        const scaledTop = top * scale * pdfDim.height;
-        const scaledWidth = width * scale * pdfDim.width;
-        const scaledHeight = height * scale * pdfDim.height;
-
-        const boundingBoxStyle = {
-          position: "absolute" as const,
-          left: `${scaledLeft}px`,
-          top: `${scaledTop}px`,
-          width: `${scaledWidth}px`,
-          height: `${scaledHeight}px`,
-          border: "2px solid red",
-          pointerEvents: "none" as const,
-        };
-
-        return (
-          <div
-            ref={boundingBoxRef}
-            style={boundingBoxStyle}
-            className="absolute"
-          />
-        );
+        scaledLeft = left * scale * pdfDim.width;
+        scaledTop = top * scale * pdfDim.height;
+        scaledWidth = width * scale * pdfDim.width;
+        scaledHeight = height * scale * pdfDim.height;
       }
       else {
-        return null;
+        if (startX && startY && endX && endY && drawingBox) {
+          scaledLeft = Math.min(startX, endX);
+          scaledTop = Math.min(startY, endY);
+          scaledWidth = Math.abs(startX - endX);
+          scaledHeight = Math.abs(startY - endY);
+        }
       }
-
     }
     else {
       return null;
     }
+
+    const boundingBoxStyle = {
+      position: "absolute" as const,
+      left: `${scaledLeft}px`,
+      top: `${scaledTop}px`,
+      width: `${scaledWidth}px`,
+      height: `${scaledHeight}px`,
+      border: "2px solid red",
+      pointerEvents: "none" as const,
+    };
+
+    return (
+      <div
+        ref={boundingBoxRef}
+        style={boundingBoxStyle}
+        className="absolute"
+      />
+    );
+
   }
 
+  useEffect(() => {
+    if (selectedElement && boundingBoxRef.current && viewerRef.current) {
+      setTimeout(() => {
+        boundingBoxRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+          inline: "center",
+        });
+      }, 100);
+    }
+  }, [selectedElement]);
+
+
+   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+
+    if (selectedElement && !selectedElement.boxLocation.BBox && viewerRef.current) {
+      setDrawingBox(true);
+      const rect = viewerRef.current.getBoundingClientRect();
+      const scrollOffsetX = viewerRef.current?.scrollLeft || 0;
+      const scrollOffsetY = viewerRef.current?.scrollTop || 0;
+
+      const offSetX = e.clientX - rect?.left + scrollOffsetX;
+      const offSetY = e.clientY - rect?.top + scrollOffsetY;
+
+      setStartX(offSetX);
+      setStartY(offSetY);
+
+      setEndX(offSetX);
+      setEndY(offSetY);
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (drawingBox && viewerRef.current) {
+      const rect = viewerRef.current.getBoundingClientRect();
+
+      setEndX(e.clientX - rect?.left + viewerRef.current.scrollLeft);
+      setEndY(e.clientY - rect?.top + viewerRef.current.scrollTop);
+
+      handleAutoScroll(e);
+    }
+  };
+
+  const handleAutoScroll = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    const viewer = viewerRef.current;
+    if (!viewer) return;
+
+    let scrolled = false;
+
+    const { clientX, clientY } = e;
+    const { top, bottom, left, right } = viewer.getBoundingClientRect();
+
+    if (bottom - clientY < scrollMargin) {
+      viewer.scrollTop += scrollSpeed;
+      scrolled = true;
+    }
+
+    if (clientY - top < scrollMargin) {
+      viewer.scrollTop -= scrollSpeed;
+      scrolled = true;
+    }
+
+    if (right - clientX < scrollMargin) {
+      viewer.scrollLeft += scrollSpeed;
+      scrolled = true;
+    }
+
+    if (clientX - left < scrollMargin) {
+      viewer.scrollLeft -= scrollSpeed;
+      scrolled = true;
+    }
+
+    if (scrolled) {
+      const newEndX = clientX - left + viewer.scrollLeft;
+      const newEndY = clientY - top + viewer.scrollTop;
+
+      setEndX(newEndX);
+      setEndY(newEndY);
+    }
+
+  };
+
+  const handleMouseUp = async () => {
+    setDrawingBox(false)
+    const updatedElement = selectedElement;
+    
+    if (updatedElement && startX && startY && endX && endY) {
+      const left = Math.min(startX, endX);
+      const top = Math.min(startY, endY);
+      const width = Math.abs(startX - endX);
+      const height = Math.abs(startY - endY);
+
+      updatedElement.boxLocation.BBox = {
+        left: left / (scale * pdfDim.width),
+        top: top / (scale * pdfDim.height),
+        width: width / (scale * pdfDim.width),
+        height: height / (scale * pdfDim.height),
+      };
+      updatedElement.boxLocation.Page = pageNumber;
+
+      handleFieldChange(updatedElement);
+    }
+  };
 
   return (
     <div className="relative">
@@ -163,6 +288,9 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
           <Page
             pageNumber={pageNumber}
             scale={scale}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
           >
             {renderBoundingBox()}
           </Page>

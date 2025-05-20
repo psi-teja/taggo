@@ -12,13 +12,14 @@ interface SelectedElement {
     section: string;
     id: string;
     target: string;
+    text:string|null;
     boxLocation: {
         "BBox": {
             "left": number;
             "top": number;
             "width": number;
             "height": number;
-        },
+        }| null,
         "Page": number;
     }
 }
@@ -48,18 +49,11 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
         }
     };
 
-
     useEffect(() => {
         if (taskDetails) {
             fetchJsonData();
         }
     }, [taskDetails])
-
-
-    const handleFieldClick = (element: any) => {
-        console.log("Clicked field:", element);
-    }
-
 
     const [leftWidth, setLeftWidth] = useState<number>(70);
     const minWidth = 20; // prevent collapsing too much
@@ -91,6 +85,35 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
         document.addEventListener("mouseup", handleMouseUp);
     };
 
+
+    const handleFieldChange = (updatedElement: SelectedElement) => {
+        const section = updatedElement.section;
+        const id = updatedElement.id;
+        const target = updatedElement.target;
+        const BBox = updatedElement.boxLocation.BBox;
+        console.log("Updated field:", updatedElement);
+
+        const newJsonData = { ...jsonData };
+        const fields = newJsonData[section] || [];
+        newJsonData[section] = fields.map((f: any) =>
+            f.id === id
+            ? {
+                ...f,
+                Value: {
+                ...f.Value,
+                ...(target === "Value"
+                    ? { BoundingBox: BBox, Page: updatedElement.boxLocation.Page }
+                    : target === "Label"
+                    ? { LabelBoundingBox: BBox, Page: updatedElement.boxLocation.Page }
+                    : {})
+                }
+            }
+            : f
+        );
+        setJsonData(newJsonData);
+
+    };
+
     return (
         <div className="flex h-full w-full overflow-hidden">
             <div style={{ width: `${leftWidth}%` }} className="h-full">
@@ -99,6 +122,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                     isEditor={isEditor}
                     selectedElement={selectedElement}
                     leftWidth={leftWidth}
+                    handleFieldChange={handleFieldChange}
                 />
             </div>
             <div
@@ -119,7 +143,6 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                 taskDetails={taskDetails}
                 jsonData={jsonData}
                 setJsonData={setJsonData}
-                handleFieldClick={handleFieldClick}
                 selectedElement={selectedElement}
                 setSelectedElement={setSelectedElement}
             />

@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
+import XIcon from "@/app/components/XIcon";
 
 interface SelectedElement {
     section: string;
     id: string;
     target: string;
+    text: string|null;
     boxLocation: {
         BBox: {
             left: number;
             top: number;
             width: number;
             height: number;
-        };
+        } | null;
         Page: number;
     };
 }
@@ -19,12 +21,11 @@ interface FieldsDisplayProps {
     taskDetails?: { id?: string | number };
     jsonData: any;
     setJsonData: React.Dispatch<React.SetStateAction<any>>;
-    handleFieldClick: (element: any) => void;
     selectedElement: SelectedElement | null;
     setSelectedElement: React.Dispatch<React.SetStateAction<SelectedElement | null>>;
 }
 
-const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, setJsonData, handleFieldClick, selectedElement, setSelectedElement }) => {
+const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, setJsonData, selectedElement, setSelectedElement }) => {
 
     if (!jsonData) {
         return (
@@ -59,7 +60,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
 
             {jsonData && Object.entries(jsonData).map(([section, fields]) => (
                 <div className="space-y-2 bg-gray-100 p-2" key={section}>
-                    {Array.isArray(fields) && fields.map((field: any) => (
+                    {Array.isArray(fields) && fields.length>0 && !Array.isArray(fields[0]) && fields.map((field: any) => (
                         <div
                             key={field.id}
                             className={`rounded-lg shadow-md p-3 space-y-3 ${selectedElement?.id === String(field.id)
@@ -94,6 +95,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                             section: section,
                                             id: field.id,
                                             target: "Label",
+                                            text: field.Value?.Label ?? "",
                                             boxLocation: {
                                                 BBox: field.Value.LabelBoundingBox,
                                                 Page: field.Value.Page,
@@ -105,7 +107,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                         type="text"
                                         value={field.Value?.Label || ""}
                                         placeholder="label"
-                                        className="bg-white p-2 outline-none border border-gray-200 focus:border-red-400 focus:border-2 rounded-md transition w-full shadow-sm text-gray-700"
+                                        className={`bg-white p-2 outline-none border border-gray-200 rounded-md transition w-full shadow-sm text-gray-700 ${((selectedElement?.id == field.id) && (selectedElement?.target == "Label")) ? "border-red-400 border-2" : ""}`}
                                         onChange={(e) => {
                                             const newJsonData = { ...jsonData };
                                             const newField = { ...field, Value: { ...field.Value, Label: e.target.value } };
@@ -114,11 +116,26 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                         }}
                                     />
                                     {field.Value?.LabelBoundingBox && (
-                                        <img
-                                            src="/rect.png"
-                                            alt="Draw Box"
-                                            className="h-5 w-5 opacity-70 hover:opacity-100 transition hover:text-red-500"
-                                        />
+                                        <button className="relative"
+                                            disabled={!((selectedElement?.id == field.id) && (selectedElement?.target == "Label"))}
+                                            onClick={() => {
+                                                setJsonData((prevJsonData: any) => ({
+                                                    ...prevJsonData,
+                                                    [section]: prevJsonData[section].map((f: any) =>
+                                                        f.id === field.id
+                                                            ? { ...f, Value: { ...f.Value, LabelBoundingBox: null } }
+                                                            : f
+                                                    ),
+                                                }));
+                                            }}>
+                                            <img
+                                                src="/rect.png"
+                                                alt="Draw Box"
+                                                className="h-5 w-6"
+
+                                            />
+                                            {(selectedElement?.id == field.id) && (selectedElement?.target == "Label") && <XIcon />}
+                                        </button>
                                     )}
                                 </div>
 
@@ -129,6 +146,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                             section: section,
                                             id: field.id,
                                             target: "Value",
+                                            text: field.Value?.Text,
                                             boxLocation: {
                                                 BBox: field.Value.BoundingBox,
                                                 Page: field.Value.Page,
@@ -139,7 +157,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                         type="text"
                                         value={field.Value?.Text || ""}
                                         placeholder="value"
-                                        className="bg-white p-2 outline-none border border-gray-200 focus:border-red-400 focus:border-2 rounded-md transition w-full shadow-sm text-gray-700"
+                                        className={`bg-white p-2 outline-none border border-gray-200 rounded-md transition w-full shadow-sm text-gray-700 ${((selectedElement?.id == field.id) && (selectedElement?.target == "Value")) ? "border-red-400 border-2" : ""}`}
                                         onChange={(e) => {
                                             const newJsonData = { ...jsonData };
                                             const newField = { ...field, Value: { ...field.Value, Text: e.target.value } };
@@ -148,14 +166,26 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                         }}
                                     />
                                     {field.Value?.BoundingBox && (
-                                        <img
-                                            src="/rect.png"
-                                            alt="Draw Box"
-                                            className="h-5 w-6"
-                                        />
+                                        <button className="relative"
+                                            onClick={() => {
+                                                setJsonData((prevJsonData: any) => ({
+                                                    ...prevJsonData,
+                                                    [section]: prevJsonData[section].map((f: any) =>
+                                                        f.id === field.id
+                                                            ? { ...f, Value: { ...f.Value, BoundingBox: null } }
+                                                            : f
+                                                    ),
+                                                }));
+                                            }}
+                                            disabled={!((selectedElement?.id == field.id) && (selectedElement?.target == "Value"))}>
+                                            <img
+                                                src="/rect.png"
+                                                alt="Draw Box"
+                                                className="h-5 w-6"
 
-
-
+                                            />
+                                            {(selectedElement?.id == field.id) && (selectedElement?.target == "Value") && <XIcon />}
+                                        </button>
                                     )}
                                 </div>
                             </div>
