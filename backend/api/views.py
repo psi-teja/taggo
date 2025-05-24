@@ -9,7 +9,8 @@ import json
 import pytz
 import os
 from datetime import datetime
-
+import pytesseract
+from PIL import Image
 from api.models import Task
 
 # Function to get the current time
@@ -198,4 +199,27 @@ def TaskDeleteView(request, id: str):
         return JsonResponse({"error": "Task not found"}, status=404)
     except Exception as e:
         logger.error(f"Error deleting task: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
+    
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def get_ocr_text(request):
+    try:
+        if request.method == "POST" and "file" in request.FILES:
+            uploaded_file = request.FILES["file"]
+
+            # Use Pillow to open the uploaded image file
+            image = Image.open(uploaded_file)
+
+            # Apply OCR using pytesseract
+            text = pytesseract.image_to_string(image)
+
+            text = text.strip()
+
+            # Return the extracted text as JSON response
+            return JsonResponse({"text": text})
+
+        return JsonResponse({"error": "POST method and file data required"}, status=400)
+    except Exception as e:
+        logger.error(f"Error processing OCR: {e}")
         return JsonResponse({"error": str(e)}, status=500)

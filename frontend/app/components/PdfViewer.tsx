@@ -4,6 +4,7 @@ import { downloadFile } from "../hooks/downloadFile";
 import "react-pdf/dist/esm/Page/TextLayer.css";
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import PdfTools from "@/app/components/PdfTools";
+import axiosInstance from "@/app/hooks/axiosInstance";
 import "./styles.css";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
@@ -27,7 +28,7 @@ interface SelectedElement {
       "top": number;
       "width": number;
       "height": number;
-    }|null,
+    } | null,
     "Page": number;
   }
 }
@@ -134,6 +135,9 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
           scaledWidth = Math.abs(startX - endX);
           scaledHeight = Math.abs(startY - endY);
         }
+        else {
+          return null;
+        }
       }
     }
     else {
@@ -173,7 +177,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   }, [selectedElement]);
 
 
-   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
 
     if (selectedElement && !selectedElement.boxLocation.BBox && viewerRef.current) {
       setDrawingBox(true);
@@ -245,7 +249,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   const handleMouseUp = async () => {
     setDrawingBox(false)
     const updatedElement = selectedElement;
-    
+
     if (updatedElement && startX && startY && endX && endY) {
       const left = Math.min(startX, endX);
       const top = Math.min(startY, endY);
@@ -260,7 +264,67 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
       };
       updatedElement.boxLocation.Page = pageNumber;
 
-      handleFieldChange(updatedElement);
+      if (!["invoice-annotation"].includes(taskDetails.task_type)) {
+        handleFieldChange(updatedElement);
+        return;
+      }
+
+      // Ensure correct canvas selection
+      const canvasElement = viewerRef.current?.querySelector("canvas");
+      if (!canvasElement) {
+        console.error("Canvas not found");
+        return;
+      }
+
+      // Get the bounding rect of the canvas
+      const canvasRect = canvasElement.getBoundingClientRect();
+      const scaleX = canvasElement.width / canvasRect.width;
+      const scaleY = canvasElement.height / canvasRect.height;
+
+      // Adjust mouse coordinates relative to the canvas
+      const adjustedLeft = left * scaleX;
+      const adjustedTop = top * scaleY;
+      const adjustedWidth = width * scaleX;
+      const adjustedHeight = height * scaleY;
+
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+      canvas.width = adjustedWidth;
+      canvas.height = adjustedHeight;
+
+      context?.drawImage(
+        canvasElement,
+        adjustedLeft,
+        adjustedTop,
+        adjustedWidth,
+        adjustedHeight,
+        0,
+        0,
+        adjustedWidth,
+        adjustedHeight
+      );
+
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+
+        const formData = new FormData();
+        formData.append("file", blob, "cropped_image.png");
+
+        try {
+          const { data } = await axiosInstance.post(
+            "/get_ocr_text/",
+            formData,
+            {
+              headers: { "Content-Type": "multipart/form-data" },
+            }
+          );
+          console.log("OCR Result:", data.text);
+          updatedElement.text = data.text || null;
+          handleFieldChange(updatedElement);
+        } catch (error) {
+          console.error("Error during OCR:", error);
+        }
+      });  
     }
   };
 

@@ -8,14 +8,12 @@ interface PageNavProps {
 }
 
 const PageNav: React.FC<PageNavProps> = ({ totalTasks, perPage, currentPage, changePage }) => {
-  
-  console.log("PageNav props:", { totalTasks, perPage, currentPage });
-  
+
   const isLastPage = currentPage === Math.ceil(totalTasks / perPage);
   const page = currentPage;
 
   return (
-    <div className="flex justify-between items-center shadow-md rounded-md bg-gradient-to-r from-blue-50 to-cyan-50 text-blue-800 text-white">
+    <div className="flex justify-between items-center shadow-md rounded-md bg-slate-500 text-white">
       <button
         onClick={() => changePage(Math.max(page - 1, 1))}
         disabled={page === 1}
@@ -25,7 +23,7 @@ const PageNav: React.FC<PageNavProps> = ({ totalTasks, perPage, currentPage, cha
           }`}
       >
         <i className="m-1 fa fa-angle-left"></i>      </button>
-      <div className="flex items-center text-sm text-center text-black">
+      <div className="flex items-center text-sm text-center">
         <p className="font-semibold mr-2">
           Page {page} of {Math.ceil(totalTasks / perPage)}
         </p>
@@ -38,7 +36,7 @@ const PageNav: React.FC<PageNavProps> = ({ totalTasks, perPage, currentPage, cha
         disabled={isLastPage}
         className={`px-2 py-1 transition-colors duration-300 ${isLastPage
           ? "bg-gray-300 cursor-not-allowed text-gray-700"
-          : "bg-blue-500 hover:bg-blue-700 text-white"
+          : "bg-blue-600 hover:bg-blue-700 text-white"
           }`}
       >
         <i className="m-1 fa fa-angle-right"></i>

@@ -90,8 +90,8 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
         const section = updatedElement.section;
         const id = updatedElement.id;
         const target = updatedElement.target;
+        const text = updatedElement.text;
         const BBox = updatedElement.boxLocation.BBox;
-        console.log("Updated field:", updatedElement);
 
         const newJsonData = { ...jsonData };
         const fields = newJsonData[section] || [];
@@ -102,9 +102,9 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                 Value: {
                 ...f.Value,
                 ...(target === "Value"
-                    ? { BoundingBox: BBox, Page: updatedElement.boxLocation.Page }
+                    ? { Text: text, BoundingBox: BBox, Page: updatedElement.boxLocation.Page }
                     : target === "Label"
-                    ? { LabelBoundingBox: BBox, Page: updatedElement.boxLocation.Page }
+                    ? { Label: text, LabelBoundingBox: BBox, Page: updatedElement.boxLocation.Page }
                     : {})
                 }
             }
@@ -137,7 +137,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                     if (e.key === "ArrowRight") setLeftWidth(w => Math.min(maxWidth, w + 2));
                 }}
             >
-                <div className="absolute inset-0 bg-gray-300 transition-colors rounded hover:bg-blue-400" />
+                <div className="absolute inset-0 bg-gray-300 transition-colors hover:bg-blue-400" />
             </div>
             <FieldsDisplay
                 taskDetails={taskDetails}

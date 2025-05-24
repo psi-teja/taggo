@@ -5,7 +5,7 @@ interface SelectedElement {
     section: string;
     id: string;
     target: string;
-    text: string|null;
+    text: string | null;
     boxLocation: {
         BBox: {
             left: number;
@@ -48,19 +48,51 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
     }, []);
 
 
+    const downloadJsonData = () => {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(jsonData, null, 2));
+        const downloadAnchorNode = document.createElement("a");
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", `${taskDetails?.id || "task"}.json`);
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    };
+
+
     return (
         <div className="flex-1 overflow-auto">
-            <div className="flex justify-between bg-slate-400 p-1 shadow items-center space-x-4 sticky top-0 left-0 z-10">
-                <div className="font-semibold">ID:</div>
-                <div className="truncate text-ellipsis overflow-hidden text-right font-medium">
+            <div className="flex text-sm text-ellipsis justify-between bg-slate-400 p-1 shadow items-center space-x-4 sticky top-0 left-0 z-10">
+                <div className="">ID:</div>
+                <div className="truncate  overflow-hidden text-right">
                     {taskDetails && taskDetails.id}
                 </div>
-
+                <div
+                    className="hover:bg-gray-200 rounded"
+                    title="Download JSON"
+                    onClick={() => downloadJsonData()}
+                >
+                    <svg
+                        className="h-5 w-5 text-black "
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        strokeWidth="2"
+                        stroke="currentColor"
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    >
+                        <path stroke="none" d="M0 0h24v24H0z" />
+                        <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" />
+                        <polyline points="7 11 12 16 17 11" />
+                        <line x1="12" y1="4" x2="12" y2="16" />
+                    </svg>
+                </div>
             </div>
 
             {jsonData && Object.entries(jsonData).map(([section, fields]) => (
                 <div className="space-y-2 bg-gray-100 p-2" key={section}>
-                    {Array.isArray(fields) && fields.length>0 && !Array.isArray(fields[0]) && fields.map((field: any) => (
+                    {Array.isArray(fields) && fields.length > 0 && !Array.isArray(fields[0]) && fields.map((field: any) => (
                         <div
                             key={field.id}
                             className={`rounded-lg shadow-md p-3 space-y-3 ${selectedElement?.id === String(field.id)
