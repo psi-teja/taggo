@@ -87,6 +87,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
 
 
     const handleFieldChange = (updatedElement: SelectedElement) => {
+        setSelectedElement(updatedElement);
         const section = updatedElement.section;
         const id = updatedElement.id;
         const target = updatedElement.target;
@@ -111,7 +112,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
             : f
         );
         setJsonData(newJsonData);
-
+        console.log("updatedElement", selectedElement);
     };
 
     return (
@@ -145,6 +146,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                 setJsonData={setJsonData}
                 selectedElement={selectedElement}
                 setSelectedElement={setSelectedElement}
+                handleFieldChange={handleFieldChange}
             />
         </div>
     );

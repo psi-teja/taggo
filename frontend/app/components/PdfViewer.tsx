@@ -110,6 +110,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   useEffect(() => {
     if (selectedElement && selectedElement.boxLocation && selectedElement.boxLocation.Page) {
       setPageNumber(selectedElement.boxLocation.Page);
+      console.log("Selected Element Changed:", selectedElement);
     }
   }, [selectedElement]);
 
@@ -248,7 +249,14 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
 
   const handleMouseUp = async () => {
     setDrawingBox(false)
-    const updatedElement = selectedElement;
+    // Create a deep copy of selectedElement
+    const updatedElement = selectedElement ? {
+      ...selectedElement,
+      boxLocation: {
+        ...selectedElement.boxLocation,
+        BBox: selectedElement.boxLocation.BBox ? { ...selectedElement.boxLocation.BBox } : null
+      }
+    } : null;
 
     if (updatedElement && startX && startY && endX && endY) {
       const left = Math.min(startX, endX);
@@ -324,7 +332,42 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
         } catch (error) {
           console.error("Error during OCR:", error);
         }
-      });  
+      });
+    }
+  };
+
+  const [isModifierKeyPressed, setIsModifierKeyPressed] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey) {
+        setIsModifierKeyPressed(true);
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (!e.metaKey && !e.ctrlKey) {
+        setIsModifierKeyPressed(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
+
+  const handleWheel = (e: React.WheelEvent) => {
+    if (isModifierKeyPressed) {
+      e.preventDefault();
+      const delta = e.deltaY;
+      setScale(prevScale => {
+        const newScale = delta < 0 ? prevScale * 1.1 : prevScale * 0.9;
+        return Math.min(Math.max(newScale, 0.1), 10.0);
+      });
     }
   };
 
@@ -341,8 +384,11 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
         handleScaleChange={(e) => setScale(parseFloat(e.target.value))}
       />
 
-      <div className={`w-full overflow-auto no-select h-[calc(100vh-100px)] ${selectedElement && !selectedElement.boxLocation.BBox ? "cursor-crosshair" : ""}`}
-        ref={viewerRef}>
+      <div
+        className={`w-full overflow-auto no-select h-[calc(100vh-100px)] ${selectedElement && !selectedElement.boxLocation.BBox ? "cursor-crosshair" : ""}`}
+        ref={viewerRef}
+        onWheel={handleWheel}
+      >
         {loading && (
           <div className="relative inset-0 flex items-center justify-center bg-white bg-opacity-75 h-screen">
             <div className="loader border-t-4 border-blue-500 rounded-full w-12 h-12 mx-auto animate-spin"></div>

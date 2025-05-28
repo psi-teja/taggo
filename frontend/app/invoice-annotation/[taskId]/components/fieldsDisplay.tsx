@@ -23,9 +23,10 @@ interface FieldsDisplayProps {
     setJsonData: React.Dispatch<React.SetStateAction<any>>;
     selectedElement: SelectedElement | null;
     setSelectedElement: React.Dispatch<React.SetStateAction<SelectedElement | null>>;
+    handleFieldChange: (element: SelectedElement) => void;
 }
 
-const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, setJsonData, selectedElement, setSelectedElement }) => {
+const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, setJsonData, selectedElement, setSelectedElement, handleFieldChange }) => {
 
     if (!jsonData) {
         return (
@@ -141,24 +142,22 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                         placeholder="label"
                                         className={`bg-white p-2 outline-none border border-gray-200 rounded-md transition w-full shadow-sm text-gray-700 ${((selectedElement?.id == field.id) && (selectedElement?.target == "Label")) ? "border-red-400 border-2" : ""}`}
                                         onChange={(e) => {
-                                            const newJsonData = { ...jsonData };
-                                            const newField = { ...field, Value: { ...field.Value, Label: e.target.value } };
-                                            newJsonData[section] = fields.map((f: any) => f.id === field.id ? newField : f);
-                                            setJsonData(newJsonData);
+                                            const updatedElement = selectedElement;
+                                            if (updatedElement) {
+                                                updatedElement.text = e.target.value;
+                                                handleFieldChange(updatedElement)
+                                            }
                                         }}
                                     />
                                     {field.Value?.LabelBoundingBox && (
                                         <button className="relative"
                                             disabled={!((selectedElement?.id == field.id) && (selectedElement?.target == "Label"))}
                                             onClick={() => {
-                                                setJsonData((prevJsonData: any) => ({
-                                                    ...prevJsonData,
-                                                    [section]: prevJsonData[section].map((f: any) =>
-                                                        f.id === field.id
-                                                            ? { ...f, Value: { ...f.Value, LabelBoundingBox: null } }
-                                                            : f
-                                                    ),
-                                                }));
+                                                const updatedElement = selectedElement;
+                                                if (updatedElement) {
+                                                    updatedElement.boxLocation.BBox = null;
+                                                    handleFieldChange(updatedElement);
+                                                }
                                             }}>
                                             <img
                                                 src="/rect.png"
@@ -191,23 +190,21 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                         placeholder="value"
                                         className={`bg-white p-2 outline-none border border-gray-200 rounded-md transition w-full shadow-sm text-gray-700 ${((selectedElement?.id == field.id) && (selectedElement?.target == "Value")) ? "border-red-400 border-2" : ""}`}
                                         onChange={(e) => {
-                                            const newJsonData = { ...jsonData };
-                                            const newField = { ...field, Value: { ...field.Value, Text: e.target.value } };
-                                            newJsonData[section] = fields.map((f: any) => f.id === field.id ? newField : f);
-                                            setJsonData(newJsonData);
+                                            const updatedElement = selectedElement;
+                                            if (updatedElement) {
+                                                updatedElement.text = e.target.value;
+                                                handleFieldChange(updatedElement)
+                                            }
                                         }}
                                     />
                                     {field.Value?.BoundingBox && (
                                         <button className="relative"
                                             onClick={() => {
-                                                setJsonData((prevJsonData: any) => ({
-                                                    ...prevJsonData,
-                                                    [section]: prevJsonData[section].map((f: any) =>
-                                                        f.id === field.id
-                                                            ? { ...f, Value: { ...f.Value, BoundingBox: null } }
-                                                            : f
-                                                    ),
-                                                }));
+                                                const updatedElement = selectedElement;
+                                                if (updatedElement) {
+                                                    updatedElement.boxLocation.BBox = null;
+                                                    handleFieldChange(updatedElement);
+                                                }
                                             }}
                                             disabled={!((selectedElement?.id == field.id) && (selectedElement?.target == "Value"))}>
                                             <img
