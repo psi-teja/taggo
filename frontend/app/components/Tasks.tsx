@@ -100,7 +100,7 @@ const Tasks: React.FC<TasksProps> = ({ task_type, loggedInUser }) => {
       ) : (
         <div className="overflow-y-auto">
           <table className="table-auto w-full">
-            <thead className="sticky top-0 bg-slate-400 z-50 shadow-md">
+            <thead className="sticky top-0 bg-slate-400 z-10 shadow-md">
               <tr>
                 {/* ID Column */}
                 <th className="px-4 py-3">

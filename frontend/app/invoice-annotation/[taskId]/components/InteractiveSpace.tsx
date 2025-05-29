@@ -112,7 +112,6 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
             : f
         );
         setJsonData(newJsonData);
-        console.log("updatedElement", selectedElement);
     };
 
     return (

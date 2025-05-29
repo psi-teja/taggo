@@ -123,21 +123,22 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                 </select>
 
                                 <div
-                                    onClick={() =>
-                                        setSelectedElement({
-                                            section: section,
-                                            id: field.id,
-                                            target: "Label",
-                                            text: field.Value?.Label ?? "",
-                                            boxLocation: {
-                                                BBox: field.Value.LabelBoundingBox,
-                                                Page: field.Value.Page,
-                                            }
-                                        })}
+
                                     className="flex items-center gap-2"
                                 >
                                     <input
                                         type="text"
+                                        onClick={() =>
+                                            setSelectedElement({
+                                                section: section,
+                                                id: field.id,
+                                                target: "Label",
+                                                text: field.Value?.Label ?? "",
+                                                boxLocation: {
+                                                    BBox: field.Value.LabelBoundingBox,
+                                                    Page: field.Value.Page,
+                                                }
+                                            })}
                                         value={field.Value?.Label || ""}
                                         placeholder="label"
                                         className={`bg-white p-2 outline-none border border-gray-200 rounded-md transition w-full shadow-sm text-gray-700 ${((selectedElement?.id == field.id) && (selectedElement?.target == "Label")) ? "border-red-400 border-2" : ""}`}
@@ -172,19 +173,20 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
 
                                 <div
                                     className="flex items-center gap-2"
-                                    onClick={() =>
-                                        setSelectedElement({
-                                            section: section,
-                                            id: field.id,
-                                            target: "Value",
-                                            text: field.Value?.Text,
-                                            boxLocation: {
-                                                BBox: field.Value.BoundingBox,
-                                                Page: field.Value.Page,
-                                            }
-                                        })}
+
                                 >
                                     <input
+                                        onClick={() =>
+                                            setSelectedElement({
+                                                section: section,
+                                                id: field.id,
+                                                target: "Value",
+                                                text: field.Value?.Text,
+                                                boxLocation: {
+                                                    BBox: field.Value.BoundingBox,
+                                                    Page: field.Value.Page,
+                                                }
+                                            })}
                                         type="text"
                                         value={field.Value?.Text || ""}
                                         placeholder="value"

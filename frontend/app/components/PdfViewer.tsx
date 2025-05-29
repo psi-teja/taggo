@@ -110,7 +110,6 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   useEffect(() => {
     if (selectedElement && selectedElement.boxLocation && selectedElement.boxLocation.Page) {
       setPageNumber(selectedElement.boxLocation.Page);
-      console.log("Selected Element Changed:", selectedElement);
     }
   }, [selectedElement]);
 
@@ -385,7 +384,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
       />
 
       <div
-        className={`w-full overflow-auto no-select h-[calc(100vh-100px)] ${selectedElement && !selectedElement.boxLocation.BBox ? "cursor-crosshair" : ""}`}
+        className={`w-full overflow-auto no-select h-[calc(100vh-85px)] ${selectedElement && !selectedElement.boxLocation.BBox ? "cursor-crosshair" : ""}`}
         ref={viewerRef}
         onWheel={handleWheel}
       >
