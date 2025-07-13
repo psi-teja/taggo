@@ -12,14 +12,14 @@ interface SelectedElement {
     section: string;
     id: string;
     target: string;
-    text:string|null;
+    text: string | null;
     boxLocation: {
         "BBox": {
             "left": number;
             "top": number;
             "width": number;
             "height": number;
-        }| null,
+        } | null,
         "Page": number;
     }
 }
@@ -34,11 +34,14 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
 
     const jsonURL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/invoice-annotation/annotations/${taskDetails?.id}.json`;
 
+    console.log("JSON URL:", jsonURL);
+
     const fetchJsonData = async () => {
         try {
             const response = await fetch(jsonURL);
             if (!response.ok) throw new Error("Failed to fetch JSON data");
             const data = await response.json();
+            console.log("Fetched JSON data:", data);
             const updatedData = addIdsToJsonData(data);
             setJsonData(updatedData);
             if (JSON.stringify(data) !== JSON.stringify(updatedData)) {
@@ -98,18 +101,18 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
         const fields = newJsonData[section] || [];
         newJsonData[section] = fields.map((f: any) =>
             f.id === id
-            ? {
-                ...f,
-                Value: {
-                ...f.Value,
-                ...(target === "Value"
-                    ? { Text: text, BoundingBox: BBox, Page: updatedElement.boxLocation.Page }
-                    : target === "Label"
-                    ? { Label: text, LabelBoundingBox: BBox, Page: updatedElement.boxLocation.Page }
-                    : {})
+                ? {
+                    ...f,
+                    Value: {
+                        ...f.Value,
+                        ...(target === "Value"
+                            ? { Text: text, BoundingBox: BBox, Page: updatedElement.boxLocation.Page }
+                            : target === "Label"
+                                ? { Label: text, LabelBoundingBox: BBox, Page: updatedElement.boxLocation.Page }
+                                : {})
+                    }
                 }
-            }
-            : f
+                : f
         );
         setJsonData(newJsonData);
     };
@@ -146,6 +149,22 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                 selectedElement={selectedElement}
                 setSelectedElement={setSelectedElement}
                 handleFieldChange={handleFieldChange}
+                handleSave={() => {
+                    if (jsonData) {
+                        saveJsonData(jsonData, taskDetails);
+                        alert("Changes saved successfully!");
+                    } else {
+                        alert("No data to save.");
+                    }
+                }}
+                handleReset={() => {
+                    if (jsonData) {
+                        fetchJsonData();
+                        alert("Changes reset to last saved state.");
+                    } else {
+                        alert("No data to reset.");
+                    }
+                }}
             />
         </div>
     );

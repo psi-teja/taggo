@@ -24,9 +24,11 @@ interface FieldsDisplayProps {
     selectedElement: SelectedElement | null;
     setSelectedElement: React.Dispatch<React.SetStateAction<SelectedElement | null>>;
     handleFieldChange: (element: SelectedElement) => void;
+    handleSave: () => void;
+    handleReset: () => void;
 }
 
-const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, setJsonData, selectedElement, setSelectedElement, handleFieldChange }) => {
+const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, setJsonData, selectedElement, setSelectedElement, handleFieldChange, handleSave, handleReset }) => {
 
     if (!jsonData) {
         return (
@@ -224,6 +226,21 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                     ))}
                 </div>
             ))}
+
+            <div className="sticky justify-center bottom-0 left-0 w-full bg-gradient-to-t from-white via-gray-50 to-transparent shadow-lg p-4 flex justify-end gap-3 z-20 border-t border-gray-200">
+                <button
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-md shadow transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    onClick={() => handleSave()}
+                >
+                    Save
+                </button>
+                <button
+                    className="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-2 rounded-md shadow transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-red-400"
+                    onClick={() => handleReset()}
+                >
+                    Reset
+                </button>
+            </div>
         </div>
     );
 };
