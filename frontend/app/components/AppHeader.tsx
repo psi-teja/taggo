@@ -92,12 +92,14 @@ const AppHeader = ({ loggedInUser, task_type}: AppHeaderProps) => {
         {loggedInUser?.is_superuser && (
           <button
             onClick={() => setIsUploadModalOpen(true)}
-            className={`cursor-pointer text-sm bg-blue-500 hover:bg-blue-700 text-white p-2 rounded-lg flex items-center shadow-md hover:shadow-lg transition duration-200 ${
-              isLoading ? "opacity-50 pointer-events-none" : ""
+            className={`relative cursor-pointer text-sm font-medium px-4 py-2 rounded-md flex items-center gap-2 shadow-md shadow-teal-900/10 border border-teal-400/40 bg-gradient-to-r from-teal-500 via-cyan-500 to-emerald-500 text-white tracking-wide transition-all duration-200 hover:shadow-lg hover:shadow-teal-900/20 hover:-translate-y-0.5 hover:from-teal-600 hover:via-cyan-600 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-teal-300 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed ${
+              isLoading ? "opacity-60 pointer-events-none" : ""
             }`}
+            disabled={isLoading}
           >
-            <PlusIcon className="h-4 w-4 mr-2 text-white" />
-            {isLoading ? "Uploading..." : "Upload Files"}
+            <PlusIcon className="h-4 w-4 text-white drop-shadow" />
+            <span className="whitespace-nowrap">{isLoading ? "Uploading..." : "Upload Files"}</span>
+            <span className="absolute inset-0 rounded-md bg-white/10 opacity-0 hover:opacity-100 transition-opacity" />
           </button>
         )}
         {loggedInUser && <AccountDetails loggedInUser={loggedInUser} />}

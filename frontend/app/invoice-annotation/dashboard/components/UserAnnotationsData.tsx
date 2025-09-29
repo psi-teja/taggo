@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from "react";
-import axiosInstance from "../../utils/axiosInstance";
+import axiosInstance from "@/app/hooks/axiosInstance";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Link from "next/link";
@@ -340,7 +340,7 @@ export const UserDashboard: React.FC<UserDashboardDataProps> = ({ username, role
 
                        
                         <PageNav 
-                            totalAnnotations={activeTab === 'labelled' ? paginationData.total_labelled : paginationData.total_reviewed}
+                            totalTasks={activeTab === 'labelled' ? paginationData.total_labelled : paginationData.total_reviewed}
                             perPage={perPage}
                             currentPage={activeTab === 'labelled' ? paginationData.page_labelled : paginationData.page_reviewed}
                             changePage={changePage}

@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import Link from "next/link";
 
 interface AccountDetailsProps {
@@ -14,22 +15,26 @@ const AccountMenu: React.FC<{ loggedInUser: AccountDetailsProps['loggedInUser'],
         window.location.href = '/login';
     }, []);
 
+    const baseItem = "group w-full flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-2 focus:ring-offset-teal-50 dark:focus:ring-offset-slate-800";
+    const linkItem = `${baseItem} text-teal-700 dark:text-teal-300 bg-teal-50/70 hover:bg-teal-100 dark:bg-teal-600/20 dark:hover:bg-teal-600/30`;
+    const loader = (extra?: string) => <div className={`loader border-t-4 border-teal-500 rounded-full w-5 h-5 animate-spin ${extra || ''}`}></div>;
+
     return (
-        <div className="absolute top-full mt-2 right-0 bg-blue-100 border border-blue-300 rounded-lg shadow-lg p-4 w-60 z-40">
-            <div className="text-xl font-semibold text-blue-900 mb-4 text-center truncate" title={loggedInUser?.username}>
+        <div className="w-64 rounded-xl border border-teal-100/60 dark:border-teal-700/40 bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl shadow-2xl p-4 ring-1 ring-teal-100/50 dark:ring-teal-700/30 animate-fadeIn">
+            <div className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-4 text-center truncate" title={loggedInUser?.username}>
                 {loggedInUser?.username}
             </div>
 
             {loggedInUser?.is_superuser && <Link
                 href="/settings"
                 onClick={onSettingsClick}
-                className="block text-lg font-semibold text-blue-600 hover:text-blue-800 transition duration-150 mb-4 text-center flex items-center justify-center"
+                className={linkItem}
             >
                 {settingsLoading ? (
-                    <div className="loader border-t-4 border-blue-500 rounded-full w-6 h-6 mx-2 animate-spin"></div>
-                ) :
+                    loader("mx-1")
+                ) : (
                     <svg
-                        className="w-6 h-6 mr-2"
+                        className="w-5 h-5"
                         aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -42,9 +47,9 @@ const AccountMenu: React.FC<{ loggedInUser: AccountDetailsProps['loggedInUser'],
                             strokeWidth="2"
                             d="M7.75 4H19M7.75 4a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 4h2.25m13.5 6H19m-2.25 0a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 10h11.25m-4.5 6H19M7.75 16a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 16h2.25"
                         />
-                    </svg>}
-                Settings
-
+                    </svg>
+                )}
+                <span>Settings</span>
             </Link>}
             <Link
                 href={{
@@ -54,13 +59,13 @@ const AccountMenu: React.FC<{ loggedInUser: AccountDetailsProps['loggedInUser'],
                     localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
                     onDashboardClick();
                 }}
-                className="block text-lg font-semibold text-blue-600 hover:text-blue-800 transition duration-150 mb-4 text-center flex items-center justify-center"
+                className={linkItem}
             >
                 {dashboardLoading ? (
-                    <div className="loader border-t-4 m-1 border-blue-500 rounded-full w-6 h-6 mx-2 animate-spin"></div>
-                ) :
+                    loader("mx-1")
+                ) : (
                     <svg
-                        className="w-6 h-6 mr-2"
+                        className="w-5 h-5"
                         aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -73,19 +78,19 @@ const AccountMenu: React.FC<{ loggedInUser: AccountDetailsProps['loggedInUser'],
                             strokeWidth="2"
                             d="M3 12h18M3 6h18M3 18h18"
                         />
-                    </svg>}
-                Dashboard
-
+                    </svg>
+                )}
+                <span>Dashboard</span>
             </Link>
             <Link href="/changePassword"
                 onClick={onChangePasswordClick}
-                className="block text-lg font-semibold text-blue-600 hover:text-blue-800 transition duration-150 mb-4 text-center flex items-center justify-center"
+                className={linkItem}
             >
                 {changePasswordLoading ? (
-                    <div className="loader border-t-4 border-blue-500 rounded-full w-6 h-6 mx-2 animate-spin"></div>
+                    loader("mx-1")
                 ) : (
                     <svg
-                        className="w-6 h-6 mr-2"
+                        className="w-5 h-5"
                         aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -100,17 +105,17 @@ const AccountMenu: React.FC<{ loggedInUser: AccountDetailsProps['loggedInUser'],
                         />
                     </svg>
                 )}
-                Change Password
+                <span>Change Password</span>
             </Link>
             <button
-                className="w-full bg-red-500 text-white py-3 rounded-md hover:bg-red-600 focus:ring-2 focus:ring-red-400 transition duration-150 flex items-center justify-center"
+                className={`${baseItem} justify-center bg-gradient-to-r from-rose-500 to-red-500 text-white hover:from-rose-500/90 hover:to-red-500/90 focus:ring-rose-400 focus:ring-offset-rose-50 dark:focus:ring-offset-slate-800 shadow`}
                 onClick={handleLogout}
             >
                 {logingout ? (
-                    <div className="loader border-t-4 border-white rounded-full w-6 h-6 mx-2 animate-spin"></div>
+                    loader("mx-1 border-white")
                 ) : (
                     <svg
-                        className="w-6 h-6 mr-2"
+                        className="w-5 h-5"
                         aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -125,7 +130,7 @@ const AccountMenu: React.FC<{ loggedInUser: AccountDetailsProps['loggedInUser'],
                         />
                     </svg>
                 )}
-                Logout
+                <span>Logout</span>
             </button>
         </div>
     )
@@ -137,6 +142,30 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ loggedInUser }) => {
     const [changePasswordLoading, setChangePasswordLoading] = useState<boolean>(false);
     const [settingsLoading, setSettingsLoading] = useState<boolean>(false);
     const menuRef = useRef<HTMLDivElement>(null);
+    const avatarRef = useRef<HTMLDivElement>(null);
+    const [mounted, setMounted] = useState(false);
+    const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
+
+    useEffect(() => { setMounted(true); }, []);
+
+    const updatePosition = useCallback(() => {
+        if (avatarRef.current) {
+            const rect = avatarRef.current.getBoundingClientRect();
+            setMenuPos({ top: rect.bottom + 12, left: rect.right - 256 }); // 256px = w-64
+        }
+    }, []);
+
+    useEffect(() => {
+        if (showAccountMenu) {
+            updatePosition();
+            window.addEventListener('scroll', updatePosition, true);
+            window.addEventListener('resize', updatePosition);
+            return () => {
+                window.removeEventListener('scroll', updatePosition, true);
+                window.removeEventListener('resize', updatePosition);
+            };
+        }
+    }, [showAccountMenu, updatePosition]);
 
     const handleClickOutside = useCallback((event: MouseEvent) => {
         if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -170,37 +199,47 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ loggedInUser }) => {
     if (!loggedInUser) {
         return (
             <div className="flex items-center justify-center h-16">
-                <div className="loader border-t-4 border-blue-500 rounded-full w-8 h-8 animate-spin"></div>
+                <div className="loader border-t-4 border-teal-500 rounded-full w-8 h-8 animate-spin"></div>
             </div>
         );
     }
 
     return (
         <div
-            className="ml-4 font-semibold text-blue-900 flex items-center relative"
+            className="ml-4 font-semibold text-slate-800 dark:text-slate-100 flex items-center relative"
             title={loggedInUser.username ? `Logged in as ${loggedInUser.username}` : 'Welcome!'}
             aria-label={loggedInUser.username ? `Logged in as ${loggedInUser.username}` : 'Welcome!'}
         >
             {loggedInUser.username ? (
                 <div
-                    className="w-10 h-10 flex items-center justify-center bg-blue-900 text-white rounded-full cursor-pointer hover:bg-blue-800 transition duration-150"
-                    onClick={() => setShowAccountMenu(!showAccountMenu)}
+                    ref={avatarRef}
+                    className="w-10 h-10 flex items-center justify-center rounded-full cursor-pointer bg-gradient-to-br from-teal-600 to-cyan-600 text-white shadow hover:shadow-md transition active:scale-95 ring-2 ring-transparent focus:outline-none focus:ring-teal-400"
+                    onClick={() => setShowAccountMenu(v => !v)}
                     aria-expanded={showAccountMenu}
                     aria-controls="logout-menu"
                 >
                     {loggedInUser.username.charAt(0).toUpperCase()}
                 </div>
-            ) : (
-                null
-            )}
+            ) : null}
 
-            {showAccountMenu && (
-                <div 
-                onMouseLeave={() => setShowAccountMenu(false)}
-                ref={menuRef} id="logout-menu">
-                    <AccountMenu loggedInUser={loggedInUser} dashboardLoading={dashboardLoading} settingsLoading={settingsLoading} changePasswordLoading={changePasswordLoading} onDashboardClick={handleDashboardClick} onSettingsClick={handleSettingsClick} onChangePasswordClick={handleChangePasswordClick} />
-                </div>
-            )}
+            {mounted && showAccountMenu && menuPos && createPortal(
+                <div
+                    id="logout-menu"
+                    ref={menuRef}
+                    style={{ position: 'fixed', top: menuPos.top, left: menuPos.left, zIndex: 99999 }}
+                    className="drop-shadow-2xl"
+                >
+                    <AccountMenu
+                        loggedInUser={loggedInUser}
+                        dashboardLoading={dashboardLoading}
+                        settingsLoading={settingsLoading}
+                        changePasswordLoading={changePasswordLoading}
+                        onDashboardClick={handleDashboardClick}
+                        onSettingsClick={handleSettingsClick}
+                        onChangePasswordClick={handleChangePasswordClick}
+                    />
+                </div>, document.body)
+            }
         </div>
     );
 };
