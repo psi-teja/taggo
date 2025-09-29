@@ -168,12 +168,15 @@ DEBUG = True
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.mysql",  
-        "NAME": "taggo",                     
-        "USER": "root",
-        "PASSWORD": "pravesh@123",            
-        "HOST": "localhost",
-        "PORT": "3306",                      
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "taggo",
+        "USER": "taggo",  # dedicated DB user
+        "PASSWORD": "StrongPass123!",  # change in production via env var
+        "HOST": "127.0.0.1",  # force TCP to avoid socket issues
+        "PORT": "3306",
+        "OPTIONS": {
+            "charset": "utf8mb4",
+        },
     }
 }
 
