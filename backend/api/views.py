@@ -12,6 +12,7 @@ from datetime import datetime
 import pytesseract
 from PIL import Image
 from api.models import Task
+import re
 
 # Function to get the current time
 def get_current_time_ist():
@@ -215,6 +216,8 @@ def get_ocr_text(request):
             text = pytesseract.image_to_string(image)
 
             text = text.strip()
+
+            text = re.sub(r'\n+', '\n', text)
 
             # Return the extracted text as JSON response
             return JsonResponse({"text": text})

@@ -98,13 +98,29 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     fetchPdfDimensions();
   }, [fileUrl]);
 
-  useEffect(() => {
+  const recalcScaleFromContainer = () => {
     if (pdfDim.width && viewerRef.current) {
       const viewerWidth = viewerRef.current.clientWidth;
-      const newCalculatedScale = viewerWidth / pdfDim.width
+      const newCalculatedScale = viewerWidth / pdfDim.width;
       setScale(newCalculatedScale);
     }
-  }, [pdfDim, viewerRef, leftWidth]);
+  };
+
+  useEffect(() => {
+    recalcScaleFromContainer();
+    const handleResize = () => recalcScaleFromContainer();
+    window.addEventListener('resize', handleResize);
+
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined' && viewerRef.current) {
+      ro = new ResizeObserver(() => recalcScaleFromContainer());
+      ro.observe(viewerRef.current);
+    }
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (ro && viewerRef.current) ro.disconnect();
+    };
+  }, [pdfDim.width, viewerRef]);
 
 
   useEffect(() => {
@@ -371,7 +387,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   };
 
   return (
-    <div className="relative">
+    <div className="relative flex flex-col h-full w-full">
       <PdfTools
         filename={taskDetails.filename}
         scale={scale}
@@ -384,12 +400,12 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
       />
 
       <div
-        className={`w-full overflow-auto no-select h-[calc(100vh-85px)] ${selectedElement && !selectedElement.boxLocation.BBox ? "cursor-crosshair" : ""}`}
+        className={`w-full overflow-auto no-select flex-1 min-h-0 ${selectedElement && !selectedElement.boxLocation.BBox ? "cursor-crosshair" : ""}`}
         ref={viewerRef}
         onWheel={handleWheel}
       >
         {loading && (
-          <div className="relative inset-0 flex items-center justify-center bg-white bg-opacity-75 h-screen">
+          <div className="relative inset-0 flex items-center justify-center bg-white bg-opacity-75 h-full">
             <div className="loader border-t-4 border-blue-500 rounded-full w-12 h-12 mx-auto animate-spin"></div>
           </div>
         )}
