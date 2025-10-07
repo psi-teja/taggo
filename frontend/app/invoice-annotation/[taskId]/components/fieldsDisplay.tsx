@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import XIcon from "@/app/components/XIcon";
+import axiosInstance from "@/app/hooks/axiosInstance";
 
 interface SelectedElement {
     section: string;
@@ -18,7 +19,7 @@ interface SelectedElement {
 }
 
 interface FieldsDisplayProps {
-    taskDetails?: { id?: string | number };
+    taskDetails?: { id?: string | number; task_type?: string };
     jsonData: any;
     setJsonData: React.Dispatch<React.SetStateAction<any>>;
     selectedElement: SelectedElement | null;
@@ -29,7 +30,7 @@ interface FieldsDisplayProps {
     // From parent
     activeSection: string | null;
     setActiveSection: React.Dispatch<React.SetStateAction<string | null>>;
-    addSection: (name: string, type: 'general' | 'table') => void;
+    addSection: (name: string, type: 'general' | 'table') => void; // not used here anymore
     isTableSection?: boolean;
 }
 
@@ -44,10 +45,6 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
     }
 
     const [dropDownOptions, setDropDownOptions] = useState<{ [key: string]: string[] }>({});
-    const [showAddSection, setShowAddSection] = useState(false);
-    const [newSectionName, setNewSectionName] = useState("");
-    const [newSectionType, setNewSectionType] = useState<'general' | 'table'>("general");
-    // New: menus state
     const [openHeaderMenu, setOpenHeaderMenu] = useState<number | null>(null);
     const [openFieldMenu, setOpenFieldMenu] = useState<string | null>(null);
 
@@ -57,15 +54,17 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
         return Array.isArray(v) || (v && typeof v === 'object' && Array.isArray(v.rows));
     });
 
+    // Load dropdown options from backend schema
     useEffect(() => {
-        fetch("/fields.json")
-            .then((res) => res.json())
-            .then((data) => setDropDownOptions(data))
+        const params: Record<string, string> = {};
+        if (taskDetails?.task_type) params.task_type = String(taskDetails.task_type);
+        axiosInstance.get('/schema/options', { params })
+            .then((res) => setDropDownOptions(res.data || {}))
             .catch((err) => {
-                console.error("Failed to load fields.json", err);
+                console.error('Failed to load admin schema options', err);
                 setDropDownOptions({});
             });
-    }, []);
+    }, [taskDetails?.task_type]);
 
     // Migrate legacy table (array of arrays) to new structure { columns, rows }
     useEffect(() => {
@@ -214,15 +213,6 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
         }
     };
 
-    const submitNewSection = () => {
-        const name = newSectionName.trim();
-        if (!name) return;
-        addSection(name, newSectionType);
-        setShowAddSection(false);
-        setNewSectionName("");
-        setNewSectionType("general");
-    };
-
     // Helper to ensure a cell exists at row/col
     const ensureCellAt = (rows: any[][], rIdx: number, cIdx: number) => {
         if (!Array.isArray(rows[rIdx])) rows[rIdx] = [];
@@ -299,11 +289,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                             )}
                         </button>
                     ))}
-                    <button
-                        onClick={() => setShowAddSection(true)}
-                        className="ml-auto bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-md text-sm font-semibold shadow whitespace-nowrap"
-                        title="Add new section"
-                    >+ Section</button>
+                    {/* + Section removed: sections are defined by admin schema */}
                 </div>
             )}
 
@@ -842,60 +828,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                 </div>
             </div>
 
-            {/* Add Section Modal */}
-            {showAddSection && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-black/40" onClick={() => setShowAddSection(false)} />
-                    <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-5">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Add New Section</h3>
-                        <div className="space-y-3">
-                            <div>
-                                <label className="block text-sm text-gray-600 mb-1">Section name</label>
-                                <input
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                    placeholder="e.g., VendorDetails"
-                                    value={newSectionName}
-                                    onChange={e => setNewSectionName(e.target.value)}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm text-gray-600 mb-1">Section type</label>
-                                <div className="flex gap-4">
-                                    <label className="flex items-center gap-2 text-sm">
-                                        <input
-                                            type="radio"
-                                            name="sectionType"
-                                            checked={newSectionType === 'general'}
-                                            onChange={() => setNewSectionType('general')}
-                                        />
-                                        General (list)
-                                    </label>
-                                    <label className="flex items-center gap-2 text-sm">
-                                        <input
-                                            type="radio"
-                                            name="sectionType"
-                                            checked={newSectionType === 'table'}
-                                            onChange={() => setNewSectionType('table')}
-                                        />
-                                        Table (rows/columns)
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="mt-5 flex justify-end gap-3">
-                            <button
-                                className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
-                                onClick={() => setShowAddSection(false)}
-                            >Cancel</button>
-                            <button
-                                className="px-4 py-2 rounded-md bg-purple-600 hover:bg-purple-700 text-white font-semibold disabled:opacity-50"
-                                onClick={submitNewSection}
-                                disabled={!newSectionName.trim()}
-                            >Create</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Add Section Modal removed */}
         </div>
     );
 };

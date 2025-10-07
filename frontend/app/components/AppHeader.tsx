@@ -89,6 +89,15 @@ const AppHeader = ({ loggedInUser, task_type}: AppHeaderProps) => {
         {task_type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
       </h1>
       <div className="flex items-center space-x-2">
+        {loggedInUser?.is_superuser && task_type === 'invoice-annotation' && (
+          <Link
+            href="/invoice-annotation/schema"
+            className="relative text-sm font-medium px-3 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 shadow-sm"
+            title="Invoice Annotation Schema"
+          >
+            Schema
+          </Link>
+        )}
         {loggedInUser?.is_superuser && (
           <button
             onClick={() => setIsUploadModalOpen(true)}

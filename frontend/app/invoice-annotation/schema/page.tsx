@@ -18,7 +18,7 @@ type Section = {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 const TASK_TYPE = "invoice-annotation";
 
-export default function InvoiceAnnotationSettingsPage() {
+export default function InvoiceAnnotationSchemaPage() {
   const router = useRouter();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [sections, setSections] = useState<Section[]>([]);

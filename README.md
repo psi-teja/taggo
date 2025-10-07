@@ -2,110 +2,99 @@
 
 ## Overview
 
-Taggo is a robust system for parsing invoices using a combination of LayoutLM and YOLO models. The system is built with a Next.js frontend, a Django backend, and an invoice extractor that processes documents by subscribing to a Redis queue.
+Taggo is a web-based invoice annotation tool with a Next.js frontend and a Django backend. It lets you upload PDFs, create sections and fields (including table-like sections), and draw/select regions on pages to capture labels and values.
 
 <p align="center">
   <img src="display.gif" alt="Working" style="border: 2px solid black; border-radius: 5px;">
 </p>
 
-## Stack Used
-- **Next.js** (Frontend)
-- **Django** (Backend)
-- **LayoutLM + YOLO** (Invoice Annotation Models)
+## Quick Start
+
+Prerequisites
+- Python 3.10+
+- Node.js 18+ and npm
+
+Run the app (two terminals)
+1) Backend (Django)
+- cd backend
+- python -m venv .venv
+- source .venv/bin/activate
+- pip install -r requirements.txt
+- python manage.py migrate
+- python manage.py createsuperuser  # optional
+- python manage.py runserver 0.0.0.0:8000
+
+2) Frontend (Next.js)
+- cd frontend
+- npm install
+- npm run dev
+
+Open
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+
+Stop
+- Press Ctrl+C in each terminal
+
+## Environment Variables
+
+Backend (Django)
+- DEBUG=true
+- SECRET_KEY=replace-me
+- ALLOWED_HOSTS=localhost,127.0.0.1
+- CORS_ALLOWED_ORIGINS=http://localhost:3000
+
+Frontend (Next.js)
+- NEXT_PUBLIC_API_URL=http://localhost:8000
+
+You can export these in your shell or create env files (e.g., backend/.env and frontend/.env.local). The app works with the defaults above for local development.
+
+## Sample Data (optional)
+
+If you have the companion data repo, place it alongside this repo:
+- ../taggo-data/invoice-annotation/{documents,annotations}
+
+This provides PDFs and annotations for testing the annotation UI. The app runs without it, but you’ll need your own documents otherwise.
 
 ## Components
 
-### 1. backend
-The backend component is responsible for handling document uploads and updating the database with the parsed data. Backend also handles user authentication
+### 1) backend
+Handles document uploads, user authentication, and storing annotated data.
 
-#### Features:
-- Uploads documents to a local folder
-- Publishes request IDs to a Redis queue
-- Updates database with parsed data
+Features
+- Upload documents to a local folder
+- Manage users and sessions
+- Persist annotations to the database
 
-#### Setup:
-1. Navigate to the `backend` folder:
-    ```sh
-    cd backend
-    ```
-2. Install dependencies:
-    ```sh
-    pip install -r requirements.txt
-    ```
-3. Run the Django server:
-    ```sh
-    python manage.py runserver
-    ```
+Local setup (manual)
+- cd backend
+- pip install -r requirements.txt
+- python manage.py migrate
+- python manage.py runserver
 
-For detailed documentation, refer to the [README.md](backend/README.md) file in the `backend` folder.
+### 2) frontend
+Next.js UI for annotation and review.
 
-### 2. extractor
-The extractor subscribes to the Redis queue and processes invoices using models built from LayoutLM and YOLO.
+Local setup (manual)
+- cd frontend
+- npm install
+- npm run dev
 
-#### Features:
-- Subscribes to Redis queue
-- Parses invoices using LayoutLM and YOLO models
-
-#### Setup:
-1. Navigate to the `extractor` folder:
-    ```sh
-    cd extractor
-    ```
-2. Install dependencies:
-    ```sh
-    pip install -r requirements.txt
-    ```
-3. Run the extractor server:
-    ```sh
-    python extractor_server.py
-    ```
-
-For detailed documentation, refer to the [README.md](extractor/README.md) file in the `extractor` folder.
-
-### 3. frontend
-The frontend is built with Next.js and provides a user interface for interacting with the Invoice Annotation system.
-
-#### Setup:
-1. Navigate to the `frontend` folder:
-    ```sh
-    cd frontend
-    ```
-2. Install dependencies:
-    ```sh
-    npm install
-    ```
-3. Run the development server:
-    ```sh
-    npm run dev
-    ```
-4. Open your browser and go to:
-    ```sh
-    http://localhost:3000
-    ```
-
-## Getting Started
-Follow the setup instructions for each component to get the system up and running. Ensure that the Django backend, extractor, and frontend are all running simultaneously for the full functionality of the system.
+## Troubleshooting
+- Port already in use: change ports or stop existing processes using that port
+- Frontend cannot reach backend: ensure NEXT_PUBLIC_API_URL=http://localhost:8000 and Django is running
+- CORS errors: add http://localhost:3000 to Django CORS_ALLOWED_ORIGINS
+- Missing data: add your PDFs or clone taggo-data next to this repo
 
 ## Contributing
-We welcome contributions to improve the Tally AI Document AI system. Please follow these steps to contribute:
-
-1. Fork the repository.
-2. Create a new branch:
-    ```sh
-    git checkout -b feature-name
-    ```
-3. Commit your changes:
-    ```sh
-    git commit -m 'Add some feature'
-    ```
-4. Push to the branch:
-    ```sh
-    git push origin feature-name
-    ```
-5. Open a pull request.
+- Fork → branch → PR
+- Example
+  - git checkout -b feature-name
+  - git commit -m "Add feature"
+  - git push origin feature-name
 
 ## License
-This project is licensed under the MIT License.
+MIT
 
 ## Contact
-For any questions or support, please reach out to [psi.teja@gmail.com](mailto:psi.teja@gmail.com).
+For questions or support: psi.teja@gmail.com

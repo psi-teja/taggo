@@ -54,8 +54,9 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['username', 'email', 'first_name', 'last_name', 'date_joined', 'is_superuser', 'groups']
 
 # ✅ Get User Data API
-@permission_classes([IsAuthenticated])
 class UserDataView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import PdfViewer from "@/app/components/PdfViewer";
 import { addIdsToJsonData, saveJsonData } from "@/app/hooks/utils";
 import FieldsDisplay from "./fieldsDisplay";
+import axiosInstance from "@/app/hooks/axiosInstance";
+import Link from "next/link";
 
 interface InteractiveSpaceProps {
     taskDetails: any;
@@ -44,6 +46,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
     // Active section and types
     const [activeSection, setActiveSection] = useState<string | null>(null);
     const [sectionTypes, setSectionTypes] = useState<Record<string, 'general' | 'table'>>({});
+    const [schemaDefined, setSchemaDefined] = useState<boolean | null>(null);
 
     const jsonURL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/invoice-annotation/annotations/${taskDetails?.id}.json`;
 
@@ -103,67 +106,90 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
         }
     };
 
+    const checkSchemaDefined = async () => {
+        try {
+            const taskType = taskDetails?.task_type || 'invoice-annotation';
+            const res = await axiosInstance.get('/schema/sections', { params: { task_type: taskType } });
+            const sections = res.data?.sections || [];
+            setSchemaDefined(Array.isArray(sections) && sections.length > 0);
+        } catch (e) {
+            console.warn('Failed to check schema definition', e);
+            setSchemaDefined(null);
+        }
+    };
+
     useEffect(() => {
         if (taskDetails) {
             fetchJsonData();
+            checkSchemaDefined();
         }
     }, [taskDetails]);
 
-    const handleInitializeTemplate = () => {
-        setInitializing(true);
-        const defaultTemplate = {
-            General: [{
-                "Name": "",
-                "Value": {
-                    "Text": "",
-                    "BoundingBox": null,
-                    "Page": 1
+    const handleInitializeTemplate = async () => {
+        try {
+            setInitializing(true);
+            const taskType = taskDetails?.task_type || 'invoice-annotation';
+            const res = await axiosInstance.get('/schema/sections', { params: { task_type: taskType } });
+            const sections: Array<{ id: number; name: string; section_type: 'general' | 'table'; fields: Array<{ id: number; name: string }> }> = res.data?.sections || [];
+
+            if (!sections || sections.length === 0) {
+                alert('Schema is not defined. Please define it in Schema before starting annotation.');
+                return;
+            }
+
+            const genId = () => `cell-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+            const now = Date.now();
+            const data: any = {};
+
+            sections.forEach((sec, idx) => {
+                if (sec.section_type === 'general') {
+                    data[sec.name] = [
+                        {
+                            Name: "",
+                            Value: {
+                                Label: "",
+                                Text: "",
+                                LabelBoundingBox: null,
+                                BoundingBox: null,
+                                Page: 1,
+                            },
+                        },
+                    ];
+                } else if (sec.section_type === 'table') {
+                    const columns = (sec.fields || []).map((f, cIdx) => ({
+                        id: `col-${idx}-${cIdx}-${now}`,
+                        Name: f.name,
+                        Label: f.name,
+                        LabelBoundingBox: null,
+                        Page: 1,
+                    }));
+                    const row = (columns.length > 0 ? columns : []).map(() => ({
+                        id: genId(),
+                        Value: { Text: "", BoundingBox: null, Page: 1 },
+                    }));
+                    data[sec.name] = { columns, rows: row.length ? [row] : [] };
                 }
-            }],
-            Table: [[{
-                "Name": "",
-                "Value": {
-                    "Text": "",
-                    "BoundingBox": null,
-                    "Page": 1
-                }
-            }, {
-                "Name": "",
-                "Value": {
-                    "Text": "",
-                    "BoundingBox": null,
-                    "Page": 1
-                }
-            }],[{
-                "Name": "",
-                "Value": {
-                    "Text": "",
-                    "BoundingBox": null,
-                    "Page": 1
-                }
-            },{
-                "Name": "",
-                "Value": {
-                    "Text": "",
-                    "BoundingBox": null,
-                    "Page": 1
-                }
-            }]],
-            Meta: {
+            });
+
+            data["Meta"] = {
                 createdAt: new Date().toISOString(),
                 version: 1,
-                taskId: taskDetails?.id
-            }
-        };
-        const withIds = addIdsToJsonData(defaultTemplate);
-        setJsonData(withIds);
-        saveJsonData(withIds, taskDetails);
-        setJsonNotFound(false);
-        // set types and active section
-        const types = deriveSectionTypes(withIds);
-        setSectionTypes(types);
-        setActiveSection(ensureActiveSection(withIds, null));
-        setInitializing(false);
+                taskId: taskDetails?.id,
+            };
+
+            const withIds = addIdsToJsonData(data);
+            setJsonData(withIds);
+            await saveJsonData(withIds, taskDetails);
+            setJsonNotFound(false);
+            const types = deriveSectionTypes(withIds);
+            setSectionTypes(types);
+            setActiveSection(ensureActiveSection(withIds, null));
+        } catch (err) {
+            console.error('Failed to initialize from schema', err);
+            alert('Failed to initialize from schema. Please ensure you are logged in and schema is configured.');
+        } finally {
+            setInitializing(false);
+        }
     };
 
     const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -332,21 +358,39 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
         jsonNotFound && !jsonData ? (
             <div className="flex flex-col items-center justify-center h-full w-full bg-gray-50 p-8 text-center">
                 <h2 className="text-2xl font-semibold text-gray-700 mb-4">No existing annotation found</h2>
-                <p className="text-gray-600 max-w-lg mb-6">
-                    Start a new annotation session. A default template will be created and saved.
-                </p>
-                <div className="flex gap-4">
-                    <button
-                        onClick={fetchJsonData}
-                        className="px-5 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium"
-                        disabled={initializing}
-                    >Re-check</button>
-                    <button
-                        onClick={handleInitializeTemplate}
-                        className="px-6 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold disabled:opacity-60"
-                        disabled={initializing}
-                    >{initializing ? 'Initializing...' : 'Start Annotation'}</button>
-                </div>
+                {schemaDefined === false ? (
+                    <>
+                        <p className="text-gray-600 max-w-lg mb-6">
+                            Schema is not defined for this task type. Please define sections and fields in Schema before starting annotation.
+                        </p>
+                        <div className="flex gap-4">
+                            <Link href="/invoice-annotation/schema" className="px-6 py-2 rounded bg-purple-600 hover:bg-purple-700 text-white font-semibold">Open Schema</Link>
+                            <button
+                                onClick={checkSchemaDefined}
+                                className="px-5 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium"
+                                disabled={initializing}
+                            >Re-check</button>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <p className="text-gray-600 max-w-lg mb-6">
+                            Start a new annotation session. A template will be created from the schema and saved.
+                        </p>
+                        <div className="flex gap-4">
+                            <button
+                                onClick={fetchJsonData}
+                                className="px-5 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium"
+                                disabled={initializing}
+                            >Re-check</button>
+                            <button
+                                onClick={handleInitializeTemplate}
+                                className="px-6 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold disabled:opacity-60"
+                                disabled={initializing}
+                            >{initializing ? 'Initializing...' : 'Start Annotation'}</button>
+                        </div>
+                    </>
+                )}
             </div>
         ) : (
             <FieldsDisplay

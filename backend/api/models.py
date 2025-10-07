@@ -71,3 +71,34 @@ class Task(models.Model):
 
     def __str__(self):
         return f"Task {self.id} - {self.task_type} - {self.status}"
+
+# ==== Admin-defined schema for sections and fields ====
+class SectionSchema(models.Model):
+    SECTION_TYPE_CHOICES = (
+        ("general", "General"),
+        ("table", "Table"),
+    )
+    name = models.CharField(max_length=100)
+    section_type = models.CharField(max_length=20, choices=SECTION_TYPE_CHOICES, default="general")
+    # Optional: limit schema by task type; keep free-form to avoid coupling
+    task_type = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        unique_together = ("name", "task_type")
+        db_table = "section_schema"
+        ordering = ["name"]
+
+    def __str__(self):
+        return f"{self.name} ({self.section_type})" + (f" - {self.task_type}" if self.task_type else "")
+
+class FieldSchema(models.Model):
+    section = models.ForeignKey(SectionSchema, related_name="fields", on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+
+    class Meta:
+        unique_together = ("section", "name")
+        db_table = "field_schema"
+        ordering = ["name"]
+
+    def __str__(self):
+        return f"{self.section.name} :: {self.name}"
