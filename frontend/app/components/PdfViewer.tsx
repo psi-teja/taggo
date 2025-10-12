@@ -15,6 +15,13 @@ interface PdfViewerProps {
   isEditor: boolean;
   leftWidth: number; // Added leftWidth prop
   handleFieldChange: (element: SelectedElement) => void;
+  overlays?: Array<{
+    id: string;
+    BBox: { left: number; top: number; width: number; height: number } | null;
+    Page: number;
+    label?: string;
+    color?: string;
+  }>;
 }
 
 interface SelectedElement {
@@ -38,7 +45,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   selectedElement,
   isEditor,
   leftWidth,
-  handleFieldChange
+  handleFieldChange,
+  overlays
 }) => {
 
   if (!taskDetails) {
@@ -51,11 +59,12 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-  let fileUrl = `${API_BASE_URL}/media/invoice-annotation/documents/${taskDetails.filename}`;
+  const taskType = taskDetails?.task_type || 'invoice-annotation';
+  let fileUrl = `${API_BASE_URL}/media/${taskType}/documents/${taskDetails.filename}`;
   const isPdf = taskDetails.filename?.toLowerCase().endsWith(".pdf");
 
   if (!isPdf) {
-    fileUrl = `${API_BASE_URL}/convert_to_pdf/invoice-annotation/${taskDetails.filename}/`;
+    fileUrl = `${API_BASE_URL}/convert_to_pdf/${taskType}/${taskDetails.filename}/`;
   }
 
   const [loading, setLoading] = useState<boolean>(true); // State for loading spinner
@@ -179,6 +188,35 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     );
 
   }
+
+  const renderOverlays = () => {
+    if (!overlays || !Array.isArray(overlays)) return null;
+    return overlays
+      .filter(o => !!o.BBox && o.Page === pageNumber)
+      .map(o => {
+        const { left, top, width, height } = o.BBox as any;
+        const scaledLeft = left * scale * pdfDim.width;
+        const scaledTop = top * scale * pdfDim.height;
+        const scaledWidth = width * scale * pdfDim.width;
+        const scaledHeight = height * scale * pdfDim.height;
+        const style = {
+          position: 'absolute' as const,
+          left: `${scaledLeft}px`,
+          top: `${scaledTop}px`,
+          width: `${scaledWidth}px`,
+          height: `${scaledHeight}px`,
+          border: `2px solid ${o.color || 'rgba(59,130,246,0.9)'}`,
+          pointerEvents: 'none' as const,
+        };
+        return (
+          <div key={o.id} style={style} className="absolute">
+            {o.label && (
+              <span className="absolute -top-5 left-0 text-xs px-1 py-0.5 rounded bg-blue-600 text-white" style={{ pointerEvents: 'none' }}>{o.label}</span>
+            )}
+          </div>
+        );
+      });
+  };
 
   useEffect(() => {
     if (selectedElement && boundingBoxRef.current && viewerRef.current) {
@@ -418,6 +456,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
             onMouseUp={handleMouseUp}
           >
             {renderBoundingBox()}
+            {renderOverlays()}
           </Page>
         </Document>
       </div>

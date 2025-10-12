@@ -98,6 +98,15 @@ const AppHeader = ({ loggedInUser, task_type}: AppHeaderProps) => {
             Schema
           </Link>
         )}
+        {loggedInUser?.is_superuser && task_type === 'object-detection' && (
+          <Link
+            href="/object-detection/schema"
+            className="relative text-sm font-medium px-3 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 shadow-sm"
+            title="Object Detection Schema"
+          >
+            Schema
+          </Link>
+        )}
         {loggedInUser?.is_superuser && (
           <button
             onClick={() => setIsUploadModalOpen(true)}
