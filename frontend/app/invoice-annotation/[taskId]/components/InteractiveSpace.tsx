@@ -452,8 +452,8 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
             {/* Resizer */}
             {!isTableSection ? (
                 <div
-                    className="relative z-10 w-1 cursor-col-resize select-none flex items-center justify-center"
-                    style={{ minWidth: "8px" }}
+                    className="relative z-10 w-0.5 cursor-col-resize select-none flex items-center justify-center"
+                    style={{ minWidth: "4px" }}
                     onMouseDown={(e) => {
                         // prevent text selection during drag
                         document.body.style.userSelect = "none";
@@ -516,8 +516,8 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                 </div>
             ) : (
                 <div
-                    className="relative z-10 h-1 cursor-row-resize select-none flex items-center justify-center"
-                    style={{ minHeight: "8px" }}
+                    className="relative z-10 h-0.5 cursor-row-resize select-none flex items-center justify-center"
+                    style={{ minHeight: "4px" }}
                     onMouseDown={(e) => {
                         document.body.style.userSelect = "none";
                         handleRowMouseDown(e);
