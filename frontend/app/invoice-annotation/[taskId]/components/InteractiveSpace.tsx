@@ -159,7 +159,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                     const columns = (sec.fields || []).map((f, cIdx) => ({
                         id: `col-${idx}-${cIdx}-${now}`,
                         Name: f.name,
-                        Label: f.name,
+                        Label: "",
                         LabelBoundingBox: null,
                         Page: 1,
                     }));

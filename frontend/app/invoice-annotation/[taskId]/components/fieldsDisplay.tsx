@@ -80,7 +80,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
             const columns = headerNames.map((name, idx) => ({
                 id: `col-${idx}-${Date.now()}`,
                 Name: name || "",
-                Label: name || "",
+                Label: "",
                 LabelBoundingBox: null,
                 Page: 1
             }));
@@ -472,8 +472,6 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                 const sec = { ...(newData[activeSection] || {} ) } as any;
                                 const newCols = Array.from({ length: colCount }, (_, i) => sec.columns?.[i] ? { ...sec.columns[i] } : { id: `col-${i}-${Date.now()}`, Name: "", Label: "", LabelBoundingBox: null, Page: 1 });
                                 newCols[cIdx].Name = name;
-                                // If label is empty, mirror name by default
-                                if (!newCols[cIdx].Label) newCols[cIdx].Label = name;
                                 sec.columns = newCols;
                                 newData[activeSection] = sec;
                                 setJsonData(newData);
