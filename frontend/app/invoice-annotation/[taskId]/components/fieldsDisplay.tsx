@@ -261,7 +261,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
         // Apply measured sizes
         el.style.height = `${el.scrollHeight}px`;
         // Keep a sensible minimum width so empty cells are usable
-        const minWidthPx = 160;
+        const minWidthPx = 120;
         const measured = el.scrollWidth;
         el.style.width = `${Math.max(minWidthPx, measured)}px`;
     };
@@ -533,21 +533,21 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                             };
 
                             return (
-                                <div id="table-section-container" className="bg-gray-100 p-2">
-                                    <div className="bg-white border border-gray-300 rounded-md shadow-sm overflow-x-auto">
-                                        <table className="min-w-max table-auto border-collapse">
+                                <div id="table-section-container" className="bg-gray-50 p-1">
+                                    <div className="bg-white border border-gray-200 rounded shadow-sm overflow-x-auto">
+                                        <table className="min-w-max table-auto border-collapse text-sm">
                                             <thead className="bg-gray-50">
                                                 <tr>
                                                     {/* Actions header cell */}
-                                                    <th className="border border-gray-300 px-2 py-2 text-left text-gray-500 text-xs"></th>
+                                                    <th className="border border-gray-200 px-1 py-1 text-left text-gray-500 text-xs"></th>
                                                     {Array.from({ length: colCount }).map((_, cIdx) => (
-                                                        <th key={`hdr-${cIdx}`} className="border border-gray-300 px-2 py-2 text-left align-top">
+                                                        <th key={`hdr-${cIdx}`} className="border border-gray-200 px-1 py-1 text-left align-top">
                                                             <div className="relative flex flex-col gap-1">
                                                                 <div className="flex items-center gap-1">
                                                                     <select
                                                                         value={headerNames[cIdx] || ""}
                                                                         onChange={(e) => updateHeaderName(cIdx, e.target.value)}
-                                                                        className="w-full bg-gradient-to-b from-white to-gray-200 p-1.5 pr-8 outline-none border border-gray-400 focus:border-blue-400 rounded text-sm text-gray-700"
+                                                                        className="w-full bg-gradient-to-b from-white to-gray-200 p-1 pr-6 outline-none border border-gray-300 focus:border-blue-400 rounded text-sm text-gray-700"
                                                                     >
                                                                         <option value="" disabled className="text-gray-400">-- select --</option>
                                                                         {dropDownOptions[activeSection]?.map((option: string) => (
@@ -558,7 +558,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                                                         <button
                                                                             aria-label="More"
                                                                             title="More"
-                                                                            className="h-7 w-4 -mr-1 flex items-center justify-center rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-100"
+                                                                            className="h-6 w-4 -mr-1 flex items-center justify-center rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-100"
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation();
                                                                                 setOpenHeaderMenu(openHeaderMenu === cIdx ? null : cIdx);
@@ -586,7 +586,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                                                         )}
                                                                     </div>
                                                                 </div>
-                                                                <div className="flex items-center gap-2">
+                                                                <div className="flex items-center gap-1">
                                                                     <input
                                                                         type="text"
                                                                         placeholder="label"
@@ -615,7 +615,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                                                         }}
                                                                         onChange={(e) => updateHeaderLabel(cIdx, e.target.value)}
                                                                         style={{ width: widthForText(headerLabels[cIdx] || "") }}
-                                                                        className={`w-auto bg-white p-1.5 outline-none border border-gray-300 focus:border-blue-400 rounded text-xs text-gray-700 ${(() => { const col = columns[cIdx]; return col && selectedElement?.id === col.id && selectedElement?.target === 'Label' ? 'border-red-400 border-2' : ''; })()}`}
+                                                                        className={`w-auto bg-white p-1 outline-none border border-gray-200 focus:border-blue-400 rounded text-xs text-gray-700 ${(() => { const col = columns[cIdx]; return col && selectedElement?.id === col.id && selectedElement?.target === 'Label' ? 'border-red-400 border-2' : ''; })()}`}
                                                                     />
                                                                     {(() => { const col = columns[cIdx]; return col?.LabelBoundingBox; })() && (
                                                                         <button
@@ -647,7 +647,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                                             <button
                                                                 aria-label="Delete row"
                                                                 title="Delete row"
-                                                                className="h-6 w-6 flex items-center justify-center rounded border border-gray-300 bg-white text-gray-500 hover:text-red-600 shadow-sm"
+                                                                className="h-5 w-5 flex items-center justify-center rounded border border-gray-300 bg-white text-gray-500 hover:text-red-600 shadow-sm"
                                                                 onClick={() => removeRow(rowIdx)}
                                                             >
                                                                 ×
@@ -656,8 +656,8 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                                         {Array.from({ length: colCount }).map((_, cIdx) => {
                                                             const cell = Array.isArray(row) ? row[cIdx] : undefined;
                                                             return (
-                                                                <td key={cell?.id || `cell-${rowIdx}-${cIdx}`} className={`border border-gray-200 px-2 py-1 align-top ${cell && selectedElement?.id === String(cell.id) ? 'bg-blue-50' : ''}`}>
-                                                                    <div id={cell?.id ? `field-${cell.id}` : undefined} className="flex items-center gap-2">
+                                                                <td key={cell?.id || `cell-${rowIdx}-${cIdx}`} className={`border border-gray-200 px-1 py-0.5 align-top ${cell && selectedElement?.id === String(cell.id) ? 'bg-blue-50' : ''}`}>
+                                                                    <div id={cell?.id ? `field-${cell.id}` : undefined} className="flex items-center gap-1">
                                                                         <textarea
                                                                             ref={(el) => autoResizeHW(el)}
                                                                             onInput={(e) => autoResizeHW(e.currentTarget)}
@@ -666,7 +666,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                                                             placeholder="value"
                                                                             rows={1}
                                                                             style={{ whiteSpace: 'pre', overflowWrap: 'normal' }}
-                                                                            className={`bg-white p-1.5 outline-none border border-gray-200 rounded text-sm overflow-x-auto overflow-y-hidden whitespace-pre resize-none ${cell && (selectedElement?.id == cell.id && selectedElement?.target == "Value") ? "border-red-400 border-2" : ""}`}
+                                                                            className={`bg-white p-1 outline-none border border-gray-200 rounded text-xs overflow-x-auto overflow-y-hidden whitespace-pre resize-none ${cell && (selectedElement?.id == cell.id && selectedElement?.target == "Value") ? "border-red-400 border-2" : ""}`}
                                                                             onChange={(e) => {
                                                                                 const updated = { ...selectedElement } as SelectedElement | null;
                                                                                 if (cell && updated && updated.id === cell.id) {
@@ -707,7 +707,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
 
                         // Legacy rendering (fallback)
                         return (
-                            <div id="table-section-container" className="bg-gray-100 p-2">
+                            <div id="table-section-container" className="bg-gray-50 p-1">
                                 {(() => {
                                     const rows: any[][] = jsonData[activeSection] as any[][];
                                     const colCount = Math.max(1, ...rows.map(r => Array.isArray(r) ? r.length : 0));
@@ -726,16 +726,16 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                         setJsonData(newData);
                                     };
                                     return (
-                                        <div className="bg-white border border-gray-300 rounded-md shadow-sm overflow-auto">
-                                            <table className="w-full table-auto border-collapse">
+                                        <div className="bg-white border border-gray-200 rounded shadow-sm overflow-auto">
+                                            <table className="w-full table-auto border-collapse text-sm">
                                                 <thead className="bg-gray-50">
                                                     <tr>
                                                         {Array.from({ length: colCount }).map((_, cIdx) => (
-                                                            <th key={`hdr-${cIdx}`} className="border border-gray-300 px-2 py-2 text-left">
+                                                            <th key={`hdr-${cIdx}`} className="border border-gray-200 px-1 py-1 text-left">
                                                                 <select
                                                                     value={headerNames[cIdx] || ""}
                                                                     onChange={(e) => updateHeader(cIdx, e.target.value)}
-                                                                    className="w-full bg-gradient-to-b from-white to-gray-200 p-1.5 outline-none border border-gray-400 focus:border-blue-400 rounded text-sm text-gray-700"
+                                                                    className="w-full bg-gradient-to-b from-white to-gray-200 p-1 outline-none border border-gray-300 focus:border-blue-400 rounded text-sm text-gray-700"
                                                                 >
                                                                     <option value="" disabled className="text-gray-400">-- column --</option>
                                                                     {dropDownOptions[activeSection]?.map((option: string) => (
@@ -752,8 +752,8 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                                             {Array.from({ length: colCount }).map((_, cIdx) => {
                                                                 const cell = Array.isArray(row) ? row[cIdx] : undefined;
                                                                 return (
-                                                                    <td key={cell?.id || `cell-${rowIdx}-${cIdx}`} className={`border border-gray-200 px-2 py-1 align-top ${cell && selectedElement?.id === String(cell.id) ? 'bg-blue-50' : ''}`}>
-                                                                        <div id={cell?.id ? `field-${cell.id}` : undefined} className="flex items-center gap-2">
+                                                                    <td key={cell?.id || `cell-${rowIdx}-${cIdx}`} className={`border border-gray-200 px-1 py-0.5 align-top ${cell && selectedElement?.id === String(cell.id) ? 'bg-blue-50' : ''}`}>
+                                                                        <div id={cell?.id ? `field-${cell.id}` : undefined} className="flex items-center gap-1">
                                                                             <textarea
                                                                                 ref={(el) => autoResizeHW(el)}
                                                                                 onInput={(e) => autoResizeHW(e.currentTarget)}
@@ -762,7 +762,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                                                                 placeholder="value"
                                                                                 rows={1}
                                                                                 style={{ whiteSpace: 'pre', overflowWrap: 'normal' }}
-                                                                                className={`bg-white p-1.5 outline-none border border-gray-200 rounded text-sm overflow-x-auto overflow-y-hidden whitespace-pre resize-none ${cell && (selectedElement?.id == cell.id && selectedElement?.target == "Value") ? "border-red-400 border-2" : ""}`}
+                                                                                className={`bg-white p-1 outline-none border border-gray-200 rounded text-xs overflow-x-auto overflow-y-hidden whitespace-pre resize-none ${cell && (selectedElement?.id == cell.id && selectedElement?.target == "Value") ? "border-red-400 border-2" : ""}`}
                                                                                 onChange={(e) => {
                                                                                     const updated = { ...selectedElement } as SelectedElement | null;
                                                                                     if (cell && updated && updated.id === cell.id) {
