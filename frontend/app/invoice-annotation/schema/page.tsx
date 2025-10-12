@@ -226,8 +226,8 @@ export default function InvoiceAnnotationSchemaPage() {
               onChange={(e) => setNewType(e.target.value as any)}
               className="border border-gray-300 rounded px-3 py-2"
             >
-              <option value="general">General (list)</option>
-              <option value="table">Table (rows/columns)</option>
+              <option value="general">Scalar (single values)</option>
+              <option value="table">Tabular (rows/columns)</option>
             </select>
             <button
               onClick={createSection}
@@ -242,12 +242,12 @@ export default function InvoiceAnnotationSchemaPage() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-lg font-semibold flex items-center gap-2">
-                General Sections
+                Scalar Sections
                 <span className="text-xs bg-gray-100 border border-gray-200 rounded px-2 py-0.5">{generalSections.length}</span>
               </h3>
             </div>
             {generalSections.length === 0 ? (
-              <div className="text-sm text-gray-500">No general sections.</div>
+              <div className="text-sm text-gray-500">No scalar sections.</div>
             ) : (
               <div className="grid md:grid-cols-2 gap-4">
                 {generalSections.map((sec) => (
@@ -261,12 +261,12 @@ export default function InvoiceAnnotationSchemaPage() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-lg font-semibold flex items-center gap-2">
-                Table Sections
+                Tabular Sections
                 <span className="text-xs bg-gray-100 border border-gray-200 rounded px-2 py-0.5">{tableSections.length}</span>
               </h3>
             </div>
             {tableSections.length === 0 ? (
-              <div className="text-sm text-gray-500">No table sections.</div>
+              <div className="text-sm text-gray-500">No tabular sections.</div>
             ) : (
               <div className="grid md:grid-cols-2 gap-4">
                 {tableSections.map((sec) => (
@@ -297,7 +297,7 @@ function SectionCard({ sec, onDelete, onAddField, onDeleteField }: {
           <div className="text-base font-semibold flex items-center gap-2">
             {sec.name}
             <span className={`text-[10px] uppercase tracking-wide px-2 py-0.5 rounded border ${sec.section_type === 'general' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-indigo-50 text-indigo-700 border-indigo-200'}`}>
-              {sec.section_type}
+              {sec.section_type === 'general' ? 'Scalar' : 'Tabular'}
             </span>
           </div>
           <div className="text-xs text-gray-500 mt-0.5">{fieldsCount} field{fieldsCount === 1 ? '' : 's'}</div>

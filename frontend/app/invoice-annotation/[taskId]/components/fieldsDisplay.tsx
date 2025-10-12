@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import XIcon from "@/app/components/XIcon";
 import axiosInstance from "@/app/hooks/axiosInstance";
 
@@ -252,6 +252,23 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
         el.style.height = `${el.scrollHeight}px`;
     };
 
+    // Helper: auto-resize textarea height and width (for tabular cells)
+    const autoResizeHW = (el: HTMLTextAreaElement | null) => {
+        if (!el) return;
+        // Reset to measure
+        el.style.height = 'auto';
+        el.style.width = 'auto';
+        // Apply measured sizes
+        el.style.height = `${el.scrollHeight}px`;
+        // Keep a sensible minimum width so empty cells are usable
+        const minWidthPx = 160;
+        const measured = el.scrollWidth;
+        el.style.width = `${Math.max(minWidthPx, measured)}px`;
+    };
+
+    // Helper: compute width for text inputs using ch units (header labels)
+    const widthForText = (text?: string) => `${Math.max(16, (text || '').length + 2)}ch`;
+
     return (
         <div className="flex flex-col h-full">
             {/* Header Bar (static) */}
@@ -326,7 +343,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                             <button
                                                 aria-label="More"
                                                 title="More"
-                                                className="h-8 w-8 -mr-1 flex items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-100"
+                                                className="self-stretch p-2 -mr-1 flex items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-100"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     setOpenFieldMenu(openFieldMenu === String(field.id) ? null : String(field.id));
@@ -517,15 +534,12 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
 
                             return (
                                 <div id="table-section-container" className="bg-gray-100 p-2">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="text-xs text-gray-600">Rows: {rows.length} • Cols: {colCount}</div>
-                                    </div>
                                     <div className="bg-white border border-gray-300 rounded-md shadow-sm overflow-x-auto">
                                         <table className="min-w-max table-auto border-collapse">
                                             <thead className="bg-gray-50">
                                                 <tr>
                                                     {/* Actions header cell */}
-                                                    <th className="w-14 border border-gray-300 px-2 py-2 text-left text-gray-500 text-xs">Actions</th>
+                                                    <th className="border border-gray-300 px-2 py-2 text-left text-gray-500 text-xs"></th>
                                                     {Array.from({ length: colCount }).map((_, cIdx) => (
                                                         <th key={`hdr-${cIdx}`} className="border border-gray-300 px-2 py-2 text-left align-top">
                                                             <div className="relative flex flex-col gap-1">
@@ -544,7 +558,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                                                         <button
                                                                             aria-label="More"
                                                                             title="More"
-                                                                            className="h-7 w-7 -mr-1 flex items-center justify-center rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-100"
+                                                                            className="h-7 w-4 -mr-1 flex items-center justify-center rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-100"
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation();
                                                                                 setOpenHeaderMenu(openHeaderMenu === cIdx ? null : cIdx);
@@ -560,7 +574,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                                                                         clearColumnValues(cIdx);
                                                                                         setOpenHeaderMenu(null);
                                                                                     }}
-                                                                                >Clear column values</button>
+                                                                                >Clear column</button>
                                                                                 <button
                                                                                     className="w-full text-left px-3 py-1.5 text-sm text-red-600 hover:bg-red-50"
                                                                                     onClick={() => {
@@ -600,7 +614,8 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                                                             }
                                                                         }}
                                                                         onChange={(e) => updateHeaderLabel(cIdx, e.target.value)}
-                                                                        className={`w-full bg-white p-1.5 outline-none border border-gray-300 focus:border-blue-400 rounded text-xs text-gray-700 ${(() => { const col = columns[cIdx]; return col && selectedElement?.id === col.id && selectedElement?.target === 'Label' ? 'border-red-400 border-2' : ''; })()}`}
+                                                                        style={{ width: widthForText(headerLabels[cIdx] || "") }}
+                                                                        className={`w-auto bg-white p-1.5 outline-none border border-gray-300 focus:border-blue-400 rounded text-xs text-gray-700 ${(() => { const col = columns[cIdx]; return col && selectedElement?.id === col.id && selectedElement?.target === 'Label' ? 'border-red-400 border-2' : ''; })()}`}
                                                                     />
                                                                     {(() => { const col = columns[cIdx]; return col?.LabelBoundingBox; })() && (
                                                                         <button
@@ -644,14 +659,14 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                                                 <td key={cell?.id || `cell-${rowIdx}-${cIdx}`} className={`border border-gray-200 px-2 py-1 align-top ${cell && selectedElement?.id === String(cell.id) ? 'bg-blue-50' : ''}`}>
                                                                     <div id={cell?.id ? `field-${cell.id}` : undefined} className="flex items-center gap-2">
                                                                         <textarea
-                                                                            ref={(el) => autoResize(el)}
-                                                                            onInput={(e) => autoResize(e.currentTarget)}
+                                                                            ref={(el) => autoResizeHW(el)}
+                                                                            onInput={(e) => autoResizeHW(e.currentTarget)}
                                                                             onClick={() => cell && setSelectedElement({ section: activeSection, id: cell.id, target: "Value", text: cell.Value?.Text ?? "", boxLocation: { BBox: cell.Value?.BoundingBox ?? null, Page: cell.Value?.Page ?? 1 } })}
                                                                             value={cell?.Value?.Text || ""}
                                                                             placeholder="value"
                                                                             rows={1}
                                                                             style={{ whiteSpace: 'pre', overflowWrap: 'normal' }}
-                                                                            className={`bg-white p-1.5 outline-none border border-gray-200 rounded text-sm w-full overflow-x-auto overflow-y-hidden whitespace-pre resize-none ${cell && (selectedElement?.id == cell.id && selectedElement?.target == "Value") ? "border-red-400 border-2" : ""}`}
+                                                                            className={`bg-white p-1.5 outline-none border border-gray-200 rounded text-sm overflow-x-auto overflow-y-hidden whitespace-pre resize-none ${cell && (selectedElement?.id == cell.id && selectedElement?.target == "Value") ? "border-red-400 border-2" : ""}`}
                                                                             onChange={(e) => {
                                                                                 const updated = { ...selectedElement } as SelectedElement | null;
                                                                                 if (cell && updated && updated.id === cell.id) {
@@ -740,14 +755,14 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                                                     <td key={cell?.id || `cell-${rowIdx}-${cIdx}`} className={`border border-gray-200 px-2 py-1 align-top ${cell && selectedElement?.id === String(cell.id) ? 'bg-blue-50' : ''}`}>
                                                                         <div id={cell?.id ? `field-${cell.id}` : undefined} className="flex items-center gap-2">
                                                                             <textarea
-                                                                                ref={(el) => autoResize(el)}
-                                                                                onInput={(e) => autoResize(e.currentTarget)}
+                                                                                ref={(el) => autoResizeHW(el)}
+                                                                                onInput={(e) => autoResizeHW(e.currentTarget)}
                                                                                 onClick={() => cell && setSelectedElement({ section: activeSection, id: cell.id, target: "Value", text: cell.Value?.Text ?? "", boxLocation: { BBox: cell.Value.BoundingBox, Page: cell.Value.Page } })}
                                                                                 value={cell?.Value?.Text || ""}
                                                                                 placeholder="value"
                                                                                 rows={1}
                                                                                 style={{ whiteSpace: 'pre', overflowWrap: 'normal' }}
-                                                                                className={`bg-white p-1.5 outline-none border border-gray-200 rounded text-sm w-full overflow-x-auto overflow-y-hidden whitespace-pre resize-none ${cell && (selectedElement?.id == cell.id && selectedElement?.target == "Value") ? "border-red-400 border-2" : ""}`}
+                                                                                className={`bg-white p-1.5 outline-none border border-gray-200 rounded text-sm overflow-x-auto overflow-y-hidden whitespace-pre resize-none ${cell && (selectedElement?.id == cell.id && selectedElement?.target == "Value") ? "border-red-400 border-2" : ""}`}
                                                                                 onChange={(e) => {
                                                                                     const updated = { ...selectedElement } as SelectedElement | null;
                                                                                     if (cell && updated && updated.id === cell.id) {

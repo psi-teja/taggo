@@ -452,33 +452,129 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
             {/* Resizer */}
             {!isTableSection ? (
                 <div
-                    className="relative z-10 w-2 cursor-col-resize group border-x border-gray-500 bg-gray-200"
-                    style={{ minWidth: "1px" }}
-                    onMouseDown={handleMouseDown}
-                    aria-label="Resize panel"
+                    className="relative z-10 w-1 cursor-col-resize select-none flex items-center justify-center"
+                    style={{ minWidth: "8px" }}
+                    onMouseDown={(e) => {
+                        // prevent text selection during drag
+                        document.body.style.userSelect = "none";
+                        handleMouseDown(e);
+                        // restore on next mouseup anywhere
+                        const restore = () => {
+                            document.body.style.userSelect = "";
+                            document.removeEventListener("mouseup", restore);
+                        };
+                        document.addEventListener("mouseup", restore);
+                    }}
+                    onTouchStart={(e) => {
+                        // touch-based resize (mobile / tablets)
+                        e.preventDefault();
+                        const startX = e.touches[0].clientX;
+                        const startWidth = leftWidth;
+                        const containerWidth = window.innerWidth;
+                        document.body.style.userSelect = "none";
+
+                        const touchMove = (te: TouchEvent) => {
+                            te.preventDefault();
+                            const deltaX = te.touches[0].clientX - startX;
+                            const deltaPercent = (deltaX / containerWidth) * 100;
+                            let newWidth = startWidth + deltaPercent;
+                            if (newWidth < minWidth) newWidth = minWidth;
+                            if (newWidth > maxWidth) newWidth = maxWidth;
+                            setLeftWidth(newWidth);
+                        };
+
+                        const touchEnd = () => {
+                            document.removeEventListener("touchmove", touchMove);
+                            document.removeEventListener("touchend", touchEnd);
+                            document.body.style.userSelect = "";
+                        };
+
+                        document.addEventListener("touchmove", touchMove, { passive: false });
+                        document.addEventListener("touchend", touchEnd);
+                    }}
+                    onDoubleClick={() => setLeftWidth(70)}
+                    aria-label="Resize PDF panel"
                     role="separator"
+                    aria-orientation="vertical"
                     tabIndex={0}
-                    onKeyDown={e => {
+                    title="Drag to resize. Double-click to reset. Arrow keys to nudge."
+                    onKeyDown={(e) => {
                         if (e.key === "ArrowLeft") setLeftWidth(w => Math.max(minWidth, w - 2));
                         if (e.key === "ArrowRight") setLeftWidth(w => Math.min(maxWidth, w + 2));
+                        if (e.key === "Home") setLeftWidth(minWidth);
+                        if (e.key === "End") setLeftWidth(maxWidth);
                     }}
                 >
-                    <div className="absolute inset-0 bg-gray-300 transition-colors hover:bg-blue-400" />
+                    <div className="relative w-full h-full flex items-center justify-center">
+                        {/* visible grip */}
+                        <div className="flex flex-col gap-1 items-center justify-center pointer-events-none">
+                            <span className="block w-0.5 h-4 bg-gray-400 rounded"></span>
+                            <span className="block w-0.5 h-4 bg-gray-400 rounded"></span>
+                            <span className="block w-0.5 h-4 bg-gray-400 rounded"></span>
+                        </div>
+                    </div>
                 </div>
             ) : (
                 <div
-                    className="relative z-10 h-2 cursor-row-resize group border-y border-gray-500 bg-gray-200"
-                    style={{ minHeight: "1px" }}
-                    onMouseDown={handleRowMouseDown}
-                    aria-label="Resize panel"
+                    className="relative z-10 h-1 cursor-row-resize select-none flex items-center justify-center"
+                    style={{ minHeight: "8px" }}
+                    onMouseDown={(e) => {
+                        document.body.style.userSelect = "none";
+                        handleRowMouseDown(e);
+                        const restore = () => {
+                            document.body.style.userSelect = "";
+                            document.removeEventListener("mouseup", restore);
+                        };
+                        document.addEventListener("mouseup", restore);
+                    }}
+                    onTouchStart={(e) => {
+                        // touch-based vertical resize
+                        e.preventDefault();
+                        const startY = e.touches[0].clientY;
+                        const startHeight = topHeight;
+                        const containerHeight = window.innerHeight;
+                        document.body.style.userSelect = "none";
+
+                        const touchMove = (te: TouchEvent) => {
+                            te.preventDefault();
+                            const deltaY = te.touches[0].clientY - startY;
+                            const deltaPercent = (deltaY / containerHeight) * 100;
+                            let newHeight = startHeight + deltaPercent;
+                            if (newHeight < minHeight) newHeight = minHeight;
+                            if (newHeight > maxHeight) newHeight = maxHeight;
+                            setTopHeight(newHeight);
+                        };
+
+                        const touchEnd = () => {
+                            document.removeEventListener("touchmove", touchMove);
+                            document.removeEventListener("touchend", touchEnd);
+                            document.body.style.userSelect = "";
+                        };
+
+                        document.addEventListener("touchmove", touchMove, { passive: false });
+                        document.addEventListener("touchend", touchEnd);
+                    }}
+                    onDoubleClick={() => setTopHeight(60)}
+                    aria-label="Resize PDF panel"
                     role="separator"
+                    aria-orientation="horizontal"
                     tabIndex={0}
-                    onKeyDown={e => {
+                    title="Drag to resize. Double-click to reset. Arrow keys to nudge."
+                    onKeyDown={(e) => {
                         if (e.key === "ArrowUp") setTopHeight(h => Math.max(minHeight, h - 2));
                         if (e.key === "ArrowDown") setTopHeight(h => Math.min(maxHeight, h + 2));
+                        if (e.key === "Home") setTopHeight(minHeight);
+                        if (e.key === "End") setTopHeight(maxHeight);
                     }}
                 >
-                    <div className="absolute inset-0 bg-gray-300 transition-colors hover:bg-blue-400" />
+                    <div className="relative w-full h-full flex items-center justify-center">
+                        {/* visible horizontal grip */}
+                        <div className="flex gap-2 pointer-events-none">
+                            <span className="block w-8 h-0.5 bg-gray-400 rounded"></span>
+                            <span className="block w-8 h-0.5 bg-gray-400 rounded"></span>
+                            <span className="block w-8 h-0.5 bg-gray-400 rounded"></span>
+                        </div>
+                    </div>
                 </div>
             )}
 
