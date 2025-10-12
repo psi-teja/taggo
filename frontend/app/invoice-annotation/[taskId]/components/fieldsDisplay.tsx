@@ -313,17 +313,17 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
             {/* Scrollable content area */}
             <div className="flex-1 overflow-auto">
                 {activeSection && Array.isArray(jsonData[activeSection]) && !isTableSection && (
-                    <div className="space-y-2 bg-gray-100 p-2">
+                    <div className="space-y-1 bg-gray-50 p-1">
                         {jsonData[activeSection].map((field: any) => (
                             <div
                                 key={field.id}
                                 id={`field-${field.id}`}
-                                className={`relative group rounded-lg shadow-md p-3 space-y-3 ${selectedElement?.id === String(field.id) ? 'border-2 border-blue-500 bg-blue-50' : 'bg-white hover:bg-gray-50 border border-gray-400'} transition duration-200 cursor-pointer`}
+                                className={`relative group rounded-md shadow-sm p-2 space-y-1 ${selectedElement?.id === String(field.id) ? 'border-2 border-blue-500 bg-blue-50' : 'bg-white hover:bg-gray-50 border border-gray-200'} transition duration-200 cursor-pointer`}
                             >
 
-                                <div className="items-center gap-2">
+                                <div className="items-center gap-1">
                                     {/* Name with 3-dots menu */}
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1">
                                         <select
                                             value={field.Name || ""}
                                             onChange={(e) => {
@@ -332,7 +332,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                                 newJsonData[activeSection] = jsonData[activeSection].map((f: any) => f.id === field.id ? newField : f);
                                                 setJsonData(newJsonData);
                                             }}
-                                            className="bg-gradient-to-b from-white to-gray-300 p-2 outline-none border border-gray-400 focus:border-blue-400 rounded-md transition w-full shadow-sm font-medium text-gray-700"
+                                            className="bg-white p-1.5 outline-none border border-gray-300 focus:border-blue-400 rounded-md transition w-full shadow-sm text-sm text-gray-700"
                                         >
                                             <option value="" disabled className="text-gray-400">-- select --</option>
                                             {dropDownOptions[activeSection]?.map((option: string) => (
@@ -343,7 +343,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                             <button
                                                 aria-label="More"
                                                 title="More"
-                                                className="self-stretch p-2 -mr-1 flex items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-100"
+                                                className="h-7 w-7 p-0 flex items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-100"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     setOpenFieldMenu(openFieldMenu === String(field.id) ? null : String(field.id));
@@ -380,13 +380,13 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                     </div>
 
                                     {/* Label */}
-                                    <div className="flex items-center gap-2 mt-2">
+                                    <div className="flex items-center gap-1 mt-1">
                                         <input
                                             type="text"
                                             onClick={() => setSelectedElement({ section: activeSection, id: field.id, target: "Label", text: field.Value?.Label ?? "", boxLocation: { BBox: field.Value.LabelBoundingBox, Page: field.Value.Page } })}
                                             value={field.Value?.Label || ""}
                                             placeholder="label"
-                                            className={`bg-white p-2 outline-none border border-gray-200 rounded-md transition w-full shadow-sm text-gray-700 ${(selectedElement?.id == field.id && selectedElement?.target == "Label") ? "border-red-400 border-2" : ""}`}
+                                            className={`bg-white p-1.5 outline-none border border-gray-200 rounded-md transition w-full shadow-sm text-sm text-gray-700 ${(selectedElement?.id == field.id && selectedElement?.target == "Label") ? "border-red-400 border-2" : ""}`}
                                             onChange={(e) => {
                                                 const updatedElement = selectedElement;
                                                 if (updatedElement) {
@@ -414,7 +414,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                     </div>
 
                                     {/* Value */}
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1">
                                         <textarea
                                             ref={(el) => autoResize(el)}
                                             onInput={(e) => autoResize(e.currentTarget)}
@@ -423,7 +423,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
                                             placeholder="value"
                                             rows={1}
                                             style={{ whiteSpace: 'pre', overflowWrap: 'normal' }}
-                                            className={`bg-white p-2 outline-none border border-gray-200 rounded-md transition w-full shadow-sm text-gray-700 overflow-x-auto overflow-y-hidden whitespace-pre resize-none ${(selectedElement?.id == field.id && selectedElement?.target == "Value") ? "border-red-400 border-2" : ""}`}
+                                            className={`bg-white p-1.5 outline-none border border-gray-200 rounded-md transition w-full shadow-sm text-sm text-gray-700 overflow-x-auto overflow-y-hidden whitespace-pre resize-none ${(selectedElement?.id == field.id && selectedElement?.target == "Value") ? "border-red-400 border-2" : ""}`}
                                             onChange={(e) => {
                                                 const updatedElement = selectedElement;
                                                 if (updatedElement) {
