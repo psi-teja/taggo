@@ -200,6 +200,19 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({ taskDetails, isEdit
     setJsonData(data);
   };
 
+  // Save annotations to backend and then refresh from server
+  const handleSave = async () => {
+    const data = jsonData || { Objects: [] };
+    await saveJsonData(data, taskDetails);
+    await fetchJsonData();
+  };
+  
+  // Reset local changes by reloading server state
+  const handleReset = async () => {
+    await fetchJsonData();
+  };
+  
+
   return (
     <div className="flex h-full w-full overflow-hidden">
       {/* PDF panel */}
@@ -289,11 +302,8 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({ taskDetails, isEdit
         drawingArmed={!!selectedElement}
         jsonData={jsonData}
         onDeleteBox={deleteBox}
-        onSave={() => {
-          const data = jsonData || { Objects: [] };
-          saveJsonData(data, taskDetails);
-        }}
-        onReset={fetchJsonData}
+        onSave={handleSave}
+        onReset={handleReset}
         onDownload={downloadJsonData}
       />
     </div>
