@@ -4,10 +4,6 @@
 
 Taggo is a web-based invoice annotation tool with a Next.js frontend and a Django backend. It lets you upload PDFs, create sections and fields (including table-like sections), and draw/select regions on pages to capture labels and values.
 
-<p align="center">
-  <img src="display.gif" alt="Working" style="border: 2px solid black; border-radius: 5px;">
-</p>
-
 ## Quick Start
 
 Prerequisites
@@ -90,6 +86,10 @@ Local setup (manual)
 - Fork → branch → PR
 - Example
   - git checkout -b feature-name
+  - git commit -m "Add feature"
+  - git push origin feature-name
+
+## License
   - git commit -m "Add feature"
   - git push origin feature-name
 

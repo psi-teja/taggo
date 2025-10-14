@@ -274,7 +274,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({ taskDetails, jsonData, se
             {/* Header Bar (static) */}
             <div className="flex text-sm text-ellipsis justify-between bg-slate-400 shadow items-center space-x-4">
                 <div>ID:</div>
-                <div className="truncate overflow-hidden text-right flex-1">{taskDetails && taskDetails.id}</div>
+                <div className="truncate overflow-hidden text-left flex-1">{taskDetails && taskDetails.id}</div>
                 <div
                     className="hover:bg-gray-200 rounded p-1 cursor-pointer"
                     title="Download JSON"
