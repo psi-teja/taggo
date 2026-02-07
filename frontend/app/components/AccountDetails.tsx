@@ -12,6 +12,7 @@ const AccountMenu: React.FC<{ loggedInUser: AccountDetailsProps['loggedInUser'],
     const handleLogout = useCallback((): void => {
         setLogingout(true);
         localStorage.removeItem('access_token');
+        localStorage.removeItem('loggedInUser'); // Remove user data on logout
         window.location.href = '/login';
     }, []);
 

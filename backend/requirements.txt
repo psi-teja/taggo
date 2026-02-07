@@ -1,13 +1,9 @@
 Django>=4.2,<4.3
-# REST framework & auth
 djangorestframework>=3.15,<4.0
 djangorestframework-simplejwt>=5.3,<6.0
-# CORS
 django-cors-headers>=4.3,<5.0
-# Database driver (MySQL)
-mysqlclient>=2.2,<3.0
-# Imaging / OCR
+psycopg2-binary>=2.9,<3.0
 Pillow>=10.0,<11.0
 pytesseract>=0.3.10,<0.4
-# Timezone utilities (explicit)
 pytz>=2023.3
+dj-database-url>=3.0.1

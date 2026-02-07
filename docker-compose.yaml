@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=taggo
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=adminpassword
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: ./backend
+    # Wait for DB before running migrations and server
+    command: >
+      sh -c "chmod +x /code/wait-for-it.sh && /code/wait-for-it.sh db:5432 -- python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./backend:/code
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgres://admin:adminpassword@db:5432/taggo
+      - DEBUG=True
+      - ALLOWED_HOSTS=*
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Prevents local node_modules from overwriting container
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - HOST_IP=${HOST_IP}
+    depends_on:
+      - backend
+    command: sh /app/set-host-ip-env.sh
+
+volumes:
+  postgres_data:

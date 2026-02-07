@@ -68,31 +68,41 @@ const Login = () => {
 
       // Redirect to the 'next' page or homepage
       router.push(next); // Redirect to the 'next' URL (or '/' if not provided)
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError("Invalid username or password");
+      // Check for backend error message
+      if (err.response && err.response.data && err.response.data.error) {
+        if (err.response.data.error === "User does not exist") {
+          setError("User does not exist");
+        } else {
+          setError(err.response.data.error);
+        }
+      } else {
+        setError("Invalid username or password");
+      }
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-teal-100">
+    <div className="min-h-screen flex flex-col bg-[radial-gradient(circle_at_25%_20%,#ecfdf5,#e0f2fe_45%,#ffffff)] dark:bg-[radial-gradient(circle_at_25%_20%,#0f172a,#334155_45%,#1e293b)] animate-gradientShift">
       <Header>
         <Logo />
       </Header>
-
       <div className="flex flex-1 justify-center items-center">
         {loading ? (
-          <div className="p-8 rounded-lg shadow-lg bg-white max-w-md w-full text-center animate-pulse">
-            <div className="loader border-t-4 border-blue-500 rounded-full w-12 h-12 mx-auto animate-spin"></div>
-            <p className="mt-4 text-gray-600 font-medium">Logging you in...</p>
+          <div className="p-8 rounded-lg shadow-lg bg-white dark:bg-slate-800 max-w-md w-full text-center animate-pulse">
+            <div className="loader border-t-4 border-teal-500 rounded-full w-12 h-12 mx-auto animate-spin"></div>
+            <p className="mt-4 text-gray-600 dark:text-gray-300 font-medium">
+              Logging you in...
+            </p>
           </div>
         ) : (
-          <div className="p-8 rounded-lg shadow-xl bg-white max-w-md w-full">
-            <h1 className="text-center mb-6 text-3xl font-bold text-gray-800">
+          <div className="p-8 rounded-lg shadow-xl bg-white dark:bg-slate-800 max-w-md w-full">
+            <h1 className="text-center mb-6 text-3xl font-bold text-gray-800 dark:text-white">
               Welcome Back
             </h1>
-            <p className="text-center text-gray-500 mb-4">
+            <p className="text-center text-gray-500 dark:text-gray-300 mb-4">
               Please login to your account
             </p>
 
@@ -108,7 +118,7 @@ const Login = () => {
                 placeholder="Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="p-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="p-4 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
                 required
                 autoComplete="username"
               />
@@ -117,13 +127,13 @@ const Login = () => {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="p-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="p-4 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
                 required
                 autoComplete="current-password"
               />
               <button
                 type="submit"
-                className="p-4 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-600 transition duration-300 shadow-md disabled:opacity-50"
+                className="p-4 rounded-lg bg-teal-500 dark:bg-teal-700 text-white font-semibold hover:bg-teal-600 dark:hover:bg-teal-800 transition duration-300 shadow-md disabled:opacity-50"
                 disabled={loading}
               >
                 Login

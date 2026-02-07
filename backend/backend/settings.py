@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -167,17 +168,11 @@ FRONTEND_URL = f"http://{local_ip}:3000"
 DEBUG = True
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": "taggo",
-        "USER": "taggo",  # dedicated DB user
-        "PASSWORD": "StrongPass123!",  # change in production via env var
-        "HOST": "127.0.0.1",  # force TCP to avoid socket issues
-        "PORT": "3306",
-        "OPTIONS": {
-            "charset": "utf8mb4",
-        },
-    }
+    'default': dj_database_url.config(
+        default='postgres://admin:adminpassword@db:5432/taggo',
+        conn_max_age=600,
+        ssl_require=False
+    )
 }
 
 

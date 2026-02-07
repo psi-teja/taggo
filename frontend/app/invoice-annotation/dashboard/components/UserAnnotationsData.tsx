@@ -5,7 +5,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Link from "next/link";
 import PageNav from '@/app/components/PageNav';
-import Page from '@/app/page';
+import Page from '@/app/page_back';
 
 interface FileData {
     ID: string;

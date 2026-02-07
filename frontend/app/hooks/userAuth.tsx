@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 interface LoggedInUser {
   username: string;
@@ -12,7 +11,6 @@ interface LoggedInUser {
 
 export const useAuth = () => {
   const [loggedInUser, setLoggedInUser] = useState<LoggedInUser | null>(null);
-  const router = useRouter();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("loggedInUser");
@@ -20,9 +18,7 @@ export const useAuth = () => {
       const parsedUser = JSON.parse(storedUser);
       setLoggedInUser(parsedUser);
     } else {
-      console.log("No user data found in local storage.");
-      const currentPath = window.location.pathname + window.location.search;
-      router.replace(`/login?next=${encodeURIComponent(currentPath)}`);
+      setLoggedInUser(null);
     }
   }, []);
 

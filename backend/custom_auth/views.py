@@ -15,6 +15,14 @@ from .serializers import CustomTokenObtainPairSerializer
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
+    def post(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        if not username:
+            return Response({'error': 'Username is required'}, status=status.HTTP_400_BAD_REQUEST)
+        if not User.objects.filter(username=username).exists():
+            return Response({'error': 'User does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        return super().post(request, *args, **kwargs)
+
 # ✅ Password change API
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
