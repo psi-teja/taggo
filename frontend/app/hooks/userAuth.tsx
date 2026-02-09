@@ -1,16 +1,9 @@
 import { useEffect, useState } from "react";
-
-interface LoggedInUser {
-  username: string;
-  email?: string;
-  first_name?: string;
-  last_name?: string;
-  is_superuser?: boolean;
-  groups?: string[];
-}
+import { User } from "@/app/components/User";
+import Router from "next/router";
 
 export const useAuth = () => {
-  const [loggedInUser, setLoggedInUser] = useState<LoggedInUser | null>(null);
+  const [loggedInUser, setLoggedInUser] = useState<User | undefined>();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("loggedInUser");
@@ -18,7 +11,7 @@ export const useAuth = () => {
       const parsedUser = JSON.parse(storedUser);
       setLoggedInUser(parsedUser);
     } else {
-      setLoggedInUser(null);
+      window.location.href = "/login";
     }
   }, []);
 

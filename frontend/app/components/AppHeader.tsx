@@ -7,9 +7,10 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 import UploadModal from "./UploadModal";
 import Header from "@/app/components/Header";
 import Logo from "./Logo";
+import { User } from "./User";
 
 interface AppHeaderProps {
-  loggedInUser: any;
+  loggedInUser: User | undefined;
   task_type: string;
 }
 

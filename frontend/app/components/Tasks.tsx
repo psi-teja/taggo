@@ -4,22 +4,23 @@ import Link from "next/link";
 import axiosInstance from "../hooks/axiosInstance";
 import PageNav from "./PageNav";
 import { FaHistory } from "react-icons/fa";
+import { Project } from "./Project";
+import { User } from "./User";
 
-interface Task {
+export type Task = {
   id: string;
   selected: boolean;
-  assigned_to_user: string | null;
-  assigned_to_user_id: number | null;
+  assigned_to_user: User | null;
   status: string;
   history: { timestamp: string; action: string }[];
 }
 
 interface TasksProps {
-  task_type: string;
-  loggedInUser: any;
+  project: Project;
+  loggedInUser: User;
 }
 
-const Tasks: React.FC<TasksProps> = ({ task_type, loggedInUser }) => {
+const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
   const [data, setData] = useState<Task[]>([]);
   const [isLoading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +41,7 @@ const Tasks: React.FC<TasksProps> = ({ task_type, loggedInUser }) => {
     if (searchID === "") searchID = null;
     try {
       const response = await axiosInstance.get("/tasks/", {
-        params: { assignee, status, perPage, page, searchID, task_type },
+        params: { assignee, status, perPage, page, searchID, type: project.task_type },
       });
       if (response.status !== 200) throw new Error("Failed to fetch data");
       setData(response.data.tasks);
@@ -183,7 +184,7 @@ const Tasks: React.FC<TasksProps> = ({ task_type, loggedInUser }) => {
                     {loggedInUser?.is_superuser ? (
                       <select
                         className="text-slate-700 rounded-md px-2 py-1 bg-white/70 border border-slate-200 focus:border-teal-400 focus:ring-2 focus:ring-teal-300 text-xs shadow-sm"
-                        value={item.assigned_to_user ?? ""}
+                        value={item.assigned_to_user ? item.assigned_to_user.username : ""}
                       >
                         <option value="">-- unassigned --</option>
                         {Object.entries(groupsWithUsers).map(([group, users]) => (
@@ -198,13 +199,13 @@ const Tasks: React.FC<TasksProps> = ({ task_type, loggedInUser }) => {
                       </select>
                     ) : (
                       <span className="text-xs font-medium text-slate-600 px-2 py-1 bg-slate-100 rounded-md shadow-inner">
-                        {item.assigned_to_user || "—"}
+                        {item.assigned_to_user ? item.assigned_to_user.username : "—"}
                       </span>
                     )}
                   </td>
                   <td className="px-5 py-4 align-top">
                     <Link
-                      href={`/${task_type}/${item.id}`}
+                      href={`/${project.task_type}/${item.id}`}
                       className="inline-flex items-center group/status"
                       title="Open task"
                     >

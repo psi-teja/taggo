@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { FC } from "react";
 
-interface WithAuthProps {
+export type WithAuthProps = {
   [key: string]: any;
 }
 
