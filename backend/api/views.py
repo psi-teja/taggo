@@ -34,36 +34,49 @@ def TaskListView(request):
     search_id = request.GET.get("searchID", "")
     project_id = request.GET.get("project_id", "")
 
-    if request.user.is_superuser:
-        if assignee == "all":
-            tasks_list = Task.objects.all()
-        elif assignee == "unassigned":
-            tasks_list = Task.objects.filter(assigned_to_user=None, project_id=project_id)
-        else:
-            tasks_list = Task.objects.filter(
-                assigned_to_user__username=assignee, project_id=project_id
-            )
-    else:
-        tasks_list = Task.objects.filter(assigned_to_user=request.user, project_id=project_id)
+    # 1. Base Filter: Always filter by project first
+    tasks_list = Task.objects.filter(project_id=project_id)
 
+    # 2. Assignee Permissions
+    if not request.user.is_superuser:
+        tasks_list = tasks_list.filter(assigned_to_user=request.user)
+    else:
+        if assignee == "unassigned":
+            tasks_list = tasks_list.filter(assigned_to_user__isnull=True)
+        elif assignee != "all":
+            tasks_list = tasks_list.filter(assigned_to_user__username=assignee)
+
+    # 3. Status and Search
     if status != "all":
         tasks_list = tasks_list.filter(status=status)
-
     if search_id:
         tasks_list = tasks_list.filter(id__icontains=search_id)
 
-    paginator = Paginator(tasks_list, per_page)
-
+    # 4. Efficient Pagination
+    paginator = Paginator(tasks_list.select_related('assigned_to_user'), per_page)
+    
     try:
-        tasks = paginator.page(page)
-    except PageNotAnInteger:
-        tasks = paginator.page(1)
-    except EmptyPage:
-        tasks = paginator.page(paginator.num_pages)
+        tasks_page = paginator.page(page)
+    except (PageNotAnInteger, EmptyPage):
+        return JsonResponse({"tasks": [], "total_tasks": paginator.count}, status=200)
 
-    tasks = list(tasks.object_list.values())
-    total_tasks = paginator.count
-    return JsonResponse({"tasks": tasks, "total_tasks": total_tasks}, safe=False, status=200)
+    # 5. Manual Serialization (To include Username)
+    tasks_data = []
+    for t in tasks_page:
+        tasks_data.append({
+            "id": str(t.id),
+            "status": t.status,
+            "history": t.history,
+            "assigned_to_user": {
+                "username": t.assigned_to_user.username 
+            } if t.assigned_to_user else None,
+        })
+
+    return JsonResponse({
+        "tasks": tasks_data, 
+        "total_tasks": paginator.count
+    }, status=200)
+
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -91,26 +104,27 @@ def TaskCreateView(request):
         project_id = request.POST.get("project_id")
         document = request.FILES.get("document")
 
-        if not project_id or not document:
+        if not document:
             return JsonResponse(
-                {"error": "task_type and document are required fields"},
+                {"error": "Document is required field"},
                 status=400,
             )
 
         # Define the directory path for the task type
-        task_directory = os.path.join(settings.MEDIA_ROOT, project_id, "documents")
+        task_directory = os.path.join(settings.MEDIA_ROOT, "documents")
         os.makedirs(task_directory, exist_ok=True)
 
         file_extension = os.path.splitext(document.name)[1]
         
         task = Task.objects.create(
             project_id=project_id,
-            history = [
-                    {
-                        "timestamp": get_current_time_ist(),
-                        "action": f"file uploaded by {request.user.username}",
-                    }
-                ]
+            status="uploaded",
+            history=[
+            {
+                "timestamp": get_current_time_ist(),
+                "action": f"file uploaded by {request.user.username}",
+            }
+            ]
         )
 
         task.filename = f'{task.id}{file_extension}'
@@ -122,7 +136,6 @@ def TaskCreateView(request):
                 f.write(chunk)
 
         task.save()
-
 
         return JsonResponse({"message": "Task created successfully"}, status=200)
     except Exception as e:
@@ -218,7 +231,7 @@ def ProjectCreateView(request):
         return JsonResponse({"error": str(e)}, status=400)
 
 @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def ProjectListView(request):
     projects = Project.objects.values("id", "name", "task_type")
     return JsonResponse(list(projects), safe=False)
@@ -232,6 +245,7 @@ def ProjectDetailsView(request, project_id: str):
             "id": project.id,
             "name": project.name,
             "task_type": project.task_type,
+            "schema": project.schema,
         }
         return JsonResponse(project_data, status=200)
     except Project.DoesNotExist:

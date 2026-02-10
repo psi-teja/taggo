@@ -40,7 +40,7 @@ const Dashboard = () => {
 
     const handleCreateProject = async (projectData: { name: string; task_type: string }) => {
         try {
-            const response = await axiosInstance.post(`/projects/`, projectData);
+            const response = await axiosInstance.post(`/projects/create/`, projectData);
             if (response.status === 201) {
                 await fetchProjects(); // Refresh list
                 setShowModal(false);

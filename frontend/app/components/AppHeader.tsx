@@ -10,6 +10,7 @@ import Logo from "./Logo";
 import { User } from "./User";
 import { Project, TOOL_CONFIG } from "@/app/components/Project";
 import { ArrowLeft } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface AppHeaderProps {
   loggedInUser: User | undefined;
@@ -17,7 +18,7 @@ interface AppHeaderProps {
   navigation: string; // You can replace 'any' with the specific type if you have it defined
 }
 
-const AppHeader = ({ loggedInUser, project, navigation}: AppHeaderProps) => {
+const AppHeader = ({ loggedInUser, project, navigation }: AppHeaderProps) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
@@ -85,12 +86,12 @@ const AppHeader = ({ loggedInUser, project, navigation}: AppHeaderProps) => {
   return (
     <Header>
       <div className="flex items-center space-x-2">
-        <Link 
-              href={`/${navigation}`} 
-              className="p-2 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition-all text-slate-500 hover:text-blue-600"
-            >
-              <ArrowLeft size={20} />
-            </Link>
+        <Link
+          href={`/${navigation}`}
+          className="p-2 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition-all text-slate-500 hover:text-blue-600"
+        >
+          <ArrowLeft size={20} />
+        </Link>
         <Link href="/">
           <Logo />
         </Link>
@@ -113,7 +114,7 @@ const AppHeader = ({ loggedInUser, project, navigation}: AppHeaderProps) => {
       </div>
       <div className="flex items-center space-x-2">
         <Link
-          href="/invoice-annotation/schema"
+          href={`/${project.task_type}/schema/${project.id}`}
           className="relative text-sm font-medium px-3 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 shadow-sm"
           title="Invoice Annotation Schema"
         >
@@ -122,13 +123,30 @@ const AppHeader = ({ loggedInUser, project, navigation}: AppHeaderProps) => {
         {loggedInUser?.is_superuser && (
           <button
             onClick={() => setIsUploadModalOpen(true)}
-            className={`relative cursor-pointer text-sm font-medium px-4 py-2 rounded-md flex items-center gap-2 shadow-md shadow-teal-900/10 border border-teal-400/40 bg-gradient-to-r from-teal-500 via-cyan-500 to-emerald-500 text-white tracking-wide transition-all duration-200 hover:shadow-lg hover:shadow-teal-900/20 hover:-translate-y-0.5 hover:from-teal-600 hover:via-cyan-600 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-teal-300 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed ${isLoading ? "opacity-60 pointer-events-none" : ""
-              }`}
             disabled={isLoading}
+            className={`
+    group relative px-6 py-2.5 rounded-xl font-bold text-sm tracking-tight
+    flex items-center gap-2 overflow-hidden transition-all duration-300
+    bg-gradient-to-br from-brand-500 to-brand-600 text-white
+    shadow-[0_1px_2px_rgba(0,0,0,0.1),0_4px_12px_-2px_rgba(20,184,166,0.3)]
+    hover:shadow-[0_1px_2px_rgba(0,0,0,0.1),0_8px_20px_-4px_rgba(20,184,166,0.4)]
+    hover:-translate-y-0.5 active:translate-y-0
+    disabled:opacity-50 disabled:cursor-not-allowed
+    ${isLoading ? "opacity-70 pointer-events-none" : ""}
+  `}
           >
-            <PlusIcon className="h-4 w-4 text-white drop-shadow" />
-            <span className="whitespace-nowrap">{isLoading ? "Uploading..." : "Upload Files"}</span>
-            <span className="absolute inset-0 rounded-md bg-white/10 opacity-0 hover:opacity-100 transition-opacity" />
+            {/* Subtle Shine Effect */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <PlusIcon className="h-4 w-4 transition-transform group-hover:rotate-90 duration-300" />
+            )}
+
+            <span className="relative whitespace-nowrap">
+              {isLoading ? "Uploading..." : "Upload Files"}
+            </span>
           </button>
         )}
         {loggedInUser && <AccountDetails loggedInUser={loggedInUser} />}

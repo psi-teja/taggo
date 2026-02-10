@@ -13,7 +13,7 @@ def ConvertToPdfView(request, task_type, filename):
     Converts a file to PDF format.
     Currently supports only images (e.g., jpg, png).
     """
-    file_path = os.path.join(settings.MEDIA_ROOT, task_type, "documents", filename)
+    file_path = os.path.join(settings.MEDIA_ROOT, "documents", filename)
 
     try:
         if not filename.lower().endswith(".pdf"):

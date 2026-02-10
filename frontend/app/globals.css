@@ -89,3 +89,5 @@ body {
 /* Card utility */
 .theme-card { background: linear-gradient(135deg, rgba(var(--color-bg-surface)/0.9), rgba(var(--color-bg-alt)/0.7)); border:1px solid rgba(var(--color-brand-500)/0.15); border-radius: var(--radius-lg); padding:1rem; box-shadow: var(--shadow-sm); backdrop-filter: blur(10px); }
 .theme-card:hover { box-shadow: var(--shadow-md); }
+
+

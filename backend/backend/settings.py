@@ -179,8 +179,6 @@ DATABASES = {
 
 ALLOWED_HOSTS = [HOST_IP, 'localhost']
 
-print(f"ALLOWED_HOSTS: {ALLOWED_HOSTS}")
-
 MEDIA_ROOT = os.path.join(BASE_DIR, "..", "..", "taggo-data")
 MEDIA_URL = "/media/"
 

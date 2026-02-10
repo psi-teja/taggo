@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   X, Plus, Loader2, FileText, Maximize,
-  Layers, Scissors, CheckCircle2, ArrowRight
+  Layers, Scissors, CheckCircle2, ArrowRight,
+  Pentagon
 } from 'lucide-react';
 
 // --- Configuration & Types ---
@@ -47,7 +48,7 @@ export const TOOL_CONFIG = {
   'image-segmentation': {
     title: 'Segmentation',
     description: 'Pixel-perfect polygon masking for complex shapes.',
-    icon: Scissors,
+    icon: Pentagon,
     color: 'text-rose-600',
     bg: 'bg-rose-50',
     border: 'border-rose-100',

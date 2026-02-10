@@ -235,11 +235,3 @@ function Home() {
 }
 
 export default Home;
-
-// Add custom animation to global styles
-// In globals.css or tailwind.config.js, add:
-// @keyframes bgMove {
-//   0%, 100% { background-position: 0% 0%, 100% 100%; }
-//   50% { background-position: 50% 50%, 50% 50%; }
-// }
-// .animate-bgMove { animation: bgMove 10s ease-in-out infinite; }
