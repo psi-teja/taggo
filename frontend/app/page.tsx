@@ -3,30 +3,22 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from "@/app/hooks/userAuth";
-import axios from "axios";
+import axiosInstance from './hooks/axiosInstance';
 
 function Home() {
     const { loggedInUser } = useAuth();
     const router = useRouter();
     const containerRef = useRef<HTMLDivElement | null>(null);
 
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
-
     const [superuserExists, setSuperuserExists] = useState<boolean | null>(null);
     const [apiUrlError, setApiUrlError] = useState<string>("");
 
-    useEffect(() => {
-        console.log("[Taggo] API_BASE_URL:", API_BASE_URL);
-        if (!API_BASE_URL) {
-            setApiUrlError("API_BASE_URL is not set. Please ensure the environment variable NEXT_PUBLIC_API_BASE_URL is configured. The frontend cannot reach the backend.");
-        }
-    }, []);
+    
 
     useEffect(() => {
-        if (!API_BASE_URL) return;
         async function checkSuperuser() {
             try {
-                const res = await axios.get(`${API_BASE_URL}/check-superuser`);
+                const res = await axiosInstance.get(`/check-superuser`);
                 setSuperuserExists(res.data && res.data.superuser_exists);
                 if (res.data && res.data.superuser_exists === false && loggedInUser) {
                     localStorage.removeItem('access_token');
@@ -41,7 +33,7 @@ function Home() {
             }
         }
         checkSuperuser();
-    }, [router, loggedInUser, API_BASE_URL]);
+    }, [router, loggedInUser]);
 
     useEffect(() => {
         const cards = containerRef.current?.querySelectorAll('[data-anim-card]');

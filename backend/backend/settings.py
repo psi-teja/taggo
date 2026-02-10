@@ -14,6 +14,9 @@ from pathlib import Path
 import os
 import dj_database_url
 
+
+HOST_IP = os.environ.get("HOST_IP")
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,9 +28,6 @@ SECRET_KEY = "django-insecure-b9*q@7j7jdhp7%0+15=ew4-ul8tuvp6akv$@voe3_l#$u0_^qq
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -121,8 +121,12 @@ LOGIN_REDIRECT_URL = "/"  # Redirect to home page or any desired URL
 
 # CORS settings
 
-CORS_ALLOW_ALL_ORIGINS = True
-
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    f"http://{HOST_IP}:3000",
+]
+CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
     "DELETE",
     "GET",
@@ -160,21 +164,22 @@ CORS_ALLOW_METHODS = [
     "PUT",
 ]
 
-hostname = socket.gethostname()
-local_ip = socket.gethostbyname(hostname)
 
-FRONTEND_URL = f"http://{local_ip}:3000"
+FRONTEND_URL = f"http://{HOST_IP}:3000"
 
 DEBUG = True
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgres://admin:adminpassword@db:5432/taggo',
+        default=os.environ.get('DATABASE_URL'),
         conn_max_age=600,
         ssl_require=False
     )
 }
 
+ALLOWED_HOSTS = [HOST_IP, 'localhost']
+
+print(f"ALLOWED_HOSTS: {ALLOWED_HOSTS}")
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "..", "..", "taggo-data")
 MEDIA_URL = "/media/"

@@ -1,104 +1,87 @@
+import uuid
+import pytz
 from django.db import models
 from django.contrib.auth.models import User
-import uuid
 from django.utils import timezone
-import pytz
 
-class Task(models.Model):
-    id = models.CharField(
-        primary_key=True, max_length=100, editable=False, default=uuid.uuid4
-    )
+class Project(models.Model):
+    # Use UUIDField instead of CharField for better DB performance
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
+
     TASK_TYPE_CHOICES = [
         ("invoice-annotation", "Invoice Annotation"),
         ("object-detection", "Object Detection"),
         ("document-classification", "Document Classification"),
         ("image-segmentation", "Image Segmentation"),
-        ("text-translation", "Text Translation"),
     ]
-    task_type = models.CharField(
-        max_length=50, choices=TASK_TYPE_CHOICES
+    task_type = models.CharField(max_length=50, choices=TASK_TYPE_CHOICES)
+    
+    # Stores the "Ontology" (e.g., classes like "Car", "Dog" or Invoice Fields)
+    schema = models.JSONField(
+        default=dict,
+        help_text="Defines sections and fields for the task."
+    )
+
+    class Meta:
+        db_table = "projects"
+
+    def __str__(self):
+        return f"{self.name} ({self.get_task_type_display()})"
+
+class Task(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project = models.ForeignKey(
+        Project, null=True, blank=True, on_delete=models.SET_NULL, related_name="tasks"
     )
     assigned_to_user = models.ForeignKey(
-        User, null=True, blank=True, on_delete=models.SET_NULL
+        User, null=True, blank=True, on_delete=models.SET_NULL, related_name="assigned_tasks"
     )
-    history = models.JSONField(
-        default=list,
-        help_text="List of history records, each containing a timestamp and an action."
+    
+    # FR-10: Audit Trail - Automated via a helper method
+    history = models.JSONField(default=list)
+    
+    status = models.CharField(
+        max_length=50, 
+        choices=[
+            ("uploaded", "Uploaded"),
+            ("in-labelling", "In-Labelling"),
+            ("in-review", "In-Review"),
+            ("accepted", "Accepted"),
+            ("completed", "Completed"),
+        ], 
+        default="uploaded"
     )
-    labelled_by = models.ForeignKey(
-        User,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="labelled_by",
-    )
+
+    # Annotator/Reviewer metadata
+    labelled_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="labelled_tasks")
     labelled_at = models.DateTimeField(null=True, blank=True)
-    reviewed_by = models.ForeignKey(
-        User,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="reviewed_by",
-    )
+    reviewed_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="reviewed_tasks")
     reviewed_at = models.DateTimeField(null=True, blank=True)
-    STATUS_CHOICES = [
-        ("uploaded", "Uploaded"),
-        ("in-labelling", "In-Labelling"),
-        ("in-review", "In-Review"),
-        ("accepted", "Accepted"),
-        ("completed", "Completed"),
-    ]
+    
+    filename = models.CharField(max_length=255, null=True, blank=True)
     inserted_time = models.DateTimeField(auto_now_add=True)
     completed_time = models.DateTimeField(null=True, blank=True)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="uploaded")
-    filename = models.CharField(max_length=255, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         ist = pytz.timezone("Asia/Kolkata")
+        now = timezone.now().astimezone(ist)
+
+        # Automatically update timestamps based on role activity
         if self.labelled_by and not self.labelled_at:
-            self.labelled_at = timezone.now().astimezone(ist)
+            self.labelled_at = now
         if self.reviewed_by and not self.reviewed_at:
-            self.reviewed_at = timezone.now().astimezone(ist)
+            self.reviewed_at = now
         if self.status == "completed" and not self.completed_time:
-            self.completed_time = timezone.now().astimezone(ist)
+            self.completed_time = now
+
         super().save(*args, **kwargs)
 
     class Meta:
-        verbose_name = "Task"
-        verbose_name_plural = "Tasks"
         db_table = "tasks"
         ordering = ["-inserted_time"]
 
     def __str__(self):
-        return f"Task {self.id} - {self.task_type} - {self.status}"
-
-# ==== Admin-defined schema for sections and fields ====
-class SectionSchema(models.Model):
-    SECTION_TYPE_CHOICES = (
-        ("general", "General"),
-        ("table", "Table"),
-    )
-    name = models.CharField(max_length=100)
-    section_type = models.CharField(max_length=20, choices=SECTION_TYPE_CHOICES, default="general")
-    # Optional: limit schema by task type; keep free-form to avoid coupling
-    task_type = models.CharField(max_length=50, blank=True, null=True)
-
-    class Meta:
-        unique_together = ("name", "task_type")
-        db_table = "section_schema"
-        ordering = ["name"]
-
-    def __str__(self):
-        return f"{self.name} ({self.section_type})" + (f" - {self.task_type}" if self.task_type else "")
-
-class FieldSchema(models.Model):
-    section = models.ForeignKey(SectionSchema, related_name="fields", on_delete=models.CASCADE)
-    name = models.CharField(max_length=100)
-
-    class Meta:
-        unique_together = ("section", "name")
-        db_table = "field_schema"
-        ordering = ["name"]
-
-    def __str__(self):
-        return f"{self.section.name} :: {self.name}"
+        # Fixed: Accessed task_type via project relationship
+        task_type = self.project.task_type if self.project else "Unassigned"
+        return f"Task {str(self.id)[:8]} - {task_type} - {self.status}"

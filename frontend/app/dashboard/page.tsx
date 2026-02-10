@@ -1,124 +1,146 @@
-"use client"
+"use client";
+
+import { useEffect, useState } from "react";
 import Header from '../components/Header';
 import Logo from '../components/Logo';
 import AccountDetails from '../components/AccountDetails';
 import { useAuth } from "@/app/hooks/userAuth";
-import { useState } from "react";
 import withAuth from '../hooks/withAuth';
+import axiosInstance from '../hooks/axiosInstance';
 
-const mockProjects = [
-    { id: 1, name: "BankStatement", type: "document-parsing", description: "Annotate and manage invoices." },
-    { id: 2, name: "Car Number Plate Detetion", type: "object-detection", description: "Detect objects in images." },
-];
+// Import the combined components we built in the previous step
+import CreateProjectModal, { ProjectCard, Project } from '@/app/components/Project';
+import { Loader2, FolderPlus, Rocket, Plus } from 'lucide-react';
 
 const Dashboard = () => {
     const { loggedInUser } = useAuth();
-    const [projects, setProjects] = useState(mockProjects);
+    const [projects, setProjects] = useState<Project[]>([]);
     const [showModal, setShowModal] = useState(false);
-    const [newProject, setNewProject] = useState({ name: "", type: "", description: "" });
+    const [isLoading, setIsLoading] = useState(true);
 
-    const handleCreateProject = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newProject.name) return;
-        setProjects([
-            ...projects,
-            { id: Date.now(), ...newProject }
-        ]);
-        setNewProject({ name: "", type: "", description: "" });
-        setShowModal(false);
+    // Fetch projects from Django Backend
+    const fetchProjects = async () => {
+        setIsLoading(true);
+        try {
+            // axiosInstance already uses your HOST_IP / baseURL
+            const response = await axiosInstance.get(`/projects/`);
+            if (response.status === 200) {
+                setProjects(response.data);
+            }
+        } catch (error) {
+            console.error('Error fetching projects:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchProjects();
+    }, []);
+
+    const handleCreateProject = async (projectData: { name: string; task_type: string }) => {
+        try {
+            const response = await axiosInstance.post(`/projects/`, projectData);
+            if (response.status === 201) {
+                await fetchProjects(); // Refresh list
+                setShowModal(false);
+            }
+        } catch (error) {
+            console.error('Error creating project:', error);
+            alert("Failed to create project. Please check your backend connection.");
+        }
     };
 
     return (
-        <div className="flex flex-col h-screen">
+        <div className="flex flex-col h-screen bg-white">
             <Header>
                 <Logo />
                 {loggedInUser && <AccountDetails loggedInUser={loggedInUser} />}
             </Header>
-            <main className="flex-1 flex bg-bg-base min-h-0">
-                <div className="flex flex-col md:flex-row w-full h-full">
-                    {/* Left: Image section (hidden on small screens) */}
-                    <div className="hidden md:flex w-full md:w-1/2 flex-col items-center justify-center bg-gradient-to-b from-brand-200 via-accent-500 to-bg-alt rounded-l-lg h-full">
-                        <img
-                            src="https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=800&q=80"
-                            alt="People collaborating"
-                            className="max-w-[70%] rounded-xl shadow-glow"
-                        />
-                        <blockquote className="mt-10 text-xl italic text-brand-900 text-center max-w-[80%] relative">
-                            "Alone we can do so little; together we can do so much."
-                            <span className="block text-base text-brand-700 absolute right-2 bottom-[-2rem]">
-                                – Helen Keller
-                            </span>
-                        </blockquote>
+
+            <main className="flex-1 flex overflow-hidden">
+                <div className="flex w-full h-full">
+
+                    {/* Left Section: Visual Branding & Inspiration */}
+                    <div className="hidden lg:flex w-1/3 flex-col items-center justify-center bg-slate-50 border-r border-slate-100 p-12">
+                        <div className="relative group">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+                            <img
+                                src="https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=800&q=80"
+                                alt="Space/Collaboration"
+                                className="relative max-w-full rounded-2xl shadow-2xl grayscale-[20%] group-hover:grayscale-0 transition-all duration-500"
+                            />
+                        </div>
+
+                        <div className="mt-12 text-center space-y-4">
+                            <Rocket className="mx-auto text-blue-500 animate-bounce" size={32} />
+                            <blockquote className="text-xl font-medium text-slate-800 italic leading-relaxed">
+                                "The best way to predict the future is to invent it."
+                                <footer className="mt-2 text-sm font-bold text-slate-400 uppercase tracking-widest">— Alan Kay</footer>
+                            </blockquote>
+                        </div>
                     </div>
-                    {/* Right: Projects section */}
-                    <div className="w-full md:w-1/2 flex flex-col p-6">
-                        <div className="flex justify-between items-center mb-6">
-                            <h1 className="text-2xl font-bold text-brand-800">Your Projects</h1>
+
+                    {/* Right Section: Project Management (FR-02) */}
+                    <div className="flex-1 flex flex-col p-8 md:p-12 bg-white overflow-y-auto">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+                            <div>
+                                <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                                    Welcome back, {loggedInUser?.first_name || 'Annotator'}
+                                </h1>
+                                <p className="text-slate-500 mt-1">Manage your datasets and annotation tasks.</p>
+                            </div>
                             <button
-                                className="bg-brand-500 text-white px-4 py-2 rounded hover:bg-brand-600"
+                                className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all active:scale-95"
                                 onClick={() => setShowModal(true)}
                             >
-                                + Create Project
+                                <Plus size={20} />
+                                Create Project
                             </button>
                         </div>
-                        <div className="grid grid-cols-1 gap-6">
-                            {projects.map((project) => (
-                                <a
-                                    key={project.id}
-                                    href={`dashboard/${project.id}`}
-                                    className="bg-gradient-to-br from-brand-50 via-bg-alt to-accent-500 p-4 rounded shadow-sm hover:shadow-md transition border border-brand-100 block cursor-pointer"
-                                >
-                                    <h2 className="text-lg font-semibold text-brand-700">{project.name}</h2>
-                                    <p className="text-sm text-accent-500 font-medium mb-1">{project.type}</p>
-                                </a>
-                            ))}
-                        </div>
-                        {showModal && (
-                            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-                                <div className="bg-bg-surface p-6 rounded shadow-lg w-full max-w-md">
-                                    <h2 className="text-xl font-bold mb-4 text-brand-800">Create New Project</h2>
-                                    <form onSubmit={handleCreateProject}>
-                                        <input
-                                            className="w-full mb-3 p-2 border border-brand-100 rounded bg-bg-base text-brand-900"
-                                            placeholder="Project Name"
-                                            value={newProject.name}
-                                            onChange={e => setNewProject({ ...newProject, name: e.target.value })}
-                                            required
-                                        />
-                                        <select
-                                            className="w-full mb-3 p-2 border border-brand-100 rounded bg-bg-base text-brand-900"
-                                            value={newProject.type}
-                                            onChange={e => setNewProject({ ...newProject, type: e.target.value })}
-                                            required
-                                        >
-                                            <option value="" disabled>
-                                                Select Project Type
-                                            </option>
-                                            <option value="Document Parsing">Document Parsing</option>
-                                            <option value="Object Detection">Object Detection</option>
-                                            <option value="Classification">Classification</option>
-                                            <option value="Segmentation">Segmentation</option>
-                                        </select>
-                                        <div className="flex justify-end gap-2">
-                                            <button
-                                                type="button"
-                                                className="px-4 py-2 bg-brand-100 text-brand-700 rounded"
-                                                onClick={() => setShowModal(false)}
-                                            >Cancel</button>
-                                            <button
-                                                type="submit"
-                                                className="px-4 py-2 bg-brand-500 text-white rounded hover:bg-brand-600"
-                                            >Create</button>
-                                        </div>
-                                    </form>
+
+                        {isLoading ? (
+                            <div className="flex-1 flex items-center justify-center">
+                                <Loader2 className="animate-spin text-blue-500" size={40} />
+                            </div>
+                        ) : projects.length > 0 ? (
+                            /* Responsive Grid for Project Cards */
+                            <div className="flex flex-col gap-6">
+                                {projects.map((project) => (
+                                    /* Add the key prop here using the unique project ID */
+                                    <ProjectCard key={project.id} project={project} />
+                                ))}
+                            </div>
+                        ) : (
+                            /* Empty State: Fulfills Usability NFR */
+                            <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-100 rounded-[3rem] bg-slate-50/50 p-12 text-center">
+                                <div className="p-6 bg-white rounded-3xl shadow-sm mb-6">
+                                    <FolderPlus className="text-slate-300" size={48} />
                                 </div>
+                                <h3 className="text-xl font-bold text-slate-800">No projects yet</h3>
+                                <p className="text-slate-500 max-w-xs mt-2">
+                                    Get started by creating your first project and uploading a dataset.
+                                </p>
+                                <button
+                                    onClick={() => setShowModal(true)}
+                                    className="mt-6 text-blue-600 font-bold hover:text-blue-700 underline underline-offset-4"
+                                >
+                                    Create your first project
+                                </button>
                             </div>
                         )}
+
+                        {/* Modal Integration */}
+                        <CreateProjectModal
+                            showModal={showModal}
+                            setShowModal={setShowModal}
+                            handleCreateProject={handleCreateProject}
+                        />
                     </div>
                 </div>
             </main>
         </div>
-    )
-}
+    );
+};
 
 export default withAuth(Dashboard);

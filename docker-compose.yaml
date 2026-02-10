@@ -15,7 +15,7 @@ services:
     build: ./backend
     # Wait for DB before running migrations and server
     command: >
-      sh -c "chmod +x /code/wait-for-it.sh && /code/wait-for-it.sh db:5432 -- python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+      sh -c "chmod +x /code/wait-for-it.sh && /code/wait-for-it.sh db:5432 -- python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./backend:/code
     ports:
@@ -23,7 +23,7 @@ services:
     environment:
       - DATABASE_URL=postgres://admin:adminpassword@db:5432/taggo
       - DEBUG=True
-      - ALLOWED_HOSTS=*
+      - HOST_IP=${HOST_IP}
     depends_on:
       - db
 

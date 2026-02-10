@@ -40,10 +40,11 @@ const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
     setError(null);
     if (searchID === "") searchID = null;
     try {
-      const response = await axiosInstance.get("/tasks/", {
-        params: { assignee, status, perPage, page, searchID, type: project.task_type },
+      const response = await axiosInstance.get(`/tasks/`, {
+        params: { assignee, status, perPage, page, searchID, project_id: project.id},
       });
       if (response.status !== 200) throw new Error("Failed to fetch data");
+      console.log("Fetched tasks:", response.data);
       setData(response.data.tasks);
       setIsLastPage(response.data.is_last_page);
       setTotalTasks(response.data.total_tasks);
@@ -155,7 +156,7 @@ const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
               </tr>
             </thead>
             <tbody>
-              {data.map((item: Task, index: number) => (
+              {data?.map((item: Task, index: number) => (
                 <tr
                   key={item.id}
                   className={`group border-b border-slate-100/70 last:border-0 hover:bg-white/70 transition-colors ${
@@ -214,7 +215,7 @@ const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
                   </td>
                 </tr>
               ))}
-              {data.length === 0 && (
+              {data?.length === 0 && (
                 <tr>
                   <td colSpan={3} className="px-6 py-12 text-center text-slate-500 text-sm">
                     No tasks found.

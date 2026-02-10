@@ -6,6 +6,7 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode"; // 👈 Add this
 import Header from "../components/Header";
 import Logo from "../components/Logo";
+import axiosInstance from "../hooks/axiosInstance";
 
 // Response from /token/
 interface LoginResponse {
@@ -31,8 +32,6 @@ const Login = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
-
   // Get the 'next' parameter from the URL
   const next = searchParams.get("next") || "/"; // Default to '/' if no 'next' query param is found
 
@@ -42,7 +41,7 @@ const Login = () => {
     setError(null);
 
     try {
-      const { data } = await axios.post<LoginResponse>(`${API_BASE_URL}/token/`, {
+      const { data } = await axiosInstance.post(`/token/`, {
         username,
         password,
       });

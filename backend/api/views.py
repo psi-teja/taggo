@@ -11,16 +11,14 @@ import os
 from datetime import datetime
 import pytesseract
 from PIL import Image
-from api.models import Task
+from api.models import Task, Project
 import re
 from django.db.models import Q
-from .models import SectionSchema, FieldSchema
 
 # Function to get the current time
 def get_current_time_ist():
     ist = pytz.timezone("Asia/Kolkata")
     return datetime.now(ist).strftime(" %H:%M:%S %d-%m-%Y ")
-    
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -34,28 +32,25 @@ def TaskListView(request):
     per_page = int(request.GET.get("perPage", 10))
     page = int(request.GET.get("page", 1))
     search_id = request.GET.get("searchID", "")
-    task_type = request.GET.get("task_type", "")
+    project_id = request.GET.get("project_id", "")
 
     if request.user.is_superuser:
         if assignee == "all":
             tasks_list = Task.objects.all()
         elif assignee == "unassigned":
-            tasks_list = Task.objects.filter(assigned_to_user=None)
+            tasks_list = Task.objects.filter(assigned_to_user=None, project_id=project_id)
         else:
             tasks_list = Task.objects.filter(
-                assigned_to_user__username=assignee
+                assigned_to_user__username=assignee, project_id=project_id
             )
     else:
-        tasks_list = Task.objects.filter(assigned_to_user=request.user)
+        tasks_list = Task.objects.filter(assigned_to_user=request.user, project_id=project_id)
 
     if status != "all":
         tasks_list = tasks_list.filter(status=status)
 
     if search_id:
         tasks_list = tasks_list.filter(id__icontains=search_id)
-
-    if task_type:
-        tasks_list = tasks_list.filter(task_type=task_type)
 
     paginator = Paginator(tasks_list, per_page)
 
@@ -66,30 +61,7 @@ def TaskListView(request):
     except EmptyPage:
         tasks = paginator.page(paginator.num_pages)
 
-    data = []
-    for task in tasks.object_list:
-        task_data = {
-            "id": task.id,
-            "status": task.status,
-            "task_type": task.task_type,
-            "assigned_to_user": task.assigned_to_user.username
-            if task.assigned_to_user
-            else None,
-            "history": task.history,
-        }
-        data.append(task_data)
-
-    return JsonResponse(
-        {
-            "tasks": data,
-            "page": tasks.number,
-            "pages": paginator.num_pages,
-            "total_tasks": paginator.count,
-            "is_last_page": not tasks.has_next(),
-        },
-        safe=False,
-    )
-
+    return JsonResponse(list(tasks), safe=False, status=200)
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -229,95 +201,40 @@ def get_ocr_text(request):
         logger.error(f"Error processing OCR: {e}")
         return JsonResponse({"error": str(e)}, status=500)
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def schema_options(request):
-    """Return a mapping of section name -> list of field names defined by admin.
-    Optional query param: task_type to filter specific schemas, while also including global (null) ones.
-    """
-    task_type = request.GET.get("task_type")
-    qs = SectionSchema.objects.all()
-    if task_type:
-        qs = qs.filter(Q(task_type__isnull=True) | Q(task_type=task_type))
-    result = {}
-    for sec in qs:
-        field_names = list(sec.fields.order_by("name").values_list("name", flat=True))
-        result[sec.name] = field_names
-    return JsonResponse(result, safe=False)
-
-# Admin-only schema management
-@api_view(["GET", "POST"])
-@permission_classes([IsAuthenticated])
-def schema_sections(request):
-    # Admin-only for both listing and creating
-    if not request.user.is_superuser:
-        return JsonResponse({"error": "Forbidden"}, status=403)
-
-    if request.method == "GET":
-        task_type = request.GET.get("task_type")
-        qs = SectionSchema.objects.all()
-        if task_type:
-            qs = qs.filter(Q(task_type__isnull=True) | Q(task_type=task_type))
-        data = []
-        for sec in qs.order_by("name"):
-            data.append({
-                "id": sec.id,
-                "name": sec.name,
-                "section_type": sec.section_type,
-                "task_type": sec.task_type,
-                "fields": list(sec.fields.order_by("name").values("id", "name"))
-            })
-        return JsonResponse({"sections": data}, status=200)
-
-    # POST: create section
-    try:
-        payload = json.loads(request.body or '{}')
-        name = payload.get("name", "").strip()
-        section_type = payload.get("section_type", "general")
-        task_type = payload.get("task_type")
-        if not name or section_type not in ("general", "table"):
-            return JsonResponse({"error": "Invalid name or section_type"}, status=400)
-        sec = SectionSchema.objects.create(name=name, section_type=section_type, task_type=task_type)
-        return JsonResponse({"id": sec.id, "name": sec.name, "section_type": sec.section_type, "task_type": sec.task_type}, status=201)
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=400)
-
-@api_view(["DELETE"])
-@permission_classes([IsAuthenticated])
-def schema_section_delete(request, pk: int):
-    if not request.user.is_superuser:
-        return JsonResponse({"error": "Forbidden"}, status=403)
-    try:
-        SectionSchema.objects.get(pk=pk).delete()
-        return JsonResponse({"message": "Deleted"}, status=200)
-    except SectionSchema.DoesNotExist:
-        return JsonResponse({"error": "Not found"}, status=404)
-
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def schema_section_add_field(request, pk: int):
+def ProjectCreateView(request):
     if not request.user.is_superuser:
         return JsonResponse({"error": "Forbidden"}, status=403)
     try:
-        sec = SectionSchema.objects.get(pk=pk)
         payload = json.loads(request.body or '{}')
         name = payload.get("name", "").strip()
-        if not name:
-            return JsonResponse({"error": "Field name required"}, status=400)
-        field = FieldSchema.objects.create(section=sec, name=name)
-        return JsonResponse({"id": field.id, "name": field.name}, status=201)
-    except SectionSchema.DoesNotExist:
-        return JsonResponse({"error": "Section not found"}, status=404)
+        task_type = payload.get("task_type", "").strip()
+        if not name or not task_type:
+            return JsonResponse({"error": "Both name and task_type are required"}, status=400)
+        if Project.objects.filter(name=name).exists():
+            return JsonResponse({"error": "Project with this name already exists"}, status=400)
+        project = Project.objects.create(name=name, task_type=task_type)
+        return JsonResponse({"id": project.id, "name": project.name, "task_type": project.task_type}, status=201)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
 
-@api_view(["DELETE"])
+@api_view(["GET"])
+# @permission_classes([IsAuthenticated])
+def ProjectListView(request):
+    projects = Project.objects.values("id", "name", "task_type")
+    return JsonResponse(list(projects), safe=False)
+        
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def schema_field_delete(request, pk: int):
-    if not request.user.is_superuser:
-        return JsonResponse({"error": "Forbidden"}, status=403)
+def ProjectDetailsView(request, project_id: str):
     try:
-        FieldSchema.objects.get(pk=pk).delete()
-        return JsonResponse({"message": "Deleted"}, status=200)
-    except FieldSchema.DoesNotExist:
-        return JsonResponse({"error": "Not found"}, status=404)
+        project = Project.objects.get(id=project_id)
+        project_data = {
+            "id": project.id,
+            "name": project.name,
+            "task_type": project.task_type,
+        }
+        return JsonResponse(project_data, status=200)
+    except Project.DoesNotExist:
+        return JsonResponse({"error": "Project not found"}, status=404)    
