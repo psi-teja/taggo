@@ -1,12 +1,14 @@
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { FaHistory, FaSearch, FaFilter, FaChevronRight } from "react-icons/fa";
+import { Loader2, Inbox, User as UserIcon, Clock } from "lucide-react";
 import axiosInstance from "../hooks/axiosInstance";
 import PageNav from "./PageNav";
-import { FaHistory } from "react-icons/fa";
 import { Project } from "./Project";
 import { User } from "./User";
 
+// --- Types ---
 export type Task = {
   id: string;
   selected: boolean;
@@ -25,210 +27,182 @@ const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
   const [isLoading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [totalTasks, setTotalTasks] = useState<number>(0);
-  const [isLastPage, setIsLastPage] = useState<boolean>(false);
-  const [groupsWithUsers, setGroupsWithUsers] = useState<{ [key: string]: string[] }>({});
   const [selectedAssignee, setSelectedAssignee] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
-  const [searchID, setSearchID] = useState<string | null>(null);
+  const [searchID, setSearchID] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [selectedTaskID, setSelectedTaskID] = useState<string | null>(null);
   const [selectedTaskHistory, setSelectedTaskHistory] = useState<{ timestamp: string; action: string }[] | null>(null);
+  
   const perPage = 20;
 
-  const fetchTasks = async (assignee: string, status: string, page: number, searchID: string | null) => {
-    setLoading(true);
-    setError(null);
-    if (searchID === "") searchID = null;
-    try {
-      const response = await axiosInstance.get(`/tasks/`, {
-        params: { assignee, status, perPage, page, searchID, project_id: project.id},
-      });
-      if (response.status !== 200) throw new Error("Failed to fetch data");
-      console.log("Fetched tasks:", response.data);
-      setData(response.data.tasks);
-      setIsLastPage(response.data.is_last_page);
-      setTotalTasks(response.data.total_tasks);
-    } catch (error: any) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fetchTasks = async (assignee: string, status: string, page: number, query: string) => {
+  setLoading(true);
+  try {
+    const response = await axiosInstance.get(`/tasks/`, {
+      params: { assignee, status, perPage, page, searchID: query || null, project_id: project.id },
+    });
+    
+    // Defensive check: Ensure we are setting an array even if the API sends null
+    setData(response.data.tasks || []); 
+    setTotalTasks(response.data.total_tasks || 0);
+  } catch (err: any) {
+    setError(err.message);
+    setData([]); // Reset to empty array on error to prevent .map crashes
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
-    fetchTasks(selectedAssignee, selectedStatus, currentPage, searchID);
+    const delayDebounceFn = setTimeout(() => {
+      fetchTasks(selectedAssignee, selectedStatus, currentPage, searchID);
+    }, 300); // Debounce search
+    return () => clearTimeout(delayDebounceFn);
   }, [currentPage, selectedAssignee, selectedStatus, searchID]);
 
-  const uniqueStatuses = [
-    "uploaded", "pre-labelled", "in-labelling", "in-review", "accepted", "completed"
-  ].map(status => ({ value: status, label: status }));
-
-  const getStatusBadge = (status: string) => {
-    const colorMap: { [key: string]: string } = {
-      uploaded: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/30",
-      "pre-labelled": "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-400/30",
-      "in-labelling": "bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:ring-sky-400/30",
-      "in-review": "bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-200 dark:bg-indigo-500/15 dark:text-indigo-300 dark:ring-indigo-400/30",
-      accepted: "bg-fuchsia-50 text-fuchsia-700 ring-1 ring-inset ring-fuchsia-200 dark:bg-fuchsia-500/15 dark:text-fuchsia-300 dark:ring-fuchsia-400/30",
-      completed: "bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-300 dark:bg-slate-500/20 dark:text-slate-300 dark:ring-slate-400/30",
+  const getStatusStyle = (status: string) => {
+    const map: { [key: string]: string } = {
+      uploaded: "bg-blue-50 text-blue-700 border-blue-100",
+      "pre-labelled": "bg-purple-50 text-purple-700 border-purple-100",
+      "in-labelling": "bg-amber-50 text-amber-700 border-amber-100",
+      "in-review": "bg-indigo-50 text-indigo-700 border-indigo-100",
+      accepted: "bg-emerald-50 text-emerald-700 border-emerald-100",
+      completed: "bg-slate-100 text-slate-600 border-slate-200",
     };
-    return (
-      <span
-        className={`px-3 py-1.5 rounded-full text-xs font-medium tracking-wide shadow-sm backdrop-blur-sm transition-colors ${
-          colorMap[status] || "bg-gray-200 text-gray-700 dark:bg-gray-600/40 dark:text-gray-300"
-        }`}
-      >
-        {status}
-      </span>
-    );
+    return map[status] || "bg-gray-50 text-gray-600";
   };
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full min-h-[60vh] bg-gradient-to-br from-rose-50 via-white to-teal-50 rounded-xl border border-red-100 mx-4 my-4 p-10 shadow-sm">
-        <p className="text-xl text-red-600 font-semibold mb-6 flex items-center gap-2">
-          <span className="inline-block w-2.5 h-2.5 bg-red-500 rounded-full animate-ping" /> Error: {error}
-        </p>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-6 py-2.5 rounded-md bg-gradient-to-r from-red-500 to-orange-500 text-white font-medium shadow hover:shadow-md transition active:scale-[.97]"
-        >
-          Refresh
-        </button>
-      </div>
-    );
-  }
-
-  // Loading Skeleton
-  const loadingSkeleton = (
-    <div className="flex flex-col gap-4 p-8">
-      {[...Array(6)].map((_, i) => (
-        <div key={i} className="h-12 w-full bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 animate-pulse rounded-md" />
-      ))}
+  if (error) return (
+    <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border-2 border-dashed border-red-100">
+      <div className="p-4 bg-red-50 rounded-full mb-4"><Inbox className="text-red-400" size={32} /></div>
+      <p className="text-slate-900 font-bold text-lg">Failed to sync tasks</p>
+      <p className="text-slate-500 mb-6">{error}</p>
+      <button onClick={() => window.location.reload()} className="px-6 py-2 bg-slate-900 text-white rounded-xl font-bold hover:bg-black transition-all">Retry Sync</button>
     </div>
   );
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-white via-teal-50/60 to-cyan-50/60 dark:from-slate-900 dark:via-slate-900/60 dark:to-slate-900/40 border border-teal-100/50 dark:border-teal-700/40 rounded-xl shadow-inner overflow-hidden backdrop-blur-sm">
-      {/* Toolbar */}
-      <div className="flex flex-wrap gap-4 items-end p-4 border-b border-teal-100/60 dark:border-teal-700/40 bg-white/70 dark:bg-slate-800/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur-md">
-        <div className="flex flex-col">
-          <label className="text-xs font-semibold text-slate-500 dark:text-slate-300 mb-1">Search ID</label>
-          <input
-            type="text"
-            value={searchID || ""}
-            onChange={(e) => setSearchID(e.target.value)}
-            placeholder="Type ID..."
-            className="px-3 py-2 text-sm rounded-md bg-white/80 dark:bg-slate-700/70 border border-slate-200 dark:border-slate-600 shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400 transition w-44 text-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-400"
-          />
+    <div className="flex flex-col w-full max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500">
+      
+      {/* 1. Integrated Header & Stats */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-teal-50 text-teal-600 rounded-2xl">
+            <Inbox size={24} />
+          </div>
+          <div>
+            <h2 className="text-xl font-black text-slate-900 leading-tight">Project Tasks</h2>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{totalTasks} Items Total</span>
+              <span className="w-1 h-1 bg-slate-300 rounded-full" />
+              <div className="flex items-center gap-1.5">
+                <div className={`w-2 h-2 rounded-full ${isLoading ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'}`} />
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">{isLoading ? 'Syncing...' : 'Live'}</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col">
-          <label className="text-xs font-semibold text-slate-500 dark:text-slate-300 mb-1">Status</label>
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-3 py-2 text-sm rounded-md bg-white/80 dark:bg-slate-700/70 border border-slate-200 dark:border-slate-600 shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400 transition w-44 text-slate-700 dark:text-slate-100"
-          >
-            <option value="all">All</option>
-            {uniqueStatuses.map((status) => (
-              <option key={status.value} value={status.value}>
-                {status.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="ml-auto flex items-center gap-3">
-          <span className="text-xs text-slate-500 dark:text-slate-400 tracking-wide uppercase">Total: {totalTasks}</span>
-          <span className={`h-2.5 w-2.5 rounded-full ${isLoading ? "bg-amber-400 animate-pulse" : "bg-emerald-500"}`} title={isLoading ? "Loading" : "Live"} />
+
+        {/* 2. Sleek Filter Bar */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative group">
+            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
+            <input
+              type="text"
+              placeholder="Search by ID..."
+              value={searchID}
+              onChange={(e) => setSearchID(e.target.value)}
+              className="pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all w-full md:w-64 font-medium"
+            />
+          </div>
+          
+          <div className="flex items-center gap-2 p-1 bg-slate-50 border border-slate-200 rounded-2xl">
+             <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="bg-transparent pl-3 pr-8 py-1.5 text-xs font-bold text-slate-600 outline-none cursor-pointer"
+            >
+              <option value="all">All Statuses</option>
+              {["uploaded", "in-labelling", "in-review", "accepted", "completed"].map(s => (
+                <option key={s} value={s}>{s.toUpperCase()}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex-1 overflow-auto">{loadingSkeleton}</div>
-      ) : (
-        <div className="flex-1 overflow-auto custom-scrollbar">
-          <table className="w-full text-sm">
-            <thead className="sticky top-0 z-10">
-              <tr className="bg-gradient-to-r from-teal-600 via-cyan-600 to-emerald-600 text-white text-left">
-                <th className="px-5 py-3 font-semibold tracking-wide rounded-tl-md">ID</th>
-                <th className="px-5 py-3 font-semibold tracking-wide">Assignee</th>
-                <th className="px-5 py-3 font-semibold tracking-wide rounded-tr-md">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data?.map((item: Task, index: number) => (
-                <tr
-                  key={item.id}
-                  className={`group border-b border-slate-100/70 last:border-0 hover:bg-white/70 transition-colors ${
-                    index % 2 === 0 ? "bg-white/60" : "bg-white/40"
-                  }`}
-                >
-                  <td className="px-5 py-4 align-top">
-                    <div className="flex flex-col gap-1">
-                      <span className="font-mono text-xs tracking-tight text-slate-700 bg-slate-100/70 px-2 py-1 rounded-md w-fit shadow-inner">
-                        {item.id}
-                      </span>
-                      <button
-                        onClick={() => setSelectedTaskHistory(item.history)}
-                        className="inline-flex items-center gap-1 text-[11px] font-medium text-teal-600 hover:text-teal-700 transition"
-                      >
-                        <FaHistory className="h-3 w-3" /> History
-                      </button>
-                      {item.history.length > 0 && (
-                        <span className="text-[11px] text-slate-500 italic line-clamp-1">
-                          {item.history[item.history.length - 1].action}
+      {/* 3. Task Table Container */}
+      <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden">
+        {isLoading && data.length === 0 ? (
+          <div className="py-32 flex flex-col items-center justify-center space-y-4">
+            <Loader2 className="animate-spin text-teal-500" size={40} />
+            <p className="text-slate-400 font-medium">Fetching workspace tasks...</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-slate-50/50 border-b border-slate-100">
+                  <th className="px-8 py-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Identification</th>
+                  <th className="px-8 py-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Assignment</th>
+                  <th className="px-8 py-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Current Status</th>
+                  <th className="px-8 py-5"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {data.map((task) => (
+                  <tr key={task.id} className="group hover:bg-slate-50/80 transition-all duration-200">
+                    <td className="px-8 py-6">
+                      <div className="flex flex-col space-y-1.5">
+                        <span className="font-mono text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md w-fit group-hover:bg-white group-hover:text-teal-600 transition-colors">
+                          {task.id.slice(0, 8)}...
                         </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 align-top">
-                    {loggedInUser?.is_superuser ? (
-                      <select
-                        className="text-slate-700 rounded-md px-2 py-1 bg-white/70 border border-slate-200 focus:border-teal-400 focus:ring-2 focus:ring-teal-300 text-xs shadow-sm"
-                        value={item.assigned_to_user ? item.assigned_to_user.username : ""}
-                      >
-                        <option value="">-- unassigned --</option>
-                        {Object.entries(groupsWithUsers).map(([group, users]) => (
-                          <optgroup key={group} label={group}>
-                            {users.map((user) => (
-                              <option key={user} value={user}>
-                                {user}
-                              </option>
-                            ))}
-                          </optgroup>
-                        ))}
-                      </select>
-                    ) : (
-                      <span className="text-xs font-medium text-slate-600 px-2 py-1 bg-slate-100 rounded-md shadow-inner">
-                        {item.assigned_to_user ? item.assigned_to_user.username : "—"}
+                        <button 
+                          onClick={() => setSelectedTaskHistory(task.history)}
+                          className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 hover:text-teal-500 uppercase tracking-wider transition-colors"
+                        >
+                          <Clock size={12} /> View History
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center text-teal-600 border border-teal-100">
+                          <UserIcon size={14} />
+                        </div>
+                        <span className="text-sm font-semibold text-slate-700">
+                          {task.assigned_to_user?.username || "Pending Assignment"}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${getStatusStyle(task.status)}`}>
+                        {task.status.replace('-', ' ')}
                       </span>
-                    )}
-                  </td>
-                  <td className="px-5 py-4 align-top">
-                    <Link
-                      href={`/${project.task_type}/${item.id}`}
-                      className="inline-flex items-center group/status"
-                      title="Open task"
-                    >
-                      {getStatusBadge(item.status)}
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-              {data?.length === 0 && (
-                <tr>
-                  <td colSpan={3} className="px-6 py-12 text-center text-slate-500 text-sm">
-                    No tasks found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {!isLoading && (
-        <div className="border-t border-teal-100/60 dark:border-teal-700/40 bg-white/70 dark:bg-slate-800/70">
+                    </td>
+                    <td className="px-8 py-6 text-right">
+                      <Link
+                        href={`/${project.task_type}/${task.id}`}
+                        className="p-2 inline-flex items-center justify-center bg-white border border-slate-200 text-slate-400 rounded-xl hover:text-teal-600 hover:border-teal-200 hover:shadow-lg hover:shadow-teal-50 transition-all"
+                      >
+                        <FaChevronRight size={14} />
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {data.length === 0 && (
+              <div className="py-20 text-center flex flex-col items-center">
+                <Inbox className="text-slate-200 mb-2" size={48} />
+                <p className="text-slate-400 font-medium">No tasks found in this queue.</p>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* 4. Pagination Footer */}
+        <div className="p-6 bg-slate-50/50 border-t border-slate-100">
           <PageNav
             totalTasks={totalTasks}
             perPage={perPage}
@@ -236,34 +210,35 @@ const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
             changePage={(page: number) => setCurrentPage(page)}
           />
         </div>
-      )}
+      </div>
 
+      {/* 5. History Modal Redesign */}
       {selectedTaskHistory && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur rounded-xl p-6 w-full max-w-xl shadow-xl border border-slate-200 dark:border-slate-600 relative animate-scaleIn">
-            <h2 className="text-lg font-semibold mb-4 text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              <FaHistory className="text-teal-600 dark:text-teal-400" /> Task History
-            </h2>
-            <ul className="space-y-2 max-h-72 overflow-auto pr-2 custom-scrollbar-sm">
-              {selectedTaskHistory.map((entry, index) => (
-                <li
-                  key={index}
-                  className="rounded-md border border-slate-200 dark:border-slate-600 bg-white/70 dark:bg-slate-700/60 px-3 py-2 flex flex-col gap-0.5 text-xs"
-                >
-                  <p className="text-slate-700 dark:text-slate-100 font-medium">{entry.action}</p>
-                  <span className="text-[10px] uppercase tracking-wide text-teal-600 dark:text-teal-400 font-semibold">
-                    {entry.timestamp}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={() => setSelectedTaskHistory(null)}
-                className="px-5 py-2 rounded-md bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-sm font-medium shadow hover:shadow-md active:scale-[.97]"
-              >
-                Close
-              </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in" onClick={() => setSelectedTaskHistory(null)} />
+          <div className="relative bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-8 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-teal-50 text-teal-600 rounded-xl"><FaHistory /></div>
+                <h3 className="text-lg font-black text-slate-900">Task Audit Trail</h3>
+              </div>
+              <button onClick={() => setSelectedTaskHistory(null)} className="text-slate-300 hover:text-slate-900 transition-colors font-bold">Close</button>
+            </div>
+            <div className="p-8 max-h-[60vh] overflow-y-auto space-y-4">
+              {selectedTaskHistory.length > 0 ? selectedTaskHistory.map((entry, idx) => (
+                <div key={idx} className="flex gap-4">
+                  <div className="flex flex-col items-center">
+                    <div className="w-2 h-2 rounded-full bg-teal-500 mt-1.5" />
+                    <div className="w-px flex-1 bg-slate-100 my-1" />
+                  </div>
+                  <div className="pb-4">
+                    <p className="text-sm font-bold text-slate-800 leading-tight">{entry.action}</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic">{entry.timestamp}</p>
+                  </div>
+                </div>
+              )) : (
+                <p className="text-center text-slate-400 py-10">No history available for this task.</p>
+              )}
             </div>
           </div>
         </div>

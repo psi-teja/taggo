@@ -68,17 +68,7 @@ def TaskListView(request):
 def TaskDetailsView(request, id: str):
     try:
         task = Task.objects.get(id=id)
-        task_data = {
-            "id": task.id,
-            "status": task.status,
-            "task_type": task.task_type,
-            "filename": task.filename,
-            "assigned_to_user": task.assigned_to_user.username
-            if task.assigned_to_user
-            else None,
-            "history": task.history,
-        }
-        return JsonResponse(task_data, status=200)
+        return JsonResponse(task, status=200)
     except Task.DoesNotExist:
         return JsonResponse({"error": "Task not found"}, status=404)
 
