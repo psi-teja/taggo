@@ -1,14 +1,12 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { FaHistory, FaSearch, FaFilter, FaChevronRight } from "react-icons/fa";
+import { FaHistory, FaSearch, FaChevronRight } from "react-icons/fa";
 import { Loader2, Inbox, User as UserIcon, Clock } from "lucide-react";
 import axiosInstance from "../hooks/axiosInstance";
-import PageNav from "./PageNav";
 import { Project } from "./Project";
 import { User } from "./User";
 
-// --- Types ---
 export type Task = {
   id: string;
   selected: boolean;
@@ -32,33 +30,57 @@ const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
   const [searchID, setSearchID] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedTaskHistory, setSelectedTaskHistory] = useState<{ timestamp: string; action: string }[] | null>(null);
-  
-  const perPage = 20;
+  const [hasMore, setHasMore] = useState(true);
 
-  const fetchTasks = async (assignee: string, status: string, page: number, query: string) => {
-  setLoading(true);
-  try {
-    const response = await axiosInstance.get(`/tasks/`, {
-      params: { assignee, status, perPage, page, searchID: query || null, project_id: project.id },
-    });
-    
-    // Defensive check: Ensure we are setting an array even if the API sends null
-    setData(response.data.tasks || []); 
-    setTotalTasks(response.data.total_tasks || 0);
-  } catch (err: any) {
-    setError(err.message);
-    setData([]); // Reset to empty array on error to prevent .map crashes
-  } finally {
-    setLoading(false);
-  }
-};
+  const observer = useRef<IntersectionObserver | null>(null);
+  const perPage = 10;
 
+  // Modified fetch: takes isFirstLoad to decide whether to append or replace
+  const fetchTasks = async (assignee: string, status: string, page: number, query: string, isFirstLoad: boolean) => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.get(`/tasks/`, {
+        params: { assignee, status, perPage, page, searchID: query || null, project_id: project.id },
+      });
+      
+      const newTasks = response.data.tasks || [];
+      setData(prev => isFirstLoad ? newTasks : [...prev, ...newTasks]);
+      setTotalTasks(response.data.total_tasks || 0);
+      setHasMore(data.length + newTasks.length < response.data.total_tasks);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Reset list when filters/search change
   useEffect(() => {
+    setCurrentPage(1);
     const delayDebounceFn = setTimeout(() => {
-      fetchTasks(selectedAssignee, selectedStatus, currentPage, searchID);
-    }, 300); // Debounce search
+      fetchTasks(selectedAssignee, selectedStatus, 1, searchID, true);
+    }, 300);
     return () => clearTimeout(delayDebounceFn);
-  }, [currentPage, selectedAssignee, selectedStatus, searchID]);
+  }, [selectedAssignee, selectedStatus, searchID]);
+
+  // Fetch more when page increments
+  useEffect(() => {
+    if (currentPage > 1) {
+      fetchTasks(selectedAssignee, selectedStatus, currentPage, searchID, false);
+    }
+  }, [currentPage]);
+
+  // Observer callback to detect end of list
+  const lastTaskElementRef = useCallback((node: HTMLTableRowElement) => {
+    if (isLoading) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        setCurrentPage(prev => prev + 1);
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, [isLoading, hasMore]);
 
   const getStatusStyle = (status: string) => {
     const map: { [key: string]: string } = {
@@ -84,7 +106,7 @@ const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
   return (
     <div className="flex flex-col w-full max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500">
       
-      {/* 1. Integrated Header & Stats */}
+      {/* Header stays the same */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-teal-50 text-teal-600 rounded-2xl">
@@ -103,7 +125,6 @@ const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
           </div>
         </div>
 
-        {/* 2. Sleek Filter Bar */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative group">
             <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
@@ -131,27 +152,27 @@ const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
         </div>
       </div>
 
-      {/* 3. Task Table Container */}
-      <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden">
-        {isLoading && data.length === 0 ? (
-          <div className="py-32 flex flex-col items-center justify-center space-y-4">
-            <Loader2 className="animate-spin text-teal-500" size={40} />
-            <p className="text-slate-400 font-medium">Fetching workspace tasks...</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-slate-50/50 border-b border-slate-100">
-                  <th className="px-8 py-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Identification</th>
-                  <th className="px-8 py-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Assignment</th>
-                  <th className="px-8 py-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Current Status</th>
-                  <th className="px-8 py-5"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {data.map((task) => (
-                  <tr key={task.id} className="group hover:bg-slate-50/80 transition-all duration-200">
+      {/* Task Table Container with Max Height and Scroll */}
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden flex flex-col max-h-[70vh]">
+        <div className="overflow-x-auto overflow-y-auto custom-scrollbar flex-1">
+          <table className="w-full border-collapse">
+            <thead className="sticky top-0 bg-white z-10">
+              <tr className="bg-slate-50/50 border-b border-slate-100">
+                <th className="px-8 py-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Identification</th>
+                <th className="px-8 py-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Assignment</th>
+                <th className="px-8 py-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Current Status</th>
+                <th className="px-8 py-5"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {data.map((task, index) => {
+                const isLast = index === data.length - 1;
+                return (
+                  <tr 
+                    key={task.id} 
+                    ref={isLast ? lastTaskElementRef : null}
+                    className="group hover:bg-slate-50/80 transition-all duration-200"
+                  >
                     <td className="px-8 py-6">
                       <div className="flex flex-col space-y-1.5">
                         <span className="font-mono text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md w-fit group-hover:bg-white group-hover:text-teal-600 transition-colors">
@@ -189,30 +210,28 @@ const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
                       </Link>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            {data.length === 0 && (
-              <div className="py-20 text-center flex flex-col items-center">
-                <Inbox className="text-slate-200 mb-2" size={48} />
-                <p className="text-slate-400 font-medium">No tasks found in this queue.</p>
-              </div>
-            )}
-          </div>
-        )}
-        
-        {/* 4. Pagination Footer */}
-        <div className="p-6 bg-slate-50/50 border-t border-slate-100">
-          <PageNav
-            totalTasks={totalTasks}
-            perPage={perPage}
-            currentPage={currentPage}
-            changePage={(page: number) => setCurrentPage(page)}
-          />
+                );
+              })}
+            </tbody>
+          </table>
+          
+          {isLoading && (
+            <div className="py-10 flex flex-col items-center justify-center space-y-4">
+              <Loader2 className="animate-spin text-teal-500" size={32} />
+              <p className="text-slate-400 text-xs font-medium">Loading more tasks...</p>
+            </div>
+          )}
+
+          {data.length === 0 && !isLoading && (
+            <div className="py-20 text-center flex flex-col items-center">
+              <Inbox className="text-slate-200 mb-2" size={48} />
+              <p className="text-slate-400 font-medium">No tasks found in this queue.</p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* 5. History Modal Redesign */}
+      {/* History Modal Redesign stays the same */}
       {selectedTaskHistory && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in" onClick={() => setSelectedTaskHistory(null)} />

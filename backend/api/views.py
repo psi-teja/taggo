@@ -61,14 +61,25 @@ def TaskListView(request):
     except EmptyPage:
         tasks = paginator.page(paginator.num_pages)
 
-    return JsonResponse(list(tasks), safe=False, status=200)
+    tasks = list(tasks.object_list.values())
+    total_tasks = paginator.count
+    return JsonResponse({"tasks": tasks, "total_tasks": total_tasks}, safe=False, status=200)
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def TaskDetailsView(request, id: str):
     try:
         task = Task.objects.get(id=id)
-        return JsonResponse(task, status=200)
+        task_data = {
+            "id": task.id,
+            "project_id": task.project_id,
+            "filename": task.filename,
+            "status": task.status,
+            "assigned_to_user": task.assigned_to_user.username if task.assigned_to_user else None,
+            "history": task.history,
+            # Add other fields as needed
+        }
+        return JsonResponse(task_data, status=200)
     except Task.DoesNotExist:
         return JsonResponse({"error": "Task not found"}, status=404)
 
@@ -77,26 +88,23 @@ def TaskDetailsView(request, id: str):
 @permission_classes([IsAuthenticated])
 def TaskCreateView(request):
     try:
-        task_type = request.POST.get("task_type")
+        project_id = request.POST.get("project_id")
         document = request.FILES.get("document")
 
-        print("task_type", task_type)
-        print("document", document)
-
-        if not task_type or not document:
+        if not project_id or not document:
             return JsonResponse(
                 {"error": "task_type and document are required fields"},
                 status=400,
             )
 
         # Define the directory path for the task type
-        task_directory = os.path.join(settings.MEDIA_ROOT, task_type, "documents")
+        task_directory = os.path.join(settings.MEDIA_ROOT, project_id, "documents")
         os.makedirs(task_directory, exist_ok=True)
 
         file_extension = os.path.splitext(document.name)[1]
         
         task = Task.objects.create(
-            task_type=task_type,
+            project_id=project_id,
             history = [
                     {
                         "timestamp": get_current_time_ist(),

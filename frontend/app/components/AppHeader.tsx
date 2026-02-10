@@ -138,9 +138,7 @@ const AppHeader = ({ loggedInUser, project, navigation}: AppHeaderProps) => {
           isOpen={isUploadModalOpen}
           onClose={() => setIsUploadModalOpen(false)}
           onUpload={(files) => {
-
             handleFileUpload(files);
-
           }}
           uploadProgress={uploadProgress}
           failedFiles={failedFiles}
