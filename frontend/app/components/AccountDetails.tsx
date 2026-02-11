@@ -1,147 +1,94 @@
+"use client";
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import Link from "next/link";
+import { 
+  Settings, LayoutDashboard, KeyRound, 
+  LogOut, User, ChevronDown 
+} from "lucide-react";
 
 interface AccountDetailsProps {
     loggedInUser: any;
 }
 
-const AccountMenu: React.FC<{ loggedInUser: AccountDetailsProps['loggedInUser'], dashboardLoading: boolean, settingsLoading: boolean, changePasswordLoading: boolean, onDashboardClick: () => void, onSettingsClick: () => void, onChangePasswordClick: () => void }> = ({ loggedInUser, dashboardLoading, settingsLoading, changePasswordLoading, onDashboardClick, onSettingsClick, onChangePasswordClick }) => {
+const AccountMenu: React.FC<{ 
+    loggedInUser: any;
+    dashboardLoading: boolean; 
+    settingsLoading: boolean; 
+    changePasswordLoading: boolean; 
+    onDashboardClick: () => void; 
+    onSettingsClick: () => void; 
+    onChangePasswordClick: () => void; 
+}> = ({ 
+    loggedInUser, 
+    dashboardLoading, 
+    settingsLoading, 
+    changePasswordLoading, 
+    onDashboardClick, 
+    onSettingsClick, 
+    onChangePasswordClick 
+}) => {
     const [logingout, setLogingout] = useState<boolean>(false);
 
     const handleLogout = useCallback((): void => {
         setLogingout(true);
         localStorage.removeItem('access_token');
-        localStorage.removeItem('loggedInUser'); // Remove user data on logout
+        localStorage.removeItem('loggedInUser');
         window.location.href = '/login';
     }, []);
 
-    const baseItem = "group w-full flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-2 focus:ring-offset-teal-50 dark:focus:ring-offset-slate-800";
-    const linkItem = `${baseItem} text-teal-700 dark:text-teal-300 bg-teal-50/70 hover:bg-teal-100 dark:bg-teal-600/20 dark:hover:bg-teal-600/30`;
-    const loader = (extra?: string) => <div className={`loader border-t-4 border-teal-500 rounded-full w-5 h-5 animate-spin ${extra || ''}`}></div>;
+    const linkItem = "group w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition-all duration-200 text-slate-600 hover:text-teal-600 hover:bg-teal-50/50 active:scale-[0.98]";
+    const loader = <div className="w-4 h-4 border-2 border-teal-500/30 border-t-teal-500 rounded-full animate-spin" />;
 
     return (
-        <div className="w-64 rounded-xl border border-teal-100/60 dark:border-teal-700/40 bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl shadow-2xl p-4 ring-1 ring-teal-100/50 dark:ring-teal-700/30 animate-fadeIn">
-            <div className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-4 text-center truncate" title={loggedInUser?.username}>
-                {loggedInUser?.username}
+        <div className="w-64 rounded-2xl border border-slate-200 bg-white/90 backdrop-blur-xl shadow-2xl p-2 animate-in fade-in zoom-in-95 duration-200">
+            {/* Header: User Info */}
+            <div className="px-3 py-4 mb-1 border-b border-slate-100">
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Authenticated As</p>
+                <p className="text-sm font-black text-slate-900 truncate">{loggedInUser?.username}</p>
+                {loggedInUser?.is_superuser && (
+                    <span className="inline-block mt-2 px-2 py-0.5 rounded-md bg-amber-50 text-[10px] font-bold text-amber-600 border border-amber-100">
+                        Admin Access
+                    </span>
+                )}
             </div>
 
-            {loggedInUser?.is_superuser && <Link
-                href="/settings"
-                onClick={onSettingsClick}
-                className={linkItem}
-            >
-                {settingsLoading ? (
-                    loader("mx-1")
-                ) : (
-                    <svg
-                        className="w-5 h-5"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke="currentColor"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M7.75 4H19M7.75 4a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 4h2.25m13.5 6H19m-2.25 0a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 10h11.25m-4.5 6H19M7.75 16a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 16h2.25"
-                        />
-                    </svg>
+            <div className="space-y-0.5">
+                <Link href="/dashboard" onClick={onDashboardClick} className={linkItem}>
+                    {dashboardLoading ? loader : <LayoutDashboard size={18} className="text-slate-400 group-hover:text-teal-500" />}
+                    <span>Dashboard</span>
+                </Link>
+
+                {loggedInUser?.is_superuser && (
+                    <Link href="/settings" onClick={onSettingsClick} className={linkItem}>
+                        {settingsLoading ? loader : <Settings size={18} className="text-slate-400 group-hover:text-teal-500" />}
+                        <span>System Settings</span>
+                    </Link>
                 )}
-                <span>Settings</span>
-            </Link>}
-            <Link
-                href={{
-                    pathname: '/dashboard',
-                }}
-                onClick={() => {
-                    localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
-                    onDashboardClick();
-                }}
-                className={linkItem}
-            >
-                {dashboardLoading ? (
-                    loader("mx-1")
-                ) : (
-                    <svg
-                        className="w-5 h-5"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke="currentColor"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M3 12h18M3 6h18M3 18h18"
-                        />
-                    </svg>
-                )}
-                <span>Dashboard</span>
-            </Link>
-            <Link href="/changePassword"
-                onClick={onChangePasswordClick}
-                className={linkItem}
-            >
-                {changePasswordLoading ? (
-                    loader("mx-1")
-                ) : (
-                    <svg
-                        className="w-5 h-5"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke="currentColor"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M12 11c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm0 0v2m0 4v2m-4-2h8"
-                        />
-                    </svg>
-                )}
-                <span>Change Password</span>
-            </Link>
-            <button
-                className={`${baseItem} justify-center bg-gradient-to-r from-rose-500 to-red-500 text-white hover:from-rose-500/90 hover:to-red-500/90 focus:ring-rose-400 focus:ring-offset-rose-50 dark:focus:ring-offset-slate-800 shadow`}
-                onClick={handleLogout}
-            >
-                {logingout ? (
-                    loader("mx-1 border-white")
-                ) : (
-                    <svg
-                        className="w-5 h-5"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke="currentColor"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1"
-                        />
-                    </svg>
-                )}
-                <span>Logout</span>
-            </button>
+
+                <Link href="/changePassword" onClick={onChangePasswordClick} className={linkItem}>
+                    {changePasswordLoading ? loader : <KeyRound size={18} className="text-slate-400 group-hover:text-teal-500" />}
+                    <span>Change Password</span>
+                </Link>
+            </div>
+
+            {/* Logout Section */}
+            <div className="mt-2 pt-2 border-t border-slate-100">
+                <button
+                    className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-rose-500 hover:bg-rose-50 transition-all active:scale-[0.98]"
+                    onClick={handleLogout}
+                >
+                    {logingout ? <div className="w-4 h-4 border-2 border-rose-500/30 border-t-rose-500 rounded-full animate-spin" /> : <LogOut size={18} />}
+                    <span>Sign Out</span>
+                </button>
+            </div>
         </div>
     )
 };
 
 const AccountDetails: React.FC<AccountDetailsProps> = ({ loggedInUser }) => {
-    const [showAccountMenu, setShowAccountMenu] = useState<boolean>(false);
-    const [dashboardLoading, setDashboardLoading] = useState<boolean>(false);
-    const [changePasswordLoading, setChangePasswordLoading] = useState<boolean>(false);
-    const [settingsLoading, setSettingsLoading] = useState<boolean>(false);
+    const [showAccountMenu, setShowAccountMenu] = useState(false);
+    const [loadingStates, setLoadingStates] = useState({ dashboard: false, settings: false, password: false });
     const menuRef = useRef<HTMLDivElement>(null);
     const avatarRef = useRef<HTMLDivElement>(null);
     const [mounted, setMounted] = useState(false);
@@ -152,94 +99,82 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ loggedInUser }) => {
     const updatePosition = useCallback(() => {
         if (avatarRef.current) {
             const rect = avatarRef.current.getBoundingClientRect();
-            setMenuPos({ top: rect.bottom + 12, left: rect.right - 256 }); // 256px = w-64
+            setMenuPos({ top: rect.bottom + 12, left: rect.right - 256 });
         }
     }, []);
 
     useEffect(() => {
         if (showAccountMenu) {
             updatePosition();
-            window.addEventListener('scroll', updatePosition, true);
+            const close = (e: MouseEvent) => {
+                if (menuRef.current && !menuRef.current.contains(e.target as Node) && !avatarRef.current?.contains(e.target as Node)) {
+                    setShowAccountMenu(false);
+                }
+            };
+            window.addEventListener('mousedown', close);
             window.addEventListener('resize', updatePosition);
             return () => {
-                window.removeEventListener('scroll', updatePosition, true);
+                window.removeEventListener('mousedown', close);
                 window.removeEventListener('resize', updatePosition);
             };
         }
     }, [showAccountMenu, updatePosition]);
 
-    const handleClickOutside = useCallback((event: MouseEvent) => {
-        if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-            setShowAccountMenu(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        if (showAccountMenu) {
-            document.addEventListener('mousedown', handleClickOutside);
-        } else {
-            document.removeEventListener('mousedown', handleClickOutside);
-        }
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [showAccountMenu, handleClickOutside]);
-
-    const handleDashboardClick = () => {
-        setDashboardLoading(true);
-    }
-
-    const handleSettingsClick = () => {
-        setSettingsLoading(true);
-    }
-
-    const handleChangePasswordClick = () => {
-        setChangePasswordLoading(true);
-    }
-
-    if (!loggedInUser) {
-        return (
-            <div className="flex items-center justify-center h-16">
-                <div className="loader border-t-4 border-teal-500 rounded-full w-8 h-8 animate-spin"></div>
-            </div>
-        );
-    }
+    if (!loggedInUser) return null;
 
     return (
-        <div
-            className="ml-4 font-semibold text-slate-800 dark:text-slate-100 flex items-center relative"
-            title={loggedInUser.username ? `Logged in as ${loggedInUser.username}` : 'Welcome!'}
-            aria-label={loggedInUser.username ? `Logged in as ${loggedInUser.username}` : 'Welcome!'}
-        >
-            {loggedInUser.username ? (
-                <div
-                    ref={avatarRef}
-                    className="w-10 h-10 flex items-center justify-center rounded-full cursor-pointer bg-gradient-to-br from-teal-600 to-cyan-600 text-white shadow hover:shadow-md transition active:scale-95 ring-2 ring-transparent focus:outline-none focus:ring-teal-400"
-                    onClick={() => setShowAccountMenu(v => !v)}
-                    aria-expanded={showAccountMenu}
-                    aria-controls="logout-menu"
-                >
+        <div className="flex items-center">
+            <div
+                ref={avatarRef}
+                onClick={() => setShowAccountMenu(!showAccountMenu)}
+                className={`
+                    flex items-center gap-2 p-1.5 pr-3 rounded-2xl cursor-pointer transition-all duration-200
+                    ${showAccountMenu ? 'bg-slate-100 ring-1 ring-slate-200' : 'hover:bg-slate-50'}
+                `}
+            >
+                {/* Modern Avatar */}
+                <div className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-900 text-white shadow-lg shadow-slate-900/10 text-xs font-black">
                     {loggedInUser.username.charAt(0).toUpperCase()}
                 </div>
-            ) : null}
+                
+                <div className="hidden sm:block">
+                    <p className="text-xs font-black text-slate-900 leading-none">{loggedInUser.username}</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Member</p>
+                </div>
+
+                <ChevronDown size={14} className={`text-slate-400 transition-transform duration-300 ${showAccountMenu ? 'rotate-180' : ''}`} />
+            </div>
 
             {mounted && showAccountMenu && menuPos && createPortal(
                 <div
-                    id="logout-menu"
                     ref={menuRef}
                     style={{ position: 'fixed', top: menuPos.top, left: menuPos.left, zIndex: 99999 }}
-                    className="drop-shadow-2xl"
                 >
                     <AccountMenu
                         loggedInUser={loggedInUser}
-                        dashboardLoading={dashboardLoading}
-                        settingsLoading={settingsLoading}
-                        changePasswordLoading={changePasswordLoading}
-                        onDashboardClick={handleDashboardClick}
-                        onSettingsClick={handleSettingsClick}
-                        onChangePasswordClick={handleChangePasswordClick}
+                        dashboardLoading={loadingStates.dashboard}
+                        settingsLoading={loadingStates.settings}
+                        changePasswordLoading={loadingStates.password}
+                        onDashboardClick={() => {
+                            // Prevent loading state if already on dashboard
+                            if (window.location.pathname !== '/dashboard') {
+                                setLoadingStates(s => ({ ...s, dashboard: true }));
+                            }
+                        }}
+                        onSettingsClick={() => {
+                            // Prevent loading state if already on settings
+                            if (window.location.pathname !== '/settings') {
+                                setLoadingStates(s => ({ ...s, settings: true }));
+                            }
+                        }}
+                        onChangePasswordClick={() => {
+                            // Prevent loading state if already on changePassword
+                            if (window.location.pathname !== '/changePassword') {
+                                setLoadingStates(s => ({ ...s, password: true }));
+                            }
+                        }}
                     />
-                </div>, document.body)
+                </div>,document.body)
             }
         </div>
     );

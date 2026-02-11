@@ -9,7 +9,7 @@ import Header from "@/app/components/Header";
 import Logo from "./Logo";
 import { User } from "./User";
 import { Project, TOOL_CONFIG } from "@/app/components/Project";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Tag } from "lucide-react";
 import { Loader2 } from "lucide-react";
 
 interface AppHeaderProps {
@@ -91,9 +91,6 @@ const AppHeader = ({ loggedInUser, project, navigation }: AppHeaderProps) => {
           className="p-2 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition-all text-slate-500 hover:text-blue-600"
         >
           <ArrowLeft size={20} />
-        </Link>
-        <Link href="/">
-          <Logo />
         </Link>
 
       </div>

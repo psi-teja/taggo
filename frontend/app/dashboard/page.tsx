@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Header from '../components/Header';
-import Logo from '../components/Logo';
+import { Tag } from 'lucide-react';
 import AccountDetails from '../components/AccountDetails';
 import { useAuth } from "@/app/hooks/userAuth";
 import withAuth from '../hooks/withAuth';
@@ -54,7 +54,12 @@ const Dashboard = () => {
     return (
         <div className="flex flex-col h-screen bg-white">
             <Header>
-                <Logo />
+                <a href="/" className="flex items-center gap-2 hover:opacity-80 transition">
+                    <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center text-white shadow-lg shadow-teal-500/20">
+                        <Tag size={18} strokeWidth={3} />
+                    </div>
+                    <span className="text-xl font-black tracking-tight text-slate-900 uppercase">Taggo</span>
+                </a>
                 {loggedInUser && <AccountDetails loggedInUser={loggedInUser} />}
             </Header>
 
