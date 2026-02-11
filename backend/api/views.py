@@ -13,7 +13,7 @@ import pytesseract
 from PIL import Image
 from api.models import Task, Project
 import re
-from django.db.models import Q
+from .serializers import ProjectSerializer
 
 # Function to get the current time
 def get_current_time_ist():
@@ -85,7 +85,7 @@ def TaskDetailsView(request, id: str):
         task = Task.objects.get(id=id)
         task_data = {
             "id": task.id,
-            "project_id": task.project_id,
+            "project_id": task.project.id,
             "filename": task.filename,
             "status": task.status,
             "assigned_to_user": task.assigned_to_user.username if task.assigned_to_user else None,
@@ -236,17 +236,26 @@ def ProjectListView(request):
     projects = Project.objects.values("id", "name", "task_type")
     return JsonResponse(list(projects), safe=False)
         
-@api_view(["GET"])
+@api_view(["GET", "PATCH"])
 @permission_classes([IsAuthenticated])
 def ProjectDetailsView(request, project_id: str):
     try:
         project = Project.objects.get(id=project_id)
-        project_data = {
-            "id": project.id,
-            "name": project.name,
-            "task_type": project.task_type,
-            "schema": project.schema,
-        }
-        return JsonResponse(project_data, status=200)
     except Project.DoesNotExist:
-        return JsonResponse({"error": "Project not found"}, status=404)    
+        return JsonResponse({"error": "Project not found"}, status=404)
+
+    if request.method == "PATCH":
+        # partial=True allows us to update only the 'schema' without needing 'name'
+        serializer = ProjectSerializer(project, data=request.data, partial=True)
+        
+        if serializer.is_valid():
+            serializer.save()
+            # Return the updated data
+            return JsonResponse(serializer.data, status=200)
+        
+        # If the JSON structure is malformed, DRF returns clear error messages
+        return JsonResponse(serializer.errors, status=400)
+
+    # Standard GET logic
+    serializer = ProjectSerializer(project)
+    return JsonResponse(serializer.data, status=200)  

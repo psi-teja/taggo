@@ -48,7 +48,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
     const [sectionTypes, setSectionTypes] = useState<Record<string, 'general' | 'table'>>({});
     const [schemaDefined, setSchemaDefined] = useState<boolean | null>(null);
 
-    const jsonURL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/invoice-annotation/annotations/${taskDetails?.id}.json`;
+    const jsonURL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/annotations/${taskDetails?.id}.json`;
 
     console.log("JSON URL:", jsonURL);
 

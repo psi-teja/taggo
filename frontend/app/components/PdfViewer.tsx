@@ -58,9 +58,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   }
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-  const taskType = taskDetails?.task_type || 'invoice-annotation';
-  let fileUrl = `${API_BASE_URL}/media/${taskType}/documents/${taskDetails.filename}`;
+  let fileUrl = `${API_BASE_URL}/media/documents/${taskDetails.filename}`;
   const isPdf = taskDetails.filename?.toLowerCase().endsWith(".pdf");
 
   if (!isPdf) {

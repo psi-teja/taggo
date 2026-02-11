@@ -8,51 +8,66 @@ import Link from 'next/link';
 import { FaFileInvoice } from 'react-icons/fa';
 import InteractiveSpace from './components/InteractiveSpace';
 import AccountDetails from '@/app/components/AccountDetails';
+import { Project } from '@/app/components/Project';
+import { Task } from '@/app/components/Tasks';
+import AppHeader from '@/app/components/AppHeader';
 
 const TaskPage: React.FC = () => {
     const { taskId } = useParams(); // Extract taskId from the dynamic route
-    const [taskDetails, setTaskDetails] = useState<any>(null);
+    const [taskDetails, setTaskDetails] = useState<Task | null>(null);
+    const [projectDetails, setProjectDetails] = useState<Project | null>(null);
     const { loggedInUser } = useAuth();
     const [isEditor, setIsEditor] = useState<boolean>(false);
 
-
-    // You can use taskId to fetch data or perform any other operations
     useEffect(() => {
-        // Example: Fetch task details using taskId
-        const fetchTaskDetails = async () => {
+        const fetchDetails = async () => {
             try {
-                const response = await axiosInstance.get(`/tasks/${taskId}`);
-                const data = response.data;
+                // 1. Fetch Task
+                const taskResponse = await axiosInstance.get(`/tasks/${taskId}`);
+                const data = taskResponse.data;
+
+                if (!data) return;
+
+                // Set state (will be available on NEXT render)
                 setTaskDetails(data);
-                if (data && data.assigned_to_user === loggedInUser?.username) {
-                    setIsEditor(true);
-                } else {
-                    setIsEditor(false);
-                }
+
+                // 2. Fetch Project (Use 'data' directly, NOT the 'taskDetails' state)
+                const projectResponse = await axiosInstance.get(`/projects/${data.project_id}`);
+                setProjectDetails(projectResponse.data);
+
+                // 3. Permission Logic
+                // Note: Check if your backend returns an object for assigned_to_user 
+                // If it's an object, use data.assigned_to_user.username
+                const assigneeUsername = typeof data.assigned_to_user === 'object'
+                    ? data.assigned_to_user?.username
+                    : data.assigned_to_user;
+
+                const isAssigned = assigneeUsername === loggedInUser?.username;
+                const isSuper = loggedInUser?.is_superuser === true;
+
+                setIsEditor(isAssigned || isSuper);
+
             } catch (error) {
-                if (error instanceof Error) {
-                    alert('Error fetching task details: ' + error.message);
-                } else {
-                    alert('Error fetching task details: An unknown error occurred.');
-                }
+                console.error("Fetch error:", error);
+                const message = error instanceof Error ? error.message : 'An unknown error occurred.';
+                alert('Error fetching details: ' + message);
             }
         };
-        fetchTaskDetails();
-    }, [taskId]);
 
+        if (taskId && loggedInUser) {
+            fetchDetails();
+        }
+    }, [taskId, loggedInUser]); // Added loggedInUser to dependencies to ensure comparison works
 
     return (
         <div className="flex flex-col h-screen">
-            <Header>
-                <Link
-                    href="/invoice-annotation"
-                    className="flex items-center gap-2 text-xl font-bold text-teal-900 hover:text-blue-900 transition-colors"
-                >
-                    <FaFileInvoice className="text-purple-500 text-xl" />
-                    <span>Invoice Annotation</span>
-                </Link>
-                <AccountDetails loggedInUser={loggedInUser} />
-            </Header>
+            {projectDetails && (
+                <AppHeader 
+                    loggedInUser={loggedInUser} 
+                    project={projectDetails} 
+                    navigation={`dashboard/${projectDetails.id}`} // Pass project ID for correct navigation
+                />
+            )}
             <InteractiveSpace taskDetails={taskDetails} isEditor={isEditor} />
         </div>
     );
