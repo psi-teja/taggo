@@ -3,6 +3,7 @@ services:
     image: postgres:15-alpine
     restart: always
     volumes:
+      # Named volume: persists even if containers are deleted
       - postgres_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=taggo
@@ -13,11 +14,15 @@ services:
 
   backend:
     build: ./backend
-    # Wait for DB before running migrations and server
     command: >
-      sh -c "chmod +x /code/wait-for-it.sh && /code/wait-for-it.sh db:5432 -- python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+      sh -c "chmod +x /code/wait-for-it.sh && /code/wait-for-it.sh db:5432 -- 
+      python manage.py makemigrations && 
+      python manage.py migrate && 
+      python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./backend:/code
+      # PERSISTENCE: Maps the container's media folder to a local folder named 'media'
+      - ./taggo_files:/code/media
     ports:
       - "8000:8000"
     environment:
@@ -36,10 +41,11 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
+      - NEXT_PUBLIC_API_BASE_URL=http://${HOST_IP}:8000
       - HOST_IP=${HOST_IP}
     depends_on:
       - backend
     command: sh /app/set-host-ip-env.sh
 
 volumes:
-  postgres_data:
+  postgres_data: # This manages the actual SQL data
