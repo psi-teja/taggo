@@ -64,7 +64,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   const isPdf = taskDetails.filename?.toLowerCase().endsWith(".pdf");
 
   if (!isPdf) {
-    fileUrl = `${API_BASE_URL}/convert_to_pdf/${taskType}/${taskDetails.filename}/`;
+    fileUrl = `${API_BASE_URL}/convert_to_pdf/${taskDetails.filename}/`;
   }
 
   const [loading, setLoading] = useState<boolean>(true); // State for loading spinner

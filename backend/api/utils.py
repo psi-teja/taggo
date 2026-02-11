@@ -8,7 +8,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
 
-def ConvertToPdfView(request, task_type, filename):
+def ConvertToPdfView(request, filename):
     """
     Converts a file to PDF format.
     Currently supports only images (e.g., jpg, png).
