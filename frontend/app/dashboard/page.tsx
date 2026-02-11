@@ -91,9 +91,9 @@ const Dashboard = () => {
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
                             <div>
                                 <h1 className="text-3xl font-black text-slate-900 tracking-tight">
-                                    Welcome back, {loggedInUser?.first_name || 'Annotator'}
+                                    Welcome back, {loggedInUser?.username || 'Annotator'}
                                 </h1>
-                                <p className="text-slate-500 mt-1">Manage your datasets and annotation tasks.</p>
+                                <p className="text-slate-500 mt-1">Manage your projects and annotation tasks.</p>
                             </div>
                             <button
                                 className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all active:scale-95"
