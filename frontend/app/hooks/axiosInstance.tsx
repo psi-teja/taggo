@@ -5,18 +5,26 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
+
 });
 
-// Request interceptor to attach the access token
 axiosInstance.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('access_token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // ONLY set application/json if we aren't sending FormData
+        if (!(config.data instanceof FormData)) {
+            config.headers['Content-Type'] = 'application/json';
+        }
+        // If it IS FormData, we delete the header to let the 
+        // browser set it automatically with the correct boundary
+        else {
+            delete config.headers['Content-Type'];
+        }
+
         return config;
     },
     (error) => Promise.reject(error)

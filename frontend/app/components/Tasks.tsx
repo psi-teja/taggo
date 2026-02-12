@@ -9,6 +9,7 @@ import { User } from "./User";
 
 export type Task = {
   id: string;
+  priject_id: string;
   selected: boolean;
   assigned_to_user: User | null;
   status: string;

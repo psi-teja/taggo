@@ -5,6 +5,8 @@ import logging
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.decorators import parser_classes
 import json
 import pytz
 import os
@@ -186,30 +188,21 @@ def TaskDeleteView(request, id: str):
     except Exception as e:
         logger.error(f"Error deleting task: {e}")
         return JsonResponse({"error": str(e)}, status=500)
-    
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def get_ocr_text(request):
     try:
-        if request.method == "POST" and "file" in request.FILES:
-            uploaded_file = request.FILES["file"]
-
-            # Use Pillow to open the uploaded image file
+        # In DRF, uploaded files are in request.FILES
+        uploaded_file = request.FILES.get("file") 
+        
+        if uploaded_file:
             image = Image.open(uploaded_file)
-
-            # Apply OCR using pytesseract
             text = pytesseract.image_to_string(image)
-
             text = text.strip()
-
-            text = re.sub(r'\n+', '\n', text)
-
-            # Return the extracted text as JSON response
             return JsonResponse({"text": text})
-
-        return JsonResponse({"error": "POST method and file data required"}, status=400)
+        return JsonResponse({"error": "File data required"}, status=400)
     except Exception as e:
-        logger.error(f"Error processing OCR: {e}")
         return JsonResponse({"error": str(e)}, status=500)
 
 @api_view(["POST"])
