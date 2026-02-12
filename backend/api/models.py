@@ -10,7 +10,7 @@ class Project(models.Model):
     name = models.CharField(max_length=255)
 
     TASK_TYPE_CHOICES = [
-        ("invoice-annotation", "Invoice Annotation"),
+        ("document-parsing", "Document Parsing"),
         ("object-detection", "Object Detection"),
         ("document-classification", "Document Classification"),
         ("image-segmentation", "Image Segmentation"),

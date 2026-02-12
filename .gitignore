@@ -132,10 +132,5 @@ dist
 **/__pycache__/**
 **/node_modules/*
 **/.next/*
-**/datasets/**
-**/results/**
-**/input_docs/**
-**/output_jsons/**
-**/extractor/**/*.jpg
-**/extractor/**/*.png
-**/extractor/**/*.jpeg
+
+taggo_files/

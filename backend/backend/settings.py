@@ -179,6 +179,6 @@ DATABASES = {
 
 ALLOWED_HOSTS = [HOST_IP, 'localhost']
 
-MEDIA_ROOT = os.path.join(BASE_DIR, "..", "..", "taggo-data")
-MEDIA_URL = "/media/"
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/code/media'
 
