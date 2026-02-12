@@ -258,4 +258,14 @@ def ProjectDetailsView(request, project_id: str):
 
     # Standard GET logic
     serializer = ProjectSerializer(project)
-    return JsonResponse(serializer.data, status=200)  
+    return JsonResponse(serializer.data, status=200)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def TaskTypeChoicesView(request):
+    return JsonResponse({
+        "task_types": [
+            {"id": k, "label": v}
+            for k, v in Project.TASK_TYPE_CHOICES
+        ]
+    })

@@ -8,7 +8,7 @@ import UploadModal from "./UploadModal";
 import Header from "@/app/components/Header";
 import Logo from "./Logo";
 import { User } from "./User";
-import { Project, TOOL_CONFIG } from "@/app/components/Project";
+import { Project, TOOL_ICON_CONFIG } from "@/app/components/Project";
 import { ArrowLeft, Tag } from "lucide-react";
 import { Loader2 } from "lucide-react";
 
@@ -95,10 +95,10 @@ const AppHeader = ({ loggedInUser, project, navigation }: AppHeaderProps) => {
 
       </div>
       <div className="flex items-center space-x-2">
-        {project?.task_type && TOOL_CONFIG[project.task_type as keyof typeof TOOL_CONFIG] && (
+        {project?.task_type && TOOL_ICON_CONFIG[project.task_type as keyof typeof TOOL_ICON_CONFIG] && (
           <span className="mx-2 flex items-center">
             {(() => {
-              const config = TOOL_CONFIG[project.task_type as keyof typeof TOOL_CONFIG];
+              const config = TOOL_ICON_CONFIG[project.task_type as keyof typeof TOOL_ICON_CONFIG];
               const Icon = config.icon;
               // Apply the Tailwind color class directly to the Icon or the Wrapper
               return <Icon className={config.color} size={20} />;

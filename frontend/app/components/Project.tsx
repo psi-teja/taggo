@@ -7,6 +7,7 @@ import {
   Layers, Scissors, CheckCircle2, ArrowRight,
   Pentagon
 } from 'lucide-react';
+import axiosInstance from '../hooks/axiosInstance';
 
 // --- Configuration & Types ---
 
@@ -16,11 +17,9 @@ export interface Project {
   task_type: string;
 }
 
-// Centralizing tool configuration for easier maintenance
-export const TOOL_CONFIG = {
+// Only icon/color mapping here
+export const TOOL_ICON_CONFIG = {
   'document-parsing': {
-    title: 'Document Parsing',
-    description: 'Extract key-value pairs and tables from PDFs/Images.',
     icon: FileText,
     color: 'text-blue-600',
     bg: 'bg-blue-50',
@@ -28,8 +27,6 @@ export const TOOL_CONFIG = {
     activeRing: 'ring-blue-600/10'
   },
   'object-detection': {
-    title: 'Object Detection',
-    description: 'Bounding boxes for computer vision training sets.',
     icon: Maximize,
     color: 'text-purple-600',
     bg: 'bg-purple-50',
@@ -37,8 +34,6 @@ export const TOOL_CONFIG = {
     activeRing: 'ring-purple-600/10'
   },
   'document-classification': {
-    title: 'Classification',
-    description: 'Categorize whole documents into predefined sets.',
     icon: Layers,
     color: 'text-emerald-600',
     bg: 'bg-emerald-50',
@@ -46,8 +41,6 @@ export const TOOL_CONFIG = {
     activeRing: 'ring-emerald-600/10'
   },
   'image-segmentation': {
-    title: 'Segmentation',
-    description: 'Pixel-perfect polygon masking for complex shapes.',
     icon: Pentagon,
     color: 'text-rose-600',
     bg: 'bg-rose-50',
@@ -59,7 +52,7 @@ export const TOOL_CONFIG = {
 // --- Sub-Component: ProjectCard ---
 
 export const ProjectCard = ({ project }: { project: Project }) => {
-  const config = TOOL_CONFIG[project.task_type as keyof typeof TOOL_CONFIG] || TOOL_CONFIG['document-parsing'];
+  const config = TOOL_ICON_CONFIG[project.task_type as keyof typeof TOOL_ICON_CONFIG] || TOOL_ICON_CONFIG['document-parsing'];
   const Icon = config.icon;
 
   return (
@@ -106,6 +99,13 @@ export default function CreateProjectModal({
 }: CreateProjectModalProps) {
   const [loading, setLoading] = useState(false);
   const [newProject, setNewProject] = useState({ name: '', task_type: '' });
+  const [taskTypes, setTaskTypes] = useState<{id: string, label: string}[]>([]);
+
+  // Fetch task types from backend
+  useEffect(() => {
+    axiosInstance.get('/task-types/')
+      .then(res => setTaskTypes(res.data.task_types || []));
+  }, []);
 
   // Handle Escape key to close
   useEffect(() => {
@@ -141,10 +141,8 @@ export default function CreateProjectModal({
       />
 
       <div className="relative w-full max-w-2xl bg-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
-
         {/* Decorative Background Element */}
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-blue-50 rounded-full blur-3xl opacity-50" />
-
         <div className="relative flex justify-between items-start mb-10">
           <div>
             <h2 className="text-3xl font-black text-slate-900 tracking-tight">New Project</h2>
@@ -157,7 +155,6 @@ export default function CreateProjectModal({
             <X size={24} className="text-slate-400" />
           </button>
         </div>
-
         <form onSubmit={handleSubmit} className="relative space-y-10">
           {/* Project Name */}
           <div className="space-y-3">
@@ -173,14 +170,14 @@ export default function CreateProjectModal({
               required
             />
           </div>
-
           {/* Tile Selection */}
           <div className="space-y-4">
             <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">
               Labeling Interface
             </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(TOOL_CONFIG).map(([id, config]) => {
+              {taskTypes.map(({ id, label }) => {
+                const config = TOOL_ICON_CONFIG[id as keyof typeof TOOL_ICON_CONFIG] || TOOL_ICON_CONFIG['document-parsing'];
                 const Icon = config.icon;
                 const isSelected = newProject.task_type === id;
                 return (
@@ -198,11 +195,8 @@ export default function CreateProjectModal({
                     </div>
                     <div className="pr-4">
                       <h3 className={`font-bold text-base ${isSelected ? 'text-blue-700' : 'text-slate-800'}`}>
-                        {config.title}
+                        {label}
                       </h3>
-                      <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
-                        {config.description}
-                      </p>
                     </div>
                     {isSelected && (
                       <div className="absolute top-4 right-4 text-blue-600 animate-in zoom-in">
@@ -214,7 +208,6 @@ export default function CreateProjectModal({
               })}
             </div>
           </div>
-
           {/* Action Bar */}
           <div className="flex items-center gap-4 pt-6">
             <button
@@ -246,4 +239,4 @@ export default function CreateProjectModal({
       </div>
     </div>
   );
-} 
+}
