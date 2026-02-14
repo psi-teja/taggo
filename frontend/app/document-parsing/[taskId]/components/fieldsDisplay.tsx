@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import XIcon from "@/app/components/XIcon";
 
 interface SelectedElement {
@@ -28,7 +28,7 @@ interface FieldsDisplayProps {
     activeSection: string | null;
     setActiveSection: React.Dispatch<React.SetStateAction<string | null>>;
     isTableSection?: boolean;
-    fieldSchema: { [key: string]: string[] }; 
+    fieldSchema: { [key: string]: string[] };
 }
 
 const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
@@ -43,6 +43,20 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
     isTableSection,
     fieldSchema
 }) => {
+
+    // --- Memoized used names to prevent duplicate selection ---
+    const usedNames = useMemo(() => {
+        if (!activeSection || !jsonData[activeSection]) return [];
+
+        if (isTableSection) {
+            // For tables, check assigned column names
+            return jsonData[activeSection].columns?.map((c: any) => c.Name).filter(Boolean) || [];
+        } else {
+            // For general fields, check assigned field names
+            return jsonData[activeSection].map((f: any) => f.Name).filter(Boolean) || [];
+        }
+    }, [jsonData, activeSection, isTableSection]);
+
 
     // --- Dynamic Modification Logic ---
     const addGeneralField = (e: React.MouseEvent) => {
@@ -133,19 +147,17 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
 
     return (
         <div className="flex flex-col h-full bg-slate-50">
-            {/* STICKY HEADER: Tabs + Task ID */}
-            <div className="sticky top-0 z-30 flex items-center justify-between p-2 bg-white border-b border-gray-200 shadow-sm">
-                {/* Tabs Container */}
+            {/* STICKY HEADER 1: Tabs + Task ID */}
+            <div className="sticky top-0 z-30 flex items-center justify-between p-2 bg-white border-b border-gray-200 shadow-sm h-[48px]">
                 <div className="flex gap-1 overflow-x-auto no-scrollbar pr-4">
                     {tabSections.map(section => (
                         <div key={section} className="flex items-center group">
                             <button
                                 onClick={() => setActiveSection(section)}
-                                className={`px-3 py-1.5 rounded-l-md text-xs font-bold whitespace-nowrap transition-all ${
-                                    activeSection === section 
-                                    ? 'bg-blue-600 text-white shadow-md' 
+                                className={`px-3 py-1.5 rounded-l-md text-xs font-bold whitespace-nowrap transition-all ${activeSection === section
+                                    ? 'bg-blue-600 text-white shadow-md'
                                     : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                                }`}
+                                    }`}
                             >
                                 {section}
                             </button>
@@ -155,11 +167,10 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
                                     if (activeSection !== section) setActiveSection(section);
                                     isTableSection ? addTableColumn(e) : addGeneralField(e);
                                 }}
-                                className={`px-2 py-1.5 rounded-r-md text-xs font-bold border-l border-white/20 transition-all ${
-                                    activeSection === section 
-                                    ? 'bg-blue-700 text-white hover:bg-blue-800' 
+                                className={`px-2 py-1.5 rounded-r-md text-xs font-bold border-l border-white/20 transition-all ${activeSection === section
+                                    ? 'bg-blue-700 text-white hover:bg-blue-800'
                                     : 'bg-slate-200 text-slate-400 hover:bg-slate-300'
-                                }`}
+                                    }`}
                             >
                                 +
                             </button>
@@ -167,7 +178,6 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
                     ))}
                 </div>
 
-                {/* Task ID Badge */}
                 <div className="flex-shrink-0 px-2.5 py-1 bg-slate-100 rounded border border-slate-200">
                     <span className="text-[10px] font-mono font-bold text-slate-500 tracking-tighter">
                         ID: {taskDetails?.id || "N/A"}
@@ -175,7 +185,6 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
                 </div>
             </div>
 
-            {/* SCROLLABLE CONTENT AREA */}
             <div className="p-3">
                 {/* 1. SINGULAR FIELDS VIEW */}
                 {activeSection && Array.isArray(jsonData[activeSection]) && !isTableSection && (
@@ -192,13 +201,21 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
                                                 newData[activeSection] = jsonData[activeSection].map((f: any) => f.id === field.id ? { ...f, Name: e.target.value } : f);
                                                 setJsonData(newData);
                                             }}
-                                            className="text-[11px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-1 rounded-md outline-none border border-blue-100"
+                                            className="text-[11px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-1 rounded-md outline-none border border-blue-100 cursor-pointer"
                                         >
                                             <option value="">Choose Field Name...</option>
-                                            {fieldSchema[activeSection]?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                            {fieldSchema[activeSection]?.map(opt => (
+                                                <option
+                                                    key={opt}
+                                                    value={opt}
+                                                    disabled={usedNames.includes(opt) && field.Name !== opt}
+                                                >
+                                                    {opt} {usedNames.includes(opt) && field.Name !== opt ? "(In Use)" : ""}
+                                                </option>
+                                            ))}
                                         </select>
                                     </div>
-
+                                    {/* ... rest of singular field UI */}
                                     <div className="flex flex-col gap-3">
                                         <div className="flex items-center gap-2">
                                             <div className="flex-1">
@@ -246,103 +263,96 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
 
                 {/* 2. TABLE VIEW */}
                 {activeSection && isTableSection && jsonData[activeSection]?.rows && (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden mb-10">
-        <table className="w-full text-left border-collapse min-w-max">
-            {/* We add 'sticky' to the thead. 
-                top-[49px] accounts for the height of the Tabs/ID bar.
-                z-10 ensures it stays above the table body cells.
-            */}
-            <thead className="sticky top-[0px] z-10 bg-slate-50 border-b border-gray-200 shadow-sm">
-                <tr>
-                    <th className="p-2 w-8 border-r border-gray-200 bg-slate-50"></th>
-                    {jsonData[activeSection].columns.map((col: any) => {
-                        const isHdrSelected = selectedElement?.id === col.id;
-                        return (
-                            <th key={col.id} className="p-3 border-r border-gray-200 min-w-[200px] relative group bg-slate-50">
-                                <button 
-                                    onClick={() => deleteTableColumn(col.id)}
-                                    className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 text-[10px]"
-                                >
-                                    ✕
-                                </button>
-                                <div className="flex flex-col gap-2">
-                                    <div className="flex justify-between items-center mr-4">
-                                        <select
-                                            value={col.Name || ""}
-                                            onChange={(e) => {
-                                                const newData = { ...jsonData };
-                                                newData[activeSection].columns = newData[activeSection].columns.map((c: any) => c.id === col.id ? { ...c, Name: e.target.value } : c);
-                                                setJsonData(newData);
-                                            }}
-                                            className="text-[10px] font-bold text-slate-500 bg-transparent outline-none max-w-[140px]"
-                                        >
-                                            <option value="">Column Schema...</option>
-                                            {fieldSchema[activeSection]?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                        </select>
-                                        {col.LabelBoundingBox && (
-                                            <button className="relative" onClick={(e) => isHdrSelected && selectedElement && removeBoundingBox(e, selectedElement)}>
-                                                <img src="/rect.png" alt="Box" className="h-3 w-3" />
-                                                {isHdrSelected && <XIcon />}
-                                            </button>
-                                        )}
-                                    </div>
-                                    <input 
-                                        type="text"
-                                        value={col.Label || ""}
-                                        placeholder="Header Label"
-                                        className={`text-xs p-1.5 border rounded-md outline-none bg-white ${isHdrSelected ? 'border-red-400 ring-2 ring-red-50' : 'border-gray-200'}`}
-                                        onClick={() => setSelectedElement({ section: activeSection, id: col.id, target: "Label", text: col.Label, boxLocation: { BBox: col.LabelBoundingBox, Page: col.Page || 1 } })}
-                                        onChange={(e) => isHdrSelected && selectedElement && handleFieldChange({ ...selectedElement, text: e.target.value })}
-                                    />
-                                </div>
-                            </th>
-                        );
-                    })}
-                </tr>
-            </thead>
-                            <tbody>
-                                {jsonData[activeSection].rows.map((row: any[], rIdx: number) => (
-                                    <tr key={rIdx} className="border-b border-gray-100 hover:bg-slate-50/50 transition-colors group/row">
-                                        <td className="p-2 text-[10px] font-bold text-gray-300 text-center border-r border-gray-200 relative">
-                                            {rIdx + 1}
-                                            <button 
-                                                onClick={() => deleteTableRow(rIdx)}
-                                                className="absolute left-0 top-0 bottom-0 px-1 opacity-0 group-hover/row:opacity-100 text-red-400 hover:bg-red-50"
-                                            >
-                                                ✕
-                                            </button>
-                                        </td>
-                                        {row.map((cell: any) => {
-                                            const isCellSelected = selectedElement?.id === cell.id;
-                                            return (
-                                                <td key={cell.id} className="p-1 border-r border-gray-100 relative group">
-                                                    <div className="flex flex-col relative">
-                                                        {cell.Value?.BoundingBox && (
-                                                            <div className="absolute top-1 right-1 z-10">
-                                                                <button onClick={(e) => isCellSelected && selectedElement && removeBoundingBox(e, selectedElement)} className="relative">
-                                                                    <img src="/rect.png" alt="Box" className="h-3 w-3 opacity-40 group-hover:opacity-100" />
-                                                                    {isCellSelected && <XIcon />}
-                                                                </button>
-                                                            </div>
-                                                        )}
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-xl flex flex-col mb-10 overflow-hidden" style={{ maxHeight: '70vh' }}>
+
+                        {/* WRAPPER FOR HORIZONTAL SCROLL */}
+                        <div className="overflow-x-auto overflow-y-hidden border-b border-gray-200 bg-slate-50">
+                            <table className="w-full text-left border-separate border-spacing-0 min-w-max">
+                                <thead>
+                                    <tr className="bg-slate-50">
+                                        {/* Stationary Corner */}
+                                        <th className="sticky left-0 z-50 p-2 w-10 border-r border-b border-gray-200 bg-slate-100"></th>
+
+                                        {jsonData[activeSection].columns.map((col: any) => (
+                                            <th key={col.id} className="p-3 border-r border-b border-gray-200 min-w-[200px] relative group bg-slate-50">
+                                                <div className="flex flex-col gap-2">
+                                                    <div className="flex justify-between items-center mr-4">
+                                                        <select
+                                                            value={col.Name || ""}
+                                                            onChange={(e) => {
+                                                                const newData = { ...jsonData };
+                                                                newData[activeSection].columns = newData[activeSection].columns.map((c: any) => c.id === col.id ? { ...c, Name: e.target.value } : c);
+                                                                setJsonData(newData);
+                                                            }}
+                                                            className="text-[10px] font-bold text-slate-500 bg-transparent outline-none max-w-[140px] cursor-pointer"
+                                                        >
+                                                            <option value="">Column Schema...</option>
+                                                            {fieldSchema[activeSection]?.map(opt => (
+                                                                <option key={opt} value={opt} disabled={usedNames.includes(opt) && col.Name !== opt}>
+                                                                    {opt} {usedNames.includes(opt) && col.Name !== opt ? "✓" : ""}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        value={col.Label || ""}
+                                                        placeholder="Header Label"
+                                                        className="text-xs p-1.5 border border-gray-200 rounded-md outline-none bg-white"
+                                                        onChange={(e) => {
+                                                            const newData = { ...jsonData };
+                                                            newData[activeSection].columns = newData[activeSection].columns.map((c: any) => c.id === col.id ? { ...c, Label: e.target.value } : c);
+                                                            setJsonData(newData);
+                                                        }}
+                                                    />
+                                                </div>
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+
+                        {/* SCROLLABLE BODY AREA */}
+                        <div className="overflow-y-auto overflow-x-auto flex-1 custom-scrollbar">
+                            <table className="w-full text-left border-separate border-spacing-0 min-w-max">
+                                <tbody>
+                                    {jsonData[activeSection].rows.map((row: any[], rIdx: number) => (
+                                        <tr key={rIdx} className="hover:bg-slate-50/50 transition-colors group/row">
+                                            {/* Sticky Index Column */}
+                                            <td className="sticky left-0 z-10 p-2 text-[10px] font-bold text-gray-400 text-center border-r border-b border-gray-200 bg-slate-50 w-10">
+                                                {rIdx + 1}
+                                                <button
+                                                    onClick={() => deleteTableRow(rIdx)}
+                                                    className="absolute inset-0 flex items-center justify-center bg-red-50 opacity-0 group-hover/row:opacity-100 text-red-500 transition-opacity"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </td>
+                                            {row.map((cell: any) => {
+                                                const isCellSelected = selectedElement?.id === cell.id;
+                                                return (
+                                                    <td key={cell.id} className="p-1 border-r border-b border-gray-100 min-w-[200px] relative group">
                                                         <textarea
                                                             rows={1}
                                                             value={cell.Value?.Text || ""}
-                                                            className={`w-full p-2 text-xs bg-transparent outline-none resize-none overflow-hidden whitespace-pre-wrap transition-all ${isCellSelected ? 'bg-blue-50/50 ring-2 ring-inset ring-blue-200 rounded-md shadow-inner' : ''}`}
+                                                            className={`w-full p-2 text-xs bg-transparent outline-none resize-none overflow-hidden transition-all ${isCellSelected ? 'bg-blue-50/50 ring-2 ring-inset ring-blue-200 rounded-md' : ''}`}
                                                             onClick={() => setSelectedElement({ section: activeSection, id: cell.id, target: "Value", text: cell.Value?.Text, boxLocation: { BBox: cell.Value.BoundingBox, Page: cell.Value.Page } })}
                                                             onChange={(e) => isCellSelected && selectedElement && handleFieldChange({ ...selectedElement, text: e.target.value })}
                                                         />
-                                                    </div>
-                                                </td>
-                                            );
-                                        })}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        <button 
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* FOOTER ACTION */}
+                        <button
                             onClick={addTableRow}
-                            className="w-full p-3 text-[11px] font-black text-blue-600 hover:bg-blue-50 border-t border-gray-200 uppercase tracking-tighter transition-colors"
+                            className="w-full p-3 text-[11px] font-black text-blue-600 hover:bg-blue-50 border-t border-gray-200 uppercase tracking-tighter bg-white sticky bottom-0 z-20"
                         >
                             + Add New Row
                         </button>

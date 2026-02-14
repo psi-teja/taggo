@@ -260,6 +260,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
             }
             return newData;
         });
+        setSelectedElement(updated);
     };
 
     const isTableSection = activeSection ? (sectionTypes[activeSection] === 'table') : false;
