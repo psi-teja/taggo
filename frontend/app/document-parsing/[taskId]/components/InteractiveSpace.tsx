@@ -334,12 +334,12 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                                     Save
                                 </button>
                                 
-                                <button 
+                                {/* <button 
                                     onClick={() => { saveJsonData(jsonData, taskDetails); alert("Submitted!"); }} 
                                     className="flex-1 px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded shadow hover:bg-indigo-700 transition-colors uppercase tracking-wider"
                                 >
                                     Submit
-                                </button>
+                                </button> */}
                             </div>
                         </div>
                     </>

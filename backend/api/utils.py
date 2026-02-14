@@ -6,6 +6,7 @@ from django.conf import settings
 import json
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from .models import Task
 
 
 def ConvertToPdfView(request, filename):
@@ -64,6 +65,11 @@ def save_json_data(request):
         # Writing the file
         with open(file_path, "w", encoding='utf-8') as f:
             json.dump(json_data, f, indent=4) # Added indent for readability
+
+        task = Task.objects.filter(id=task_id).first()
+        if task:
+            task.status = "labelled"  # Update status to 'labelled' after saving JSON
+            task.save()
 
         return JsonResponse({"status": "success", "message": "Data saved successfully"}, status=200)
 

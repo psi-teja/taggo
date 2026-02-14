@@ -45,10 +45,11 @@ class Task(models.Model):
         max_length=50, 
         choices=[
             ("uploaded", "Uploaded"),
-            ("in-labelling", "In-Labelling"),
-            ("in-review", "In-Review"),
-            ("accepted", "Accepted"),
-            ("completed", "Completed"),
+            ("labelled", "Labelled"),
+            # ("in-labelling", "In-Labelling"),
+            # ("in-review", "In-Review"),
+            # ("accepted", "Accepted"),
+            # ("completed", "Completed"),
         ], 
         default="uploaded"
     )

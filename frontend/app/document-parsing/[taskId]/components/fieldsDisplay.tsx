@@ -84,7 +84,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
         sec.columns = [...(sec.columns || []), newColumn];
         sec.rows = (sec.rows || []).map((row: any[]) => [
             ...row,
-            { id: `cell-${crypto.randomUUID()}`, Value: { Text: "", BoundingBox: null, Page: 1 } }
+            { id: `node-${crypto.randomUUID()}`, Value: { Text: "", BoundingBox: null, Page: 1 } }
         ]);
         newData[activeSection] = sec;
         setJsonData(newData);
@@ -107,7 +107,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
         const newData = { ...jsonData };
         const sec = { ...newData[activeSection] };
         const newRow = sec.columns.map(() => ({
-            id: `cell-${crypto.randomUUID()}`,
+            id: `node-${crypto.randomUUID()}`,
             Value: { Text: "", BoundingBox: null, Page: 1 }
         }));
         sec.rows = [...(sec.rows || []), newRow];
