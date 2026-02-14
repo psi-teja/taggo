@@ -273,11 +273,9 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
                             <table className="w-full text-left border-separate border-spacing-0 min-w-max">
                                 <thead>
                                     <tr className="bg-slate-50">
-                                        {/* Stationary Corner */}
                                         <th className="sticky left-0 z-50 p-2 w-10 border-r border-b border-gray-200 bg-slate-100"></th>
-
                                         {jsonData[activeSection].columns.map((col: any) => (
-                                            <th key={col.id} className="p-3 border-r border-b border-gray-200 min-w-[200px] relative group bg-slate-50">
+                                            <th key={col.id} className="sticky p-3 border-r border-b border-gray-200 min-w-[200px] relative group bg-slate-50">
                                                 <div className="flex flex-col gap-2">
                                                     <div className="flex justify-between items-center mr-4">
                                                         <select
@@ -338,12 +336,6 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
                                         ))}
                                     </tr>
                                 </thead>
-                            </table>
-                        </div>
-
-                        {/* SCROLLABLE BODY AREA */}
-                        <div className="overflow-y-auto overflow-x-auto flex-1 custom-scrollbar">
-                            <table className="w-full text-left border-separate border-spacing-0 min-w-max">
                                 <tbody>
                                     {jsonData[activeSection].rows.map((row: any[], rIdx: number) => (
                                         <tr key={rIdx} className="hover:bg-slate-50/50 transition-colors group/row">
