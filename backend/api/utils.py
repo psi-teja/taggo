@@ -39,24 +39,35 @@ def ConvertToPdfView(request, filename):
 def save_json_data(request):
     """
     Saves JSON data to a file.
-    Expects JSON body with 'taskId', 'taskType', and 'jsonData'.
+    Expects JSON body with 'taskId' and 'jsonData'.
     """
     try:
         data = request.data
-        task_type = data.get("taskType")
         task_id = data.get("taskId")
         json_data = data.get("jsonData")
 
-        if not all([task_type, task_id, json_data]):
-            return JsonResponse({"status": "error", "message": "Missing required fields"}, status=400)
+        # Removed 'task_type' check since it's not sent by your frontend function
+        if not task_id or json_data is None:
+            return JsonResponse({
+                "status": "error", 
+                "message": "Missing taskId or jsonData"
+            }, status=400)
 
-        file_path = os.path.join(settings.MEDIA_ROOT, task_type, "annotations", f'{task_id}.json')
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        # Ensure the directory exists
+        folder_path = os.path.join(settings.MEDIA_ROOT, "annotations")
+        os.makedirs(folder_path, exist_ok=True)
 
-        with open(file_path, "w") as f:
-            json.dump(json_data, f)
+        # Sanitize filename and create full path
+        file_name = f"{task_id}.json"
+        file_path = os.path.join(folder_path, file_name)
+
+        # Writing the file
+        with open(file_path, "w", encoding='utf-8') as f:
+            json.dump(json_data, f, indent=4) # Added indent for readability
 
         return JsonResponse({"status": "success", "message": "Data saved successfully"}, status=200)
+
     except Exception as e:
-        print(f"Error saving JSON data: {e}")
-        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+        # It's good practice to log the actual error for debugging
+        print(f"Error saving JSON data: {str(e)}")
+        return JsonResponse({"status": "error", "message": "Internal server error"}, status=500)

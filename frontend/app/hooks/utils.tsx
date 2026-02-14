@@ -72,7 +72,6 @@ export async function saveJsonData (jsonData: any, taskDetails: any) {
             `/save_json_data/`,
             {
                 taskId: taskDetails.id,
-                taskType: taskDetails.task_type,
                 jsonData: jsonData,
             },
             {
