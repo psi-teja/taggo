@@ -34,7 +34,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
     // Data & Selection States
     const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null);
     const [jsonData, setJsonData] = useState<any>(null);
-    const [fieldSchema, setFieldSchema] = useState<{ [key: string]: string[] }>({});
+    const [fieldSchema, setFieldSchema] = useState<{ [key: string]: { id: string; name: string }[] }>({});
     
     // Status States
     const [jsonNotFound, setJsonNotFound] = useState<boolean>(false);
@@ -107,10 +107,10 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
             const schema = res.data?.schema;
 
             if (schema) {
-                const options: { [key: string]: string[] } = {};
-                if (schema.fields) options['Singular'] = schema.fields.map((f: any) => f.name);
+                const options: { [key: string]: { id: string; name: string }[] } = {};
+                if (schema.fields) options['Singular'] = schema.fields.map((f: any) => ({ id: f.id, name: f.name }));
                 schema.tables?.forEach((t: any) => {
-                    options[t.tableName] = t.columns.map((c: any) => c.name);
+                    options[t.tableName] = t.columns.map((c: any) => ({ id: c.id, name: c.name }));
                 });
                 setFieldSchema(options);
                 setSchemaDefined((schema.fields?.length > 0) || (schema.tables?.length > 0));
@@ -150,7 +150,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
             if (schema.fields?.length > 0) {
                 data['Singular'] = schema.fields.map((f: any) => ({
                     id: genId(),
-                    Name: f.name,
+                    Name: f.id,
                     Value: { Label: '', Text: '', LabelBoundingBox: null, BoundingBox: null, Page: 1 }
                 }));
             }
@@ -158,7 +158,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
             schema.tables?.forEach((t: any) => {
                 const columns = (t.columns || []).map((col: any, cIdx: number) => ({
                     id: `col-${crypto.randomUUID()}`,
-                    Name: col.name,
+                    Name: col.id,
                     Label: '',
                     LabelBoundingBox: null,
                     Page: 1,

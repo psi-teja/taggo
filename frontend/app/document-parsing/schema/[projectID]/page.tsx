@@ -14,7 +14,7 @@ interface SchemaField {
 
 interface SchemaTable {
   id: string;
-  tableName: string; // e.g., 'items', 'ledgers', 'metadata'
+  tableName: string;
   columns: { id: string; name: string }[];
 }
 
@@ -39,11 +39,32 @@ export default function SchemaPage({ params }: { params: { projectID: string } }
         fetchData();
     }, [projectId]);
 
-    // Validation: Check for duplicate table names
+    // --- Validation Logic ---
+
+    // Check if a table name is duplicated
     const isTableNameDuplicate = (name: string, currentId: string) => {
         if (!name) return false;
         return tables.some(t => t.tableName.toLowerCase() === name.toLowerCase() && t.id !== currentId);
     };
+
+    // Check if a field/column name is duplicated anywhere in the schema
+    const isFieldNameDuplicate = (name: string, currentId: string) => {
+        if (!name) return false;
+        const normalized = name.toLowerCase();
+        
+        // Check singular fields
+        const inFields = fields.some(f => f.name.toLowerCase() === normalized && f.id !== currentId);
+        if (inFields) return true;
+
+        // Check all columns in all tables
+        const inTables = tables.some(t => 
+            t.columns.some(col => col.name.toLowerCase() === normalized && col.id !== currentId)
+        );
+        
+        return inTables;
+    };
+
+    // --- Actions ---
 
     const addField = () => setFields([...fields, { id: crypto.randomUUID(), name: "" }]);
 
@@ -63,12 +84,18 @@ export default function SchemaPage({ params }: { params: { projectID: string } }
     };
 
     const saveSchema = async () => {
-        // Simple check before saving
-        const hasEmptyNames = tables.some(t => !t.tableName);
-        const hasDuplicates = tables.some(t => isTableNameDuplicate(t.tableName, t.id));
+        const hasEmptyNames = fields.some(f => !f.name) || tables.some(t => !t.tableName || t.columns.some(c => !c.name));
+        
+        // Collect all names to check for any duplicates at the last second
+        const allNames = [
+            ...fields.map(f => f.name.toLowerCase()),
+            ...tables.flatMap(t => t.columns.map(c => c.name.toLowerCase()))
+        ];
+        const hasDuplicates = new Set(allNames).size !== allNames.length || 
+                             new Set(tables.map(t => t.tableName.toLowerCase())).size !== tables.length;
 
         if (hasEmptyNames || hasDuplicates) {
-            alert("Please ensure all tables have unique, non-empty names.");
+            alert("Please ensure all names are unique and non-empty.");
             return;
         }
 
@@ -117,21 +144,25 @@ export default function SchemaPage({ params }: { params: { projectID: string } }
                         </button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {fields.map((f) => (
-                            <div key={f.id} className="flex items-center gap-2 p-3 bg-white border border-slate-200 rounded-2xl group hover:border-teal-200 transition-colors">
-                                <input 
-                                    className="flex-1 bg-transparent border-none text-sm font-semibold focus:ring-0 placeholder:text-slate-300" 
-                                    placeholder="e.g. invoice_date" 
-                                    value={f.name}
-                                    onChange={(e) => setFields(fields.map(item => item.id === f.id ? {...item, name: e.target.value} : item))}
-                                />
-                                <button onClick={() => setFields(fields.filter(item => item.id !== f.id))} className="text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={16}/></button>
-                            </div>
-                        ))}
+                        {fields.map((f) => {
+                            const isDup = isFieldNameDuplicate(f.name, f.id);
+                            return (
+                                <div key={f.id} className={`flex items-center gap-2 p-3 bg-white border rounded-2xl group transition-all ${isDup ? 'border-rose-400 ring-4 ring-rose-50' : 'border-slate-200 hover:border-teal-200'}`}>
+                                    <input 
+                                        className={`flex-1 bg-transparent border-none text-sm font-semibold focus:ring-0 placeholder:text-slate-300 ${isDup ? 'text-rose-600' : 'text-slate-700'}`} 
+                                        placeholder="e.g. invoice_date" 
+                                        value={f.name}
+                                        onChange={(e) => setFields(fields.map(item => item.id === f.id ? {...item, name: e.target.value} : item))}
+                                    />
+                                    {isDup && <AlertCircle size={14} className="text-rose-500" />}
+                                    <button onClick={() => setFields(fields.filter(item => item.id !== f.id))} className="text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={16}/></button>
+                                </div>
+                            );
+                        })}
                     </div>
                 </section>
 
-                {/* 2. Unique Tabular Structures */}
+                {/* 2. Tabular Entities Section */}
                 <section>
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
@@ -147,18 +178,18 @@ export default function SchemaPage({ params }: { params: { projectID: string } }
 
                     <div className="space-y-8">
                         {tables.map((t) => {
-                            const duplicate = isTableNameDuplicate(t.tableName, t.id);
+                            const tableDup = isTableNameDuplicate(t.tableName, t.id);
                             return (
-                                <div key={t.id} className={`bg-white border ${duplicate ? 'border-rose-300 ring-4 ring-rose-50' : 'border-slate-200'} rounded-[2rem] overflow-hidden transition-all shadow-sm`}>
+                                <div key={t.id} className={`bg-white border ${tableDup ? 'border-rose-300 ring-4 ring-rose-50' : 'border-slate-200'} rounded-[2rem] overflow-hidden transition-all shadow-sm`}>
                                     <div className="bg-slate-50/50 px-8 py-4 flex justify-between items-center border-b border-slate-100">
                                         <div className="flex-1 flex items-center gap-3">
                                             <input 
-                                                className={`bg-transparent border-none text-lg font-black focus:ring-0 w-full max-w-md ${duplicate ? 'text-rose-600' : 'text-slate-800'}`} 
-                                                placeholder="Table Name (e.g. items, tax_ledger)"
+                                                className={`bg-transparent border-none text-lg font-black focus:ring-0 w-full max-w-md ${tableDup ? 'text-rose-600' : 'text-slate-800'}`} 
+                                                placeholder="Table Name (e.g. items)"
                                                 value={t.tableName}
                                                 onChange={(e) => setTables(tables.map(item => item.id === t.id ? {...item, tableName: e.target.value} : item))}
                                             />
-                                            {duplicate && <span className="flex items-center gap-1 text-[10px] font-bold text-rose-500 uppercase"><AlertCircle size={12}/> Duplicate Name</span>}
+                                            {tableDup && <span className="flex items-center gap-1 text-[10px] font-bold text-rose-500 uppercase"><AlertCircle size={12}/> Duplicate Table Name</span>}
                                         </div>
                                         <button onClick={() => setTables(tables.filter(item => item.id !== t.id))} className="text-slate-400 hover:text-rose-500 transition-colors">
                                             <Trash2 size={18}/>
@@ -166,22 +197,26 @@ export default function SchemaPage({ params }: { params: { projectID: string } }
                                     </div>
                                     <div className="p-8">
                                         <div className="flex flex-wrap gap-3">
-                                            {t.columns.map((col) => (
-                                                <div key={col.id} className="flex items-center gap-2 pl-4 pr-2 py-2 bg-slate-50 border border-slate-200 rounded-xl group hover:border-teal-300 transition-colors">
-                                                    <input 
-                                                        className="bg-transparent border-none text-xs font-bold focus:ring-0 w-28 text-slate-600" 
-                                                        placeholder="Column ID" 
-                                                        value={col.name}
-                                                        onChange={(e) => setTables(tables.map(table => {
-                                                            if(table.id === t.id) {
-                                                                return {...table, columns: table.columns.map(c => c.id === col.id ? {...c, name: e.target.value} : c)};
-                                                            }
-                                                            return table;
-                                                        }))}
-                                                    />
-                                                    <button onClick={() => setTables(tables.map(table => table.id === t.id ? {...table, columns: table.columns.filter(c => c.id !== col.id)} : table))} className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-rose-500 transition-all"><Trash2 size={14}/></button>
-                                                </div>
-                                            ))}
+                                            {t.columns.map((col) => {
+                                                const colDup = isFieldNameDuplicate(col.name, col.id);
+                                                return (
+                                                    <div key={col.id} className={`flex items-center gap-2 pl-4 pr-2 py-2 bg-slate-50 border rounded-xl group transition-all ${colDup ? 'border-rose-400 bg-rose-50 ring-2 ring-rose-100' : 'border-slate-200 hover:border-teal-300'}`}>
+                                                        <input 
+                                                            className={`bg-transparent border-none text-xs font-bold focus:ring-0 w-28 ${colDup ? 'text-rose-600' : 'text-slate-600'}`} 
+                                                            placeholder="Column Name" 
+                                                            value={col.name}
+                                                            onChange={(e) => setTables(tables.map(table => {
+                                                                if(table.id === t.id) {
+                                                                    return {...table, columns: table.columns.map(c => c.id === col.id ? {...c, name: e.target.value} : c)};
+                                                                }
+                                                                return table;
+                                                            }))}
+                                                        />
+                                                        {colDup && <AlertCircle size={12} className="text-rose-500" />}
+                                                        <button onClick={() => setTables(tables.map(table => table.id === t.id ? {...table, columns: table.columns.filter(c => c.id !== col.id)} : table))} className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-rose-500 transition-all"><Trash2 size={14}/></button>
+                                                    </div>
+                                                );
+                                            })}
                                             <button onClick={() => addColumn(t.id)} className="px-4 py-2 border-2 border-dashed border-slate-200 rounded-xl text-xs font-extrabold text-slate-400 hover:border-teal-500 hover:text-teal-500 transition-all">
                                                 + Add Column
                                             </button>

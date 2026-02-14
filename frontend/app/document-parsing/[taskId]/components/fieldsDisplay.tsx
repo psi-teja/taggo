@@ -1,6 +1,8 @@
 "use client";
 import React, { useEffect, useMemo } from "react";
 import XIcon from "@/app/components/XIcon";
+import { X } from "lucide-react";
+
 
 interface SelectedElement {
     section: string;
@@ -28,7 +30,8 @@ interface FieldsDisplayProps {
     activeSection: string | null;
     setActiveSection: React.Dispatch<React.SetStateAction<string | null>>;
     isTableSection?: boolean;
-    fieldSchema: { [key: string]: string[] };
+    // fieldSchema now maps section -> array of schema entries { id, name }
+    fieldSchema: { [key: string]: { id: string; name: string }[] };
 }
 
 const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
@@ -201,16 +204,16 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
                                                 newData[activeSection] = jsonData[activeSection].map((f: any) => f.id === field.id ? { ...f, Name: e.target.value } : f);
                                                 setJsonData(newData);
                                             }}
-                                            className="text-[11px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-1 rounded-md outline-none border border-blue-100 cursor-pointer"
+                                            className="text-[11px] font-black tracking-widest text-blue-600 bg-blue-50 px-2 py-1 rounded-md outline-none border border-blue-100 cursor-pointer"
                                         >
                                             <option value="">Choose Field Name...</option>
                                             {fieldSchema[activeSection]?.map(opt => (
                                                 <option
-                                                    key={opt}
-                                                    value={opt}
-                                                    disabled={usedNames.includes(opt) && field.Name !== opt}
+                                                    key={opt.id}
+                                                    value={opt.id}
+                                                    disabled={usedNames.includes(opt.id) && field.Name !== opt.id}
                                                 >
-                                                    {opt} {usedNames.includes(opt) && field.Name !== opt ? "(In Use)" : ""}
+                                                    {opt.name} {usedNames.includes(opt.id) && field.Name !== opt.id ? "(In Use)" : ""}
                                                 </option>
                                             ))}
                                         </select>
@@ -288,17 +291,42 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
                                                         >
                                                             <option value="">Column Schema...</option>
                                                             {fieldSchema[activeSection]?.map(opt => (
-                                                                <option key={opt} value={opt} disabled={usedNames.includes(opt) && col.Name !== opt}>
-                                                                    {opt} {usedNames.includes(opt) && col.Name !== opt ? "✓" : ""}
+                                                                <option key={opt.id} value={opt.id} disabled={usedNames.includes(opt.id) && col.Name !== opt.id}>
+                                                                    {opt.name} {usedNames.includes(opt.id) && col.Name !== opt.id ? "✓" : ""}
                                                                 </option>
                                                             ))}
                                                         </select>
+                                                        {col.LabelBoundingBox && (
+                                                            <button
+                                                                className="relative"
+                                                                onClick={(e: React.MouseEvent) => {
+                                                                    e.stopPropagation();
+                                                                    const sel: SelectedElement = {
+                                                                        section: activeSection as string,
+                                                                        id: col.id,
+                                                                        target: "Label",
+                                                                        text: col.Label,
+                                                                        boxLocation: { BBox: col.LabelBoundingBox, Page: col.Page }
+                                                                    };
+                                                                    // If already selected on this column label, remove the bounding box, otherwise select it
+                                                                    if (selectedElement?.id === col.id && selectedElement?.target === 'Label') {
+                                                                        removeBoundingBox(e, selectedElement);
+                                                                    } else {
+                                                                        setSelectedElement(sel);
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <img src="/rect.png" alt="Box" className="h-4 w-4" />
+                                                                {selectedElement?.id === col.id && selectedElement?.target === 'Label' && <XIcon />}
+                                                            </button>
+                                                        )}
                                                     </div>
                                                     <input
                                                         type="text"
                                                         value={col.Label || ""}
                                                         placeholder="Header Label"
                                                         className="text-xs p-1.5 border border-gray-200 rounded-md outline-none bg-white"
+                                                        onClick={(e) => setSelectedElement({ section: activeSection, id: col.id, target: "Label", text: col.Label, boxLocation: { BBox: col.LabelBoundingBox, Page: col.Page } })}
                                                         onChange={(e) => {
                                                             const newData = { ...jsonData };
                                                             newData[activeSection].columns = newData[activeSection].columns.map((c: any) => c.id === col.id ? { ...c, Label: e.target.value } : c);
