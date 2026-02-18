@@ -3,11 +3,7 @@ import React, { useEffect, useState } from 'react';
 import axiosInstance from '@/app/hooks/axiosInstance';
 import { useParams } from 'next/navigation'; // For Next.js 13+ with app directory
 import { useAuth } from '@/app/hooks/userAuth';
-import Header from '@/app/components/Header';
-import Link from 'next/link';
-import { FaFileInvoice } from 'react-icons/fa';
 import InteractiveSpace from './components/InteractiveSpace';
-import AccountDetails from '@/app/components/AccountDetails';
 import { Project } from '@/app/components/Project';
 import { Task } from '@/app/components/Tasks';
 import AppHeader from '@/app/components/AppHeader';

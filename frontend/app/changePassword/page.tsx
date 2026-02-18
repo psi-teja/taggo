@@ -3,6 +3,7 @@ import { useState } from "react";
 import axiosInstance from "../hooks/axiosInstance";
 import Header from "../components/Header";
 import Logo from "../components/Logo";
+import { clearAuthStorage } from "../hooks/authStorage";
 
 export default function ChangePasswordForm() {
     const [oldPassword, setOldPassword] = useState("");
@@ -37,8 +38,7 @@ export default function ChangePasswordForm() {
             if (response.status === 200) {
                 setMessage("Password changed successfully!");
                 setIsError(false);
-                localStorage.removeItem("access_token");
-                localStorage.removeItem("refresh_token");
+                clearAuthStorage();
                 window.location.href = "/login";
             } else {
                 setMessage(data.error || "Error changing password");

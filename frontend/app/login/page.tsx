@@ -7,6 +7,7 @@ import { jwtDecode } from "jwt-decode"; // 👈 Add this
 import Header from "../components/Header";
 import Logo from "../components/Logo";
 import axiosInstance from "../hooks/axiosInstance";
+import { setAccessToken, setRefreshToken, setLoggedInUser } from "../hooks/authStorage";
 
 // Response from /token/
 interface LoginResponse {
@@ -47,8 +48,8 @@ const Login = () => {
       });
 
       // Save tokens
-      localStorage.setItem("access_token", data.access);
-      localStorage.setItem("refresh_token", data.refresh);
+      setAccessToken(data.access);
+      setRefreshToken(data.refresh);
 
       // Decode access token
       const decoded: any = jwtDecode(data.access);
@@ -63,7 +64,7 @@ const Login = () => {
       };
 
       // Save loggedInUser
-      localStorage.setItem("loggedInUser", JSON.stringify(loggedInUser));
+      setLoggedInUser(loggedInUser);
 
       // Redirect to the 'next' page or homepage
       router.push(next); // Redirect to the 'next' URL (or '/' if not provided)

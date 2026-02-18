@@ -1,5 +1,6 @@
 // utils/axiosInstance.js
 import axios from 'axios';
+import { getAccessToken, setAccessToken, getRefreshToken, setRefreshToken } from "./authStorage";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -10,7 +11,7 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('access_token');
+        const token = getAccessToken();
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -42,7 +43,7 @@ axiosInstance.interceptors.response.use(
 
             try {
                 // Attempt to refresh the token
-                const refreshToken = localStorage.getItem('refresh_token');
+                const refreshToken = getRefreshToken();
                 if (!refreshToken) {
                     throw new Error('No refresh token available');
                 }
@@ -52,9 +53,9 @@ axiosInstance.interceptors.response.use(
                 });
 
                 // Update access token in local storage
-                localStorage.setItem('access_token', response.data.access);
+                setAccessToken(response.data.access);
                 if (response.data.refresh) {
-                    localStorage.setItem('refresh_token', response.data.refresh);
+                    setRefreshToken(response.data.refresh);
                 }
 
                 // Retry the original request with the new token

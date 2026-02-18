@@ -6,6 +6,7 @@ import {
   Settings, LayoutDashboard, KeyRound, 
   LogOut, User, ChevronDown 
 } from "lucide-react";
+import { clearAuthStorage } from "@/app/hooks/authStorage";
 
 interface AccountDetailsProps {
     loggedInUser: any;
@@ -32,8 +33,7 @@ const AccountMenu: React.FC<{
 
     const handleLogout = useCallback((): void => {
         setLogingout(true);
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('loggedInUser');
+        clearAuthStorage();
         window.location.href = '/login';
     }, []);
 

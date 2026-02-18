@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from "@/app/hooks/userAuth";
 import axiosInstance from './hooks/axiosInstance';
+import { clearAuthStorage } from "@/app/hooks/authStorage";
 import { 
   ArrowRight, Layout, Tag, Share2, 
   ShieldCheck, GitBranch, Zap, 
@@ -23,8 +24,7 @@ function Home() {
                 const res = await axiosInstance.get(`/check-superuser`);
                 setSuperuserExists(res.data && res.data.superuser_exists);
                 if (res.data && res.data.superuser_exists === false && loggedInUser) {
-                    localStorage.removeItem('access_token');
-                    localStorage.removeItem('loggedInUser');
+                    clearAuthStorage();
                 }
                 if (res.data && res.data.superuser_exists === false && router && window.location.pathname !== "/create-superuser") {
                     router.replace("/create-superuser");
