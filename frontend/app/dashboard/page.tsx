@@ -87,7 +87,7 @@ const Dashboard = () => {
                     </div>
 
                     {/* Right Section: Project Management (FR-02) */}
-                    <div className="flex-1 flex flex-col p-8 md:p-12 bg-white overflow-y-auto">
+                    <div className="flex-1 flex flex-col p-8 md:p-12 bg-white ">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
                             <div>
                                 <h1 className="text-3xl font-black text-slate-900 tracking-tight">
@@ -109,10 +109,9 @@ const Dashboard = () => {
                                 <Loader2 className="animate-spin text-blue-500" size={40} />
                             </div>
                         ) : projects.length > 0 ? (
-                            /* Responsive Grid for Project Cards */
-                            <div className="flex flex-col gap-6">
+                            // Responsive Grid for Project Cards with scroll only on this list
+                            <div className="flex-1 min-h-0 flex flex-col gap-6 overflow-y-auto">
                                 {projects.map((project) => (
-                                    /* Add the key prop here using the unique project ID */
                                     <ProjectCard key={project.id} project={project} />
                                 ))}
                             </div>
