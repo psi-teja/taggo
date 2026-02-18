@@ -294,7 +294,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                                 {initializing ? 'Initializing...' : 'Start Annotation'}
                             </button>
                         ) : (
-                            <Link href={`/dashboard/${taskDetails?.project}/schema`} className="text-teal-600 font-bold hover:underline">
+                            <Link href={`/${taskDetails?.type}/schema/${taskDetails?.project_id}`} className="text-teal-600 font-bold hover:underline">
                                 Define Project Schema First
                             </Link>
                         )}

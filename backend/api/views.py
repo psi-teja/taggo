@@ -88,6 +88,7 @@ def TaskDetailsView(request, id: str):
         task_data = {
             "id": task.id,
             "project_id": task.project.id,
+            "type": task.project.task_type,
             "filename": task.filename,
             "status": task.status,
             "assigned_to_user": task.assigned_to_user.username if task.assigned_to_user else None,

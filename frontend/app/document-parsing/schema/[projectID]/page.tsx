@@ -118,8 +118,8 @@ export default function SchemaPage({ params }: { params: { projectID: string } }
                     <div className="flex items-center gap-4">
                         <Link href={`/dashboard/${projectData.id}`} className="p-2 hover:bg-slate-100 rounded-lg"><ChevronLeft size={20}/></Link>
                         <div>
-                            <h1 className="text-xl font-black text-slate-900 leading-none mb-1">Project Schema</h1>
-                            <p className="text-[10px] uppercase font-bold text-teal-600 tracking-wider">Document Parsing Config</p>
+                            <h1 className="text-xl font-black text-slate-900 leading-none mb-1">Project: {projectData.name}</h1>
+                            <p className="text-[10px] uppercase font-bold text-teal-600 tracking-wider">Document Parsing</p>
                         </div>
                     </div>
                     <button onClick={saveSchema} disabled={isSaving} className="flex items-center gap-2 px-6 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-xl font-bold shadow-lg shadow-teal-500/20 transition-all">
