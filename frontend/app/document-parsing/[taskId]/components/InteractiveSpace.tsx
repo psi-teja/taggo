@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import PdfViewer from "@/app/components/PdfViewer";
 import { addIdsToJsonData, saveJsonData } from "@/app/hooks/utils";
-import FieldsDisplay from "./fieldsDisplay";
+import FieldsDisplay from "./FieldsDisplay";
 import axiosInstance from "@/app/hooks/axiosInstance";
 import Link from "next/link";
 

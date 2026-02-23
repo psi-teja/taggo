@@ -5,7 +5,7 @@ import axiosInstance from "@/app/hooks/axiosInstance";
 import Header from "@/app/components/Header";
 import Link from "next/link";
 import { addIdsToJsonData, saveJsonData } from "@/app/hooks/utils";
-import FieldsDisplay from "./fieldsDisplay";
+import FieldsDisplay from "./FieldsDisplay";
 
 // Define SelectedElement matching PdfViewer expectations
 interface SelectedElement {
