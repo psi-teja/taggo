@@ -145,7 +145,7 @@ const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
               className="bg-transparent pl-3 pr-8 py-1.5 text-xs font-bold text-slate-600 outline-none cursor-pointer"
             >
               <option value="all">All Statuses</option>
-              {["uploaded", "in-labelling", "in-review", "accepted", "completed"].map(s => (
+              {["uploaded", "labelled"].map(s => (
                 <option key={s} value={s}>{s.toUpperCase()}</option>
               ))}
             </select>
