@@ -113,18 +113,24 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   }, [pdfDim.width]);
 
   useEffect(() => {
-    if (selectedElement?.boxLocation?.Page) {
+    // Only change the page if the selected element actually has a coordinate
+    if (selectedElement?.boxLocation?.BBox && selectedElement?.boxLocation?.Page) {
       setPageNumber(selectedElement.boxLocation.Page);
     }
   }, [selectedElement]);
 
-  useEffect(() => {
-    if (selectedElement?.boxLocation.BBox && boundingBoxRef.current) {
-      setTimeout(() => {
-        boundingBoxRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 100);
-    }
-  }, [selectedElement]);
+ useEffect(() => {
+  // Only attempt to scroll if we have a valid bounding box to scroll to
+  if (selectedElement?.boxLocation?.BBox && boundingBoxRef.current) {
+    const timer = setTimeout(() => {
+      boundingBoxRef.current?.scrollIntoView({ 
+        behavior: "smooth", 
+        block: "center" 
+      });
+    }, 100);
+    return () => clearTimeout(timer);
+  }
+}, [selectedElement]);
 
   const renderBoundingBox = () => {
     let scaledLeft = 0, scaledTop = 0, scaledWidth = 0, scaledHeight = 0;
@@ -278,6 +284,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                 Page: pageNumber
               }
             });
+            console.log(pageNumber)
           } catch (error) {
             console.error("OCR API error", error);
           }
@@ -304,7 +311,14 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
         scale={scale}
         pageNumber={pageNumber}
         numPages={numPages}
-        handlePageNumberChange={(e) => setPageNumber(Number(e.target.value))}
+        handlePageNumberChange={(e) => {
+          const value = Number(e.target.value);
+          if (numPages) {
+            setPageNumber(Math.max(1, Math.min(value, numPages)));
+          } else {
+            setPageNumber(1);
+          }
+        }}
         handleScaleChange={(e) => setScale(parseFloat(e.target.value))}
         downloadFile={() => downloadFile(fileUrl, taskDetails.filename)}
         fileUrl={fileUrl}

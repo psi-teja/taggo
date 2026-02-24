@@ -239,9 +239,11 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                         if (updated.target === "Label") {
                             newValue.Label = updated.text;
                             newValue.LabelBoundingBox = updated.boxLocation.BBox;
+                            newValue.Page = updated.boxLocation.Page;
                         } else {
                             newValue.Text = updated.text;
                             newValue.BoundingBox = updated.boxLocation.BBox;
+                            newValue.Page = updated.boxLocation.Page;
                         }
                         return { ...field, Value: newValue };
                     }
@@ -251,7 +253,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                 if (updated.target === "Label") {
                     sectionData.columns = sectionData.columns.map((col: any) => {
                         if (String(col.id) === updated.id) {
-                            return { ...col, Label: updated.text, LabelBoundingBox: updated.boxLocation.BBox };
+                            return { ...col, Label: updated.text, LabelBoundingBox: updated.boxLocation.BBox, Page: updated.boxLocation.Page};
                         }
                         return col;
                     });
@@ -261,7 +263,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                             if (String(cell.id) === updated.id) {
                                 return {
                                     ...cell,
-                                    Value: { ...cell.Value, Text: updated.text, BoundingBox: updated.boxLocation.BBox }
+                                    Value: { ...cell.Value, Text: updated.text, BoundingBox: updated.boxLocation.BBox, Page: updated.boxLocation.Page}
                                 };
                             }
                             return cell;
