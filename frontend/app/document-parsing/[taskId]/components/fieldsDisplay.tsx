@@ -32,6 +32,7 @@ interface FieldsDisplayProps {
     isTableSection?: boolean;
     // fieldSchema now maps section -> array of schema entries { id, name }
     fieldSchema: { [key: string]: { id: string; name: string }[] };
+    onDownload: () => void;
 }
 
 const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
@@ -44,7 +45,8 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
     activeSection,
     setActiveSection,
     isTableSection,
-    fieldSchema
+    fieldSchema,
+    onDownload
 }) => {
 
     // --- Memoized used names to prevent duplicate selection ---
@@ -151,6 +153,22 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
     return (
         <div className="flex flex-col h-full bg-slate-50">
             {/* STICKY HEADER 1: Tabs + Task ID */}
+            <div className="flex text-sm text-ellipsis justify-between bg-slate-400 shadow items-center space-x-4">
+                <div>ID:</div>
+                <div className="truncate overflow-hidden text-left flex-1">{taskDetails && taskDetails.id}</div>
+                <div
+                    className="hover:bg-gray-200 rounded p-1 cursor-pointer"
+                    title="Download JSON"
+                    onClick={onDownload}
+                >
+                    <svg className="h-5 w-5 text-black" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" />
+                        <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" />
+                        <polyline points="7 11 12 16 17 11" />
+                        <line x1="12" y1="4" x2="12" y2="16" />
+                    </svg>
+                </div>
+            </div>
             <div className="sticky top-0 z-30 flex items-center justify-between p-2 bg-white border-b border-gray-200 shadow-sm h-[48px]">
                 <div className="flex gap-1 overflow-x-auto no-scrollbar pr-4">
                     {tabSections.map(section => (
@@ -179,12 +197,6 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
                             </button>
                         </div>
                     ))}
-                </div>
-
-                <div className="flex-shrink-0 px-2.5 py-1 bg-slate-100 rounded border border-slate-200">
-                    <span className="text-[10px] font-mono font-bold text-slate-500 tracking-tighter">
-                        ID: {taskDetails?.id || "N/A"}
-                    </span>
                 </div>
             </div>
 

@@ -76,6 +76,17 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
         return keys[0];
     };
 
+    const downloadJsonData = () => {
+    const data = jsonData || { Objects: [] };
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+    const downloadAnchorNode = document.createElement("a");
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", `${taskDetails?.id || "task"}.json`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
+
     const fetchJsonData = async () => {
         try {
             if (!taskDetails?.id) return;
@@ -314,6 +325,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                                 setActiveSection={setActiveSection}
                                 isTableSection={isTableSection}
                                 fieldSchema={fieldSchema} 
+                                onDownload={downloadJsonData}
                             />
                         </div>
 
