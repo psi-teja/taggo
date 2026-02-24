@@ -2,9 +2,7 @@
 import React, { useEffect, useState } from "react";
 import PdfViewer from "@/app/components/PdfViewer";
 import axiosInstance from "@/app/hooks/axiosInstance";
-import Header from "@/app/components/Header";
-import Link from "next/link";
-import { addIdsToJsonData, saveJsonData } from "@/app/hooks/utils";
+import { saveJsonData } from "@/app/hooks/utils";
 import FieldsDisplay from "./FieldsDisplay";
 
 // Define SelectedElement matching PdfViewer expectations
