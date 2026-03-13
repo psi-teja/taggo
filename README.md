@@ -24,6 +24,8 @@ Open:
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8000
 
+You can also access the application from other devices on your network by replacing `localhost` with your computer's local IP address (e.g., `http://192.168.1.100:3000`)
+
 Stop:
 - Press Ctrl+C in the terminal where `launch.sh` is running.
 
@@ -58,6 +60,8 @@ npm run dev
 Open
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8000
+
+You can also access the application from other devices on your network by replacing `localhost` with your computer's local IP address (e.g., `http://192.168.1.100:3000`)
 
 Stop
 - Press Ctrl+C in each terminal
