@@ -71,7 +71,7 @@ const Dashboard = () => {
                         <div className="relative group">
                             <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
                             <img
-                                src="https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=800&q=80"
+                                src="invent.jpeg"
                                 alt="Space/Collaboration"
                                 className="relative max-w-full rounded-2xl shadow-2xl grayscale-[20%] group-hover:grayscale-0 transition-all duration-500"
                             />

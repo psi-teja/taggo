@@ -2,7 +2,13 @@
 
 ## Overview
 
-Taggo is a web-based invoice annotation tool with a Next.js frontend and a Django backend. It lets you upload PDFs, create sections and fields (including table-like sections), and draw/select regions on pages to capture labels and values.
+Taggo is a web-based data annotation platform with a Next.js frontend and a Django backend. It supports various annotation tasks for documents and images, such as:
+- **Document Annotation**: For tasks like invoice processing, you can upload PDFs, create sections and fields (including table-like sections), and draw regions on pages to capture labels and values.
+- **Object Detection**: Draw bounding boxes on images to label objects.
+- **Document Classification**: Assign categories to documents.
+- **Image Segmentation**: Create pixel-level masks for objects in images.
+
+It provides a flexible interface for various data labeling workflows.
 
 ## Quick Start
 
