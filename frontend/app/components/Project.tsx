@@ -24,28 +24,32 @@ export const TOOL_ICON_CONFIG = {
     color: 'text-blue-600',
     bg: 'bg-blue-50',
     border: 'border-blue-100',
-    activeRing: 'ring-blue-600/10'
+    activeRing: 'ring-blue-600/10',
+    available: true
   },
   'object-detection': {
     icon: Maximize,
     color: 'text-purple-600',
     bg: 'bg-purple-50',
     border: 'border-purple-100',
-    activeRing: 'ring-purple-600/10'
+    activeRing: 'ring-purple-600/10',
+    available: true
   },
   'document-classification': {
     icon: Layers,
     color: 'text-emerald-600',
     bg: 'bg-emerald-50',
     border: 'border-emerald-100',
-    activeRing: 'ring-emerald-600/10'
+    activeRing: 'ring-emerald-600/10',
+    available: false
   },
   'image-segmentation': {
     icon: Pentagon,
     color: 'text-rose-600',
     bg: 'bg-rose-50',
     border: 'border-rose-100',
-    activeRing: 'ring-rose-600/10'
+    activeRing: 'ring-rose-600/10',
+    available: false
   }
 };
 
@@ -181,29 +185,34 @@ export default function CreateProjectModal({
                 const Icon = config.icon;
                 const isSelected = newProject.task_type === id;
                 return (
-                  <button
+                    <button
                     key={id}
                     type="button"
-                    onClick={() => setNewProject({ ...newProject, task_type: id })}
-                    className={`relative flex items-center gap-5 p-5 rounded-3xl border-2 text-left transition-all duration-300 ${isSelected
+                    onClick={() => config.available && setNewProject({ ...newProject, task_type: id })}
+                    disabled={!config.available}
+                    className={`relative flex items-center gap-5 p-5 rounded-3xl border-2 text-left transition-all duration-300 ${
+                      isSelected
                       ? `border-blue-600 bg-blue-50/30 ring-4 ${config.activeRing}`
                       : 'border-slate-100 hover:border-slate-300 bg-white'
-                      }`}
-                  >
+                    } ${!config.available ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
                     <div className={`shrink-0 p-4 rounded-2xl ${config.bg} ${config.color}`}>
                       <Icon size={24} />
                     </div>
                     <div className="pr-4">
                       <h3 className={`font-bold text-base ${isSelected ? 'text-blue-700' : 'text-slate-800'}`}>
-                        {label}
+                      {label}
                       </h3>
+                      {!config.available && (
+                      <span className="block text-xs text-slate-400 mt-1 font-semibold">Coming soon</span>
+                      )}
                     </div>
-                    {isSelected && (
+                    {isSelected && config.available && (
                       <div className="absolute top-4 right-4 text-blue-600 animate-in zoom-in">
-                        <CheckCircle2 size={20} />
+                      <CheckCircle2 size={20} />
                       </div>
                     )}
-                  </button>
+                    </button>
                 );
               })}
             </div>
