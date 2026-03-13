@@ -44,7 +44,6 @@ const AccountMenu: React.FC<{
         <div className="w-64 rounded-2xl border border-slate-200 bg-white/90 backdrop-blur-xl shadow-2xl p-2 animate-in fade-in zoom-in-95 duration-200">
             {/* Header: User Info */}
             <div className="px-3 py-4 mb-1 border-b border-slate-100">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Authenticated As</p>
                 <p className="text-sm font-black text-slate-900 truncate">{loggedInUser?.username}</p>
                 {loggedInUser?.is_superuser && (
                     <span className="inline-block mt-2 px-2 py-0.5 rounded-md bg-amber-50 text-[10px] font-bold text-amber-600 border border-amber-100">
@@ -58,14 +57,6 @@ const AccountMenu: React.FC<{
                     {dashboardLoading ? loader : <LayoutDashboard size={18} className="text-slate-400 group-hover:text-teal-500" />}
                     <span>Dashboard</span>
                 </Link>
-
-                {loggedInUser?.is_superuser && (
-                    <Link href="/settings" onClick={onSettingsClick} className={linkItem}>
-                        {settingsLoading ? loader : <Settings size={18} className="text-slate-400 group-hover:text-teal-500" />}
-                        <span>System Settings</span>
-                    </Link>
-                )}
-
                 <Link href="/changePassword" onClick={onChangePasswordClick} className={linkItem}>
                     {changePasswordLoading ? loader : <KeyRound size={18} className="text-slate-400 group-hover:text-teal-500" />}
                     <span>Change Password</span>
