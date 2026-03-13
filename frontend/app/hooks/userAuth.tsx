@@ -16,3 +16,16 @@ export const useAuth = () => {
 
   return { loggedInUser };
 };
+
+export const useAuthWithoutRedirect = () => {
+  const [loggedInUser, setLoggedInUser] = useState<User | undefined>();
+
+  useEffect(() => {
+    const storedUser = getLoggedInUser();
+    if (storedUser) {
+      setLoggedInUser(storedUser);
+    }
+  }, []);
+
+  return { loggedInUser };
+};

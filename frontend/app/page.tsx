@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from "@/app/hooks/userAuth";
+import { useAuthWithoutRedirect } from "@/app/hooks/userAuth";
 import axiosInstance from './hooks/axiosInstance';
 import { clearAuthStorage } from "@/app/hooks/authStorage";
 import { 
@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 function Home() {
-    const { loggedInUser } = useAuth();
+    const { loggedInUser } = useAuthWithoutRedirect();
     const router = useRouter();
     const containerRef = useRef<HTMLDivElement | null>(null);
 
