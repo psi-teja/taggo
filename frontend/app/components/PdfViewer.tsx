@@ -68,9 +68,9 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   const scrollMargin = 50;
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-  let fileUrl = `${API_BASE_URL}/media/documents/${taskDetails?.filename}`;
+  let fileUrl = `${API_BASE_URL}/media/${taskDetails?.project_id}/documents/${taskDetails?.filename}`;
   if (taskDetails?.filename && !taskDetails.filename.toLowerCase().endsWith(".pdf")) {
-    fileUrl = `${API_BASE_URL}/convert_to_pdf/${taskDetails.filename}/`;
+    fileUrl = `${API_BASE_URL}/convert_to_pdf/${taskDetails?.project_id}/${taskDetails.filename}/`;
   }
 
   useEffect(() => {

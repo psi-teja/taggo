@@ -154,7 +154,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
         <div className="flex flex-col h-full bg-slate-50">
             {/* STICKY HEADER 1: Tabs + Task ID */}
             <div className="flex text-sm text-ellipsis justify-between bg-slate-400 shadow items-center space-x-4">
-                <div>ID:</div>
+                <div className="p-1">ID:</div>
                 <div className="truncate overflow-hidden text-left flex-1">{taskDetails && taskDetails.id}</div>
                 <div
                     className="hover:bg-gray-200 rounded p-1 cursor-pointer"

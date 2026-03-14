@@ -52,7 +52,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
     const [activeSection, setActiveSection] = useState<string | null>(null);
     const [sectionTypes, setSectionTypes] = useState<Record<string, 'singular' | 'table'>>({});
 
-    const jsonURL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/annotations/${taskDetails?.id}.json`;
+    const jsonURL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/${taskDetails?.project_id}/annotations/${taskDetails?.id}.json`;
 
     // --- Data Fetching & Schema Logic ---
 

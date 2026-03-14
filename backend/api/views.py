@@ -114,7 +114,7 @@ def TaskCreateView(request):
             )
 
         # Define the directory path for the task type
-        task_directory = os.path.join(settings.MEDIA_ROOT, "documents")
+        task_directory = os.path.join(settings.MEDIA_ROOT, project_id, "documents")
         os.makedirs(task_directory, exist_ok=True)
 
         file_extension = os.path.splitext(document.name)[1]

@@ -1,4 +1,5 @@
 import axiosInstance from "./axiosInstance";
+import { Task } from "@/app/components/Tasks";
 
 function genId(prefix: string) {
     try {
@@ -65,13 +66,14 @@ export function addIdsToJsonData(jsonData: any) {
     return newJsonData;
 }
 
-export async function saveJsonData (jsonData: any, taskDetails: any) {
+export async function saveJsonData (jsonData: any, taskDetails: Task) {
     console.log("Saving JSON data:", jsonData);
     try {
         await axiosInstance.post(
             `/save_json_data/`,
             {
                 taskId: taskDetails.id,
+                projectId: taskDetails.project_id,
                 jsonData: jsonData,
             },
             {

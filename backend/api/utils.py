@@ -9,12 +9,12 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Task
 
 
-def ConvertToPdfView(request, filename):
+def ConvertToPdfView(request, project_id, filename):
     """
     Converts a file to PDF format.
     Currently supports only images (e.g., jpg, png).
     """
-    file_path = os.path.join(settings.MEDIA_ROOT, "documents", filename)
+    file_path = os.path.join(settings.MEDIA_ROOT, project_id, "documents", filename)
 
     try:
         if not filename.lower().endswith(".pdf"):
@@ -45,6 +45,7 @@ def save_json_data(request):
     try:
         data = request.data
         task_id = data.get("taskId")
+        project_id = data.get("projectId")  # Optional, can be used for organizing files by project
         json_data = data.get("jsonData")
 
         # Removed 'task_type' check since it's not sent by your frontend function
@@ -55,7 +56,7 @@ def save_json_data(request):
             }, status=400)
 
         # Ensure the directory exists
-        folder_path = os.path.join(settings.MEDIA_ROOT, "annotations")
+        folder_path = os.path.join(settings.MEDIA_ROOT, f"{project_id}", "annotations")
         os.makedirs(folder_path, exist_ok=True)
 
         # Sanitize filename and create full path

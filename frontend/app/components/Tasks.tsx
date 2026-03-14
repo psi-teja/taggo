@@ -9,7 +9,7 @@ import { User } from "./User";
 
 export type Task = {
   id: string;
-  priject_id: string;
+  project_id: string;
   selected: boolean;
   assigned_to_user: User | null;
   status: string;
@@ -114,7 +114,10 @@ const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
             <Inbox size={24} />
           </div>
           <div>
-            <h2 className="text-xl font-black text-slate-900 leading-tight">Project Tasks</h2>
+            <h2 className="text-base font-bold text-slate-700 leading-tight">
+              <span className="text-s font-semibold text-slate-400 mr-2">Project ID:</span>
+              <span className="bg-slate-100 px-2 py-0.5 rounded-md font-mono">{project.id}</span>
+            </h2>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{totalTasks} Items Total</span>
               <span className="w-1 h-1 bg-slate-300 rounded-full" />
@@ -177,7 +180,7 @@ const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
                     <td className="px-8 py-6">
                       <div className="flex flex-col space-y-1.5">
                         <span className="font-mono text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md w-fit group-hover:bg-white group-hover:text-teal-600 transition-colors">
-                          {task.id.slice(0, 8)}...
+                          {task.id}
                         </span>
                         <button 
                           onClick={() => setSelectedTaskHistory(task.history)}

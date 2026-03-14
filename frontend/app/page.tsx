@@ -98,52 +98,65 @@ function Home() {
                             desc: "Group and categorize your projects for easy access and management.",
                             icon: <Layout size={24} />,
                             color: "text-blue-500",
-                            bg: "bg-blue-50"
+                            bg: "bg-blue-50",
+                            available: true
                         },
                         {
                             title: "Annotate",
                             desc: "Smart annotation tools that automate tedious tasks and ensure accuracy.",
                             icon: <Tag size={24} />,
                             color: "text-teal-500",
-                            bg: "bg-teal-50"
+                            bg: "bg-teal-50",
+                            available: true
                         },
                         {
                             title: "Share",
                             desc: "Seamlessly distribute tasks and collections among your team.",
                             icon: <Share2 size={24} />,
                             color: "text-purple-500",
-                            bg: "bg-purple-50"
+                            bg: "bg-purple-50",
+                            available: false
                         },
                         {
                             title: "Private & Secure",
                             desc: "Data stays local. Designed for privacy—no external data transfers.",
                             icon: <ShieldCheck size={24} />,
                             color: "text-rose-500",
-                            bg: "bg-rose-50"
+                            bg: "bg-rose-50",
+                            available: true
                         },
                         {
                             title: "Workflow",
                             desc: "Supports Review, Super-Review, and Completion stages for quality.",
                             icon: <GitBranch size={24} />,
                             color: "text-indigo-500",
-                            bg: "bg-indigo-50"
+                            bg: "bg-indigo-50",
+                            available: false
                         },
                         {
                             title: "Pre-labelling",
                             desc: "Accelerate extraction using AI-generated initial tags for refinement.",
                             icon: <Zap size={24} />,
                             color: "text-amber-500",
-                            bg: "bg-amber-50"
+                            bg: "bg-amber-50",
+                            available: false
                         },
                     ].map((card) => (
                         <div
                             key={card.title}
-                            className="bg-white border border-slate-200 p-8 rounded-[2rem] hover:shadow-2xl hover:shadow-slate-200/50 hover:border-teal-500/30 transition-all group"
+                            className={`bg-white border border-slate-200 p-8 rounded-[2rem] transition-all group ${!card.available ? 'opacity-60' : 'hover:shadow-2xl hover:shadow-slate-200/50 hover:border-teal-500/30'}`}
                         >
-                            <div className={`w-12 h-12 ${card.bg} ${card.color} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                            <div className={`w-12 h-12 ${card.bg} ${card.color} rounded-xl flex items-center justify-center mb-6 transition-transform ${card.available && 'group-hover:scale-110'}`}>
                                 {card.icon}
                             </div>
-                            <h3 className="text-xl font-black text-slate-900 mb-3">{card.title}</h3>
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-xl font-black text-slate-900">{card.title}</h3>
+                                {!card.available && (
+                                    <span className="bg-slate-100 text-slate-500 text-xs font-bold px-2.5 py-1 rounded-full">
+                                        Coming Soon
+                                    </span>
+                                )}
+                            </div>
                             <p className="text-slate-500 text-sm font-medium leading-relaxed">
                                 {card.desc}
                             </p>
