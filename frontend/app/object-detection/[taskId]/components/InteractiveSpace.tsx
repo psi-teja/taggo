@@ -4,6 +4,7 @@ import PdfViewer from "@/app/components/PdfViewer";
 import { addIdsToJsonData, saveJsonData } from "@/app/hooks/utils";
 import FieldsDisplay from "./FieldsDisplay";
 import axiosInstance from "@/app/hooks/axiosInstance";
+import { useRouter } from "next/navigation";
 
 interface InteractiveSpaceProps {
     taskDetails: any;
@@ -31,6 +32,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
     taskDetails,
     isEditor
 }) => {
+    const router = useRouter();
     const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null);
     const [jsonData, setJsonData] = useState<any>(null);
     const [fieldSchema, setFieldSchema] = useState<any[]>([]);
@@ -204,6 +206,31 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                                 className="flex-1 py-2 bg-teal-600 text-white rounded font-bold uppercase text-xs"
                             >
                                 Save Changes
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    await saveJsonData(jsonData, taskDetails);
+                                    await axiosInstance.put(`/tasks/update/${taskDetails.id}/`, { status: 'labelled' });
+                                    try {
+                                        const response = await axiosInstance.get(`/projects/${taskDetails.project_id}/next_task/`);
+                                        if (response.data.next_task_id) {
+                                            router.push(`/object-detection/${response.data.next_task_id}`);
+                                        } else {
+                                            alert("No more tasks available.");
+                                            router.push(`/dashboard/${taskDetails.project_id}`);
+                                        }
+                                    } catch (error: any) {
+                                        if (error.response && error.response.status === 404) {
+                                            alert("No more tasks pending to be labelled.");
+                                        } else {
+                                            alert("Could not find next task.");
+                                        }
+                                        router.push(`/dashboard/${taskDetails.project_id}`);
+                                    }
+                                }}
+                                className="flex-1 py-2 bg-blue-600 text-white rounded font-bold uppercase text-xs"
+                            >
+                                Save and Next
                             </button>
                         </div>
                     </>

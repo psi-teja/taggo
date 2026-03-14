@@ -64,15 +64,17 @@ def save_json_data(request):
         file_path = os.path.join(folder_path, file_name)
 
         # Writing the file
-        with open(file_path, "w", encoding='utf-8') as f:
-            json.dump(json_data, f, indent=4) # Added indent for readability
+        with open(file_path, "w") as f:
+            json.dump(json_data, f, indent=4)
 
-        task = Task.objects.filter(id=task_id).first()
-        if task:
-            task.status = "labelled"  # Update status to 'labelled' after saving JSON
-            task.save()
+        task = Task.objects.get(id=task_id)
+        task.status = 'labelled'
+        task.save()
 
-        return JsonResponse({"status": "success", "message": "Data saved successfully"}, status=200)
+        return JsonResponse({
+            "status": "success",
+            "message": f"Data saved to {file_name}"
+        }, status=200)
 
     except Exception as e:
         # It's good practice to log the actual error for debugging

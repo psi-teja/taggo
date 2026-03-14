@@ -1,4 +1,4 @@
-from .views import TaskListView, TaskDetailsView, TaskCreateView, TaskUpdateView, TaskDeleteView, get_ocr_text
+from .views import TaskListView, TaskDetailsView, TaskCreateView, TaskUpdateView, TaskDeleteView, get_ocr_text, get_next_task
 from .views import ProjectListView, ProjectCreateView, ProjectDetailsView, TaskTypeChoicesView
 from .utils import ConvertToPdfView, save_json_data
 from django.urls import path
@@ -15,5 +15,6 @@ urlpatterns = [
     path('projects/', ProjectListView, name='project-list'),  # Alias for tasks, can be extended later
     path('projects/create/', ProjectCreateView, name='project-create'),  # Placeholder for future project creation endpoint
     path('projects/<str:project_id>/', ProjectDetailsView, name='project-detail'),  # Alias for tasks, can be extended later
+    path('projects/<str:project_id>/next_task/', get_next_task, name='next-task'),
     path('task-types/', TaskTypeChoicesView, name='task-type-choices'),
 ]

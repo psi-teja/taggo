@@ -16,6 +16,7 @@ from PIL import Image
 from api.models import Task, Project
 import re
 from .serializers import ProjectSerializer
+from django.db.models import Q
 
 # Function to get the current time
 def get_current_time_ist():
@@ -263,3 +264,23 @@ def TaskTypeChoicesView(request):
             for k, v in Project.TASK_TYPE_CHOICES
         ]
     })
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_next_task(request, project_id: str):
+    try:
+        # Find the first available (unassigned and not "completed") task in the project
+        next_task = Task.objects.filter(
+            status = "uploaded",  # Only consider tasks that are uploaded
+            project_id=project_id,
+            assigned_to_user__isnull=True,
+        ).order_by('id').first()
+
+        if next_task:
+            return JsonResponse({"next_task_id": next_task.id})
+        else:
+            return JsonResponse({"next_task_id": None}, status=404)
+            
+    except Exception as e:
+        logger.error(f"Error fetching next task: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
