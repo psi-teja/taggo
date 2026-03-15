@@ -280,6 +280,85 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
 
     const isTableSection = activeSection ? (sectionTypes[activeSection] === 'table') : false;
 
+    const generateOverlays = () => {
+        if (!jsonData || !fieldSchema) return [];
+    
+        const overlays: any[] = [];
+    
+        const getNameFromSchema = (section: string, id: string) => {
+            const schemaSection = fieldSchema[section];
+            if (!schemaSection) return id;
+            const field = schemaSection.find(f => f.id === id);
+            return field ? field.name : id;
+        };
+
+        Object.keys(jsonData).forEach(sectionKey => {
+            if (sectionKey === 'Meta') return;
+    
+            const sectionData = jsonData[sectionKey];
+            const sectionType = sectionTypes[sectionKey];
+    
+            if (sectionType === 'singular' && Array.isArray(sectionData)) {
+                sectionData.forEach(field => {
+                    const displayName = getNameFromSchema('Singular', field.Name);
+                    if (field.Value?.BoundingBox) {
+                        overlays.push({
+                            id: field.id,
+                            section: sectionKey,
+                            target: 'Value',
+                            BBox: field.Value.BoundingBox,
+                            Page: field.Value.Page,
+                            label: `${displayName} (Value)`,
+                        });
+                    }
+                    if (field.Value?.LabelBoundingBox) {
+                        overlays.push({
+                            id: field.id,
+                            section: sectionKey,
+                            target: 'Label',
+                            BBox: field.Value.LabelBoundingBox,
+                            Page: field.Value.Page,
+                            label: `${displayName} (Label)`,
+                        });
+                    }
+                });
+            } else if (sectionType === 'table' && sectionData) {
+                sectionData.columns?.forEach((col: any) => {
+                    if (col.LabelBoundingBox) {
+                        const displayName = getNameFromSchema(sectionKey, col.Name);
+                        overlays.push({
+                            id: col.id,
+                            section: sectionKey,
+                            target: 'Label',
+                            BBox: col.LabelBoundingBox,
+                            Page: col.Page,
+                            label: `${displayName} (Header)`,
+                        });
+                    }
+                });
+                sectionData.rows?.forEach((row: any[], rIdx: number) => {
+                    row.forEach((cell, cIdx) => {
+                        if (cell.Value?.BoundingBox) {
+                            const col = sectionData.columns[cIdx];
+                            const headerName = col ? getNameFromSchema(sectionKey, col.Name) : '';
+                            overlays.push({
+                                id: cell.id,
+                                section: sectionKey,
+                                target: 'Value',
+                                BBox: cell.Value.BoundingBox,
+                                Page: cell.Value.Page,
+                                label: `${rIdx + 1}. ${headerName}`,
+                            });
+                        }
+                    });
+                });
+            }
+        });
+        return overlays;
+    };
+
+    const overlays = generateOverlays();
+
     return (
         <div className={`flex h-full w-full overflow-hidden ${isTableSection ? 'flex-col' : ''}`}>
             {/* PDF Panel */}
@@ -288,8 +367,10 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                     taskDetails={taskDetails}
                     isEditor={isEditor}
                     selectedElement={selectedElement}
+                    setSelectedElement={setSelectedElement}
                     leftWidth={leftWidth}
                     handleFieldChange={handleFieldChange}
+                    overlays={overlays}
                 />
             </div>
 

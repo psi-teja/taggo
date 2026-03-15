@@ -67,7 +67,7 @@ const Dashboard = () => {
                 <div className="flex w-full h-full">
 
                     {/* Left Section: Visual Branding & Inspiration */}
-                    <div className="hidden lg:flex w-1/3 flex-col items-center justify-center bg-slate-50 border-r border-slate-100 p-12">
+                    <div className="hidden lg:flex w-1/3 flex-col items-center justify-center bg-slate-300 border-r border-slate-100 p-12">
                         <div className="relative group">
                             <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
                             <img

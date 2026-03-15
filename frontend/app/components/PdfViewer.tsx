@@ -32,8 +32,11 @@ interface PdfViewerProps {
   isEditor: boolean;
   leftWidth: number;
   handleFieldChange: (element: SelectedElement) => void;
+  setSelectedElement: (element: SelectedElement | null) => void;
   overlays?: Array<{
     id: string;
+    section: string;
+    target: string;
     BBox: { left: number; top: number; width: number; height: number } | null;
     Page: number;
     label?: string;
@@ -47,6 +50,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   isEditor,
   leftWidth,
   handleFieldChange,
+  setSelectedElement,
   overlays
 }) => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -63,6 +67,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   const [endX, setEndX] = useState<number | null>(null);
   const [endY, setEndY] = useState<number | null>(null);
   const [drawingBox, setDrawingBox] = useState<boolean>(false);
+  const [resizing, setResizing] = useState<boolean>(false);
+  const [resizeHandle, setResizeHandle] = useState<string | null>(null);
 
   const scrollSpeed = 10;
   const scrollMargin = 50;
@@ -112,6 +118,12 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
     };
   }, [pdfDim.width]);
 
+  const handleResizeMouseDown = (e: React.MouseEvent, handle: string) => {
+    e.stopPropagation();
+    setResizing(true);
+    setResizeHandle(handle);
+  };
+
   useEffect(() => {
     // Only change the page if the selected element actually has a coordinate
     if (selectedElement?.boxLocation?.BBox && selectedElement?.boxLocation?.Page) {
@@ -150,6 +162,14 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
       return null;
     }
 
+    const handleSize = 8;
+    const handles = {
+      topLeft: { top: -handleSize / 2, left: -handleSize / 2, cursor: 'nwse-resize' },
+      topRight: { top: -handleSize / 2, right: -handleSize / 2, cursor: 'nesw-resize' },
+      bottomLeft: { bottom: -handleSize / 2, left: -handleSize / 2, cursor: 'nesw-resize' },
+      bottomRight: { bottom: -handleSize / 2, right: -handleSize / 2, cursor: 'nwse-resize' }
+    };
+
     return (
       <div
         ref={boundingBoxRef}
@@ -160,9 +180,22 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
           width: `${scaledWidth}px`,
           height: `${scaledHeight}px`,
           border: "2px solid red",
-          pointerEvents: "none"
+          pointerEvents: resizing ? 'none' : 'auto'
         }}
-      />
+      >
+        {Object.entries(handles).map(([key, style]) => (
+          <div
+            key={key}
+            onMouseDown={(e) => handleResizeMouseDown(e, key)}
+            className="absolute bg-white border-2 border-red-500"
+            style={{
+              width: `${handleSize}px`,
+              height: `${handleSize}px`,
+              ...style
+            }}
+          />
+        ))}
+      </div>
     );
   };
 
@@ -172,21 +205,34 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
       .filter(o => o.BBox && o.Page === pageNumber)
       .map(o => {
         const { left, top, width, height } = o.BBox!;
+        const scaledLeft = left * scale * pdfDim.width;
+        const scaledTop = top * scale * pdfDim.height;
+        const scaledWidth = width * scale * pdfDim.width;
+        const scaledHeight = height * scale * pdfDim.height;
+        
+        const isSelected = selectedElement?.id === o.id;
+
         return (
           <div
             key={o.id}
-            className="absolute z-0"
+            className={`absolute z-5 group ${isSelected ? 'border-2 border-red-500' : 'border border-blue-500'}`}
             style={{
-              left: `${left * scale * pdfDim.width}px`,
-              top: `${top * scale * pdfDim.height}px`,
-              width: `${width * scale * pdfDim.width}px`,
-              height: `${height * scale * pdfDim.height}px`,
-              border: `2px solid ${o.color || 'rgba(59,130,246,0.9)'}`,
-              pointerEvents: 'none',
+              left: `${scaledLeft}px`,
+              top: `${scaledTop}px`,
+              width: `${scaledWidth}px`,
+              height: `${scaledHeight}px`,
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
             }}
+            onClick={() => setSelectedElement({
+                section: o.section,
+                id: o.id,
+                target: o.target,
+                text: o.label ?? null,
+                boxLocation: { BBox: o.BBox, Page: o.Page }
+            })}
           >
             {o.label && (
-              <span className="absolute -top-5 left-0 text-[10px] px-1 bg-blue-600 text-white rounded">
+              <span className="absolute -top-5 left-0 text-[10px] px-1 bg-blue-600 text-white rounded opacity-80 group-hover:opacity-100">
                 {o.label}
               </span>
             )}
@@ -212,6 +258,55 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
       const y = e.clientY - rect.top + viewerRef.current.scrollTop;
       setEndX(x); setEndY(y);
       handleAutoScroll(e);
+    } else if (resizing && selectedElement?.boxLocation.BBox && viewerRef.current) {
+      const rect = viewerRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left + viewerRef.current.scrollLeft;
+      const y = e.clientY - rect.top + viewerRef.current.scrollTop;
+
+      const { BBox } = selectedElement.boxLocation;
+      if (!BBox) return;
+
+      const scaledLeft = BBox.left * scale * pdfDim.width;
+      const scaledTop = BBox.top * scale * pdfDim.height;
+      const scaledRight = (BBox.left + BBox.width) * scale * pdfDim.width;
+      const scaledBottom = (BBox.top + BBox.height) * scale * pdfDim.height;
+
+      let newLeft = scaledLeft, newTop = scaledTop, newRight = scaledRight, newBottom = scaledBottom;
+
+      switch (resizeHandle) {
+        case 'topLeft':
+          newLeft = x;
+          newTop = y;
+          break;
+        case 'topRight':
+          newRight = x;
+          newTop = y;
+          break;
+        case 'bottomLeft':
+          newLeft = x;
+          newBottom = y;
+          break;
+        case 'bottomRight':
+          newRight = x;
+          newBottom = y;
+          break;
+      }
+
+      const newBBox = {
+        left: Math.min(newLeft, newRight) / (scale * pdfDim.width),
+        top: Math.min(newTop, newBottom) / (scale * pdfDim.height),
+        width: Math.abs(newRight - newLeft) / (scale * pdfDim.width),
+        height: Math.abs(newBottom - newTop) / (scale * pdfDim.height),
+      };
+
+      setSelectedElement({
+        ...selectedElement,
+        boxLocation: {
+          ...selectedElement.boxLocation,
+          BBox: newBBox
+        }
+      });
+      handleAutoScroll(e);
     }
   };
 
@@ -227,7 +322,50 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   };
 
   const handleMouseUp = async () => {
-    if (!drawingBox || !selectedElement) return;
+    if (resizing) {
+      setResizing(false);
+      setResizeHandle(null);
+    }
+    if (!drawingBox || !selectedElement) {
+      if (resizing && selectedElement?.boxLocation.BBox) {
+        // Logic to re-run OCR after resize
+        const { BBox, Page } = selectedElement.boxLocation;
+        const canvasElement = viewerRef.current?.querySelector("canvas");
+        if (canvasElement && BBox && BBox.width > 0 && BBox.height > 0) {
+          const scaledLeft = BBox.left * scale * pdfDim.width;
+          const scaledTop = BBox.top * scale * pdfDim.height;
+          const scaledWidth = BBox.width * scale * pdfDim.width;
+          const scaledHeight = BBox.height * scale * pdfDim.height;
+
+          const canvasRect = canvasElement.getBoundingClientRect();
+          const sX = canvasElement.width / canvasRect.width;
+          const sY = canvasElement.height / canvasRect.height;
+
+          const cropCanvas = document.createElement("canvas");
+          cropCanvas.width = scaledWidth * sX;
+          cropCanvas.height = scaledHeight * sY;
+          const ctx = cropCanvas.getContext("2d");
+          ctx?.drawImage(canvasElement, scaledLeft * sX, scaledTop * sY, scaledWidth * sX, scaledHeight * sY, 0, 0, scaledWidth * sX, scaledHeight * sY);
+
+          cropCanvas.toBlob(async (blob) => {
+            if (!blob) return;
+            const formData = new FormData();
+            formData.append("file", blob, "crop.png");
+
+            try {
+              const { data } = await axiosInstance.post("/get_ocr_text/", formData);
+              handleFieldChange({
+                ...selectedElement,
+                text: data.text || "",
+              });
+            } catch (error) {
+              console.error("OCR API error", error);
+            }
+          }, "image/png");
+        }
+      }
+      return;
+    }
     setDrawingBox(false);
 
     if (startX !== null && startY !== null && endX !== null && endY !== null) {
@@ -329,6 +467,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
         className={`flex-1 overflow-auto flex justify-center ${selectedElement && !selectedElement.boxLocation.BBox ? "cursor-crosshair" : ""}`}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
       >
         <div className="relative shadow-2xl bg-white h-fit">
           <Document file={fileUrl} loading={<div className="p-20 animate-pulse">Loading PDF...</div>}>

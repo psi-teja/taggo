@@ -277,116 +277,146 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
                 )}
 
                 {/* 2. TABLE VIEW */}
-                {/* 2. TABLE VIEW - Refined Logic */}
-{activeSection && isTableSection && jsonData[activeSection]?.rows && (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-xl flex flex-col mb-10 overflow-hidden" style={{ maxHeight: '70vh' }}>
-        <div className="overflow-x-auto overflow-y-auto border-b border-gray-200 bg-slate-50">
-            <table className="w-full text-left border-separate border-spacing-0 min-w-max">
-                <thead>
-                    <tr className="bg-slate-50">
-                        <th className="sticky left-0 z-50 p-2 w-10 border-r border-b border-gray-200 bg-slate-100"></th>
-                        {jsonData[activeSection].columns.map((col: any) => (
-                            <th key={col.id} className="p-3 border-r border-b border-gray-200 min-w-[200px] relative group bg-slate-50">
-                                <div className="flex flex-col gap-2">
-                                    <div className="flex justify-between items-center">
-                                        <select
-                                            value={col.Name || ""}
-                                            onChange={(e) => {
-                                                const newData = { ...jsonData };
-                                                newData[activeSection].columns = newData[activeSection].columns.map((c: any) => 
-                                                    c.id === col.id ? { ...c, Name: e.target.value } : c
+                {activeSection && isTableSection && jsonData[activeSection]?.rows && (
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-xl flex flex-col mb-10 overflow-hidden" style={{ maxHeight: '70vh' }}>
+                        <div className="overflow-x-auto overflow-y-auto border-b border-gray-200 bg-slate-50">
+                            <table className="w-full text-left border-separate border-spacing-0 min-w-max">
+                                <thead>
+                                    <tr className="bg-slate-50">
+                                        <th className="sticky left-0 z-50 p-2 w-10 border-r border-b border-gray-200 bg-slate-100"></th>
+                                        {jsonData[activeSection].columns.map((col: any) => (
+                                            <th key={col.id} className="p-3 border-r border-b border-gray-200 min-w-[200px] relative group bg-slate-50">
+                                                <div className="flex flex-col gap-2">
+                                                    <div className="flex justify-between items-center">
+                                                        <select
+                                                            value={col.Name || ""}
+                                                            onChange={(e) => {
+                                                                const newData = { ...jsonData };
+                                                                newData[activeSection].columns = newData[activeSection].columns.map((c: any) =>
+                                                                    c.id === col.id ? { ...c, Name: e.target.value } : c
+                                                                );
+                                                                setJsonData(newData);
+                                                            }}
+                                                            className="text-[10px] font-bold text-blue-600 bg-transparent outline-none max-w-[120px]"
+                                                        >
+                                                            <option value="">Schema...</option>
+                                                            {fieldSchema[activeSection]?.map(opt => (
+                                                                <option key={opt.id} value={opt.id} disabled={usedNames.includes(opt.id) && col.Name !== opt.id}>
+                                                                    {opt.name}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+
+                                                        <div className="flex gap-1">
+                                                            {/* Delete Column Button */}
+                                                            <button
+                                                                onClick={() => deleteTableColumn(col.id)}
+                                                                className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 transition-opacity"
+                                                            >
+                                                                <X size={12} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        value={col.Label || ""}
+                                                        className={`text-xs p-1.5 border rounded-md bg-white w-full ${selectedElement && selectedElement.id === col.id && selectedElement.target === 'Label' ? 'border-red-500 ring-2 ring-red-50' : 'border-gray-200'}`}
+                                                        placeholder="Header Text"
+                                                        onClick={() => setSelectedElement({
+                                                            section: activeSection!,
+                                                            id: col.id,
+                                                            target: 'Label',
+                                                            text: col.Label,
+                                                            boxLocation: { BBox: col.LabelBoundingBox, Page: col.Page }
+                                                        })}
+                                                        onChange={(e) => {
+                                                            const newText = e.target.value;
+                                                            // Update local state immediately for responsiveness
+                                                            const newData = { ...jsonData };
+                                                            newData[activeSection!].columns = newData[activeSection!].columns.map((c: any) =>
+                                                                c.id === col.id ? { ...c, Label: newText } : c
+                                                            );
+                                                            setJsonData(newData);
+                                                            // Propagate change up for bounding box logic
+                                                            if (selectedElement?.id === col.id && selectedElement) {
+                                                                handleFieldChange({ ...selectedElement, text: newText });
+                                                            }
+                                                        }}
+                                                    />
+                                                    {col.LabelBoundingBox && (
+                                                        <button
+                                                            className="absolute top-2 right-2"
+                                                            onClick={(e) => {
+                                                                if (selectedElement?.id === col.id && selectedElement) {
+                                                                    removeBoundingBox(e, selectedElement);
+                                                                }
+                                                            }}
+                                                        >
+                                                            <img src="/rect.png" alt="Box" className="h-3 w-3" />
+                                                            {selectedElement?.id === col.id && <XIcon />}
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {jsonData[activeSection].rows.map((row: any[], rIdx: number) => (
+                                        <tr key={rIdx} className="hover:bg-slate-50 transition-colors group/row">
+                                            <td className="sticky left-0 z-10 p-2 text-[10px] font-bold text-gray-400 text-center border-r border-b border-gray-200 bg-slate-50">
+                                                {rIdx + 1}
+                                                <button onClick={() => deleteTableRow(rIdx)} className="absolute inset-0 flex items-center justify-center bg-red-50 opacity-0 group-hover/row:opacity-100 text-red-500">
+                                                    <X size={14} />
+                                                </button>
+                                            </td>
+                                            {row.map((cell: any) => {
+                                                const isCellSelected = selectedElement?.id === cell.id;
+                                                return (
+                                                    <td key={cell.id} className="p-1 border-r border-b border-gray-100 min-w-[200px]">
+                                                        <div className="flex items-center gap-2">
+                                                            <textarea
+                                                                rows={1}
+                                                                value={cell.Value?.Text || ""}
+                                                                className={`w-full p-2 text-xs bg-transparent outline-none resize-none border rounded transition-all ${isCellSelected ? 'border-red-500 ring-2 ring-red-50' : 'border-transparent hover:border-blue-200'
+                                                                    }`}
+                                                                onClick={() => setSelectedElement({
+                                                                    section: activeSection!,
+                                                                    id: cell.id,
+                                                                    target: "Value",
+                                                                    text: cell.Value?.Text,
+                                                                    boxLocation: { BBox: cell.Value.BoundingBox, Page: cell.Value.Page }
+                                                                })}
+                                                                onChange={(e) => {
+                                                                    if (isCellSelected) handleFieldChange({ ...selectedElement!, text: e.target.value });
+                                                                    const newData = { ...jsonData };
+                                                                    const currentRow = [...newData[activeSection!].rows[rIdx]];
+                                                                    const cellIdx = currentRow.findIndex(c => c.id === cell.id);
+                                                                    currentRow[cellIdx] = { ...cell, Value: { ...cell.Value, Text: e.target.value } };
+                                                                    newData[activeSection!].rows[rIdx] = currentRow;
+                                                                    setJsonData(newData);
+                                                                }}
+                                                            />
+                                                            {cell.Value?.BoundingBox && (
+                                                                <button className="relative" onClick={(e) => isCellSelected && selectedElement && removeBoundingBox(e, selectedElement)}>
+                                                                    <img src="/rect.png" alt="Box" className="h-4 w-4" />
+                                                                    {isCellSelected && <XIcon />}
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </td>
                                                 );
-                                                setJsonData(newData);
-                                            }}
-                                            className="text-[10px] font-bold text-blue-600 bg-transparent outline-none max-w-[120px]"
-                                        >
-                                            <option value="">Schema...</option>
-                                            {fieldSchema[activeSection]?.map(opt => (
-                                                <option key={opt.id} value={opt.id} disabled={usedNames.includes(opt.id) && col.Name !== opt.id}>
-                                                    {opt.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        
-                                        <div className="flex gap-1">
-                                            {/* Delete Column Button */}
-                                            <button 
-                                                onClick={() => deleteTableColumn(col.id)}
-                                                className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 transition-opacity"
-                                            >
-                                                <X size={12} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={col.Label || ""}
-                                        className="text-xs p-1.5 border border-gray-200 rounded-md bg-white"
-                                        placeholder="Header Text"
-                                        onChange={(e) => {
-                                            const newData = { ...jsonData };
-                                            newData[activeSection].columns = newData[activeSection].columns.map((c: any) => 
-                                                c.id === col.id ? { ...c, Label: e.target.value } : c
-                                            );
-                                            setJsonData(newData);
-                                        }}
-                                    />
-                                </div>
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {jsonData[activeSection].rows.map((row: any[], rIdx: number) => (
-                        <tr key={rIdx} className="hover:bg-slate-50 transition-colors group/row">
-                            <td className="sticky left-0 z-10 p-2 text-[10px] font-bold text-gray-400 text-center border-r border-b border-gray-200 bg-slate-50">
-                                {rIdx + 1}
-                                <button onClick={() => deleteTableRow(rIdx)} className="absolute inset-0 flex items-center justify-center bg-red-50 opacity-0 group-hover/row:opacity-100 text-red-500">
-                                    <X size={14} />
-                                </button>
-                            </td>
-                            {row.map((cell: any) => {
-                                const isCellSelected = selectedElement?.id === cell.id;
-                                return (
-                                    <td key={cell.id} className="p-1 border-r border-b border-gray-100 min-w-[200px]">
-                                        <textarea
-                                            rows={1}
-                                            value={cell.Value?.Text || ""}
-                                            className={`w-full p-2 text-xs bg-transparent outline-none resize-none border rounded transition-all ${
-                                                isCellSelected ? 'border-red-500 ring-2 ring-red-50' : 'border-transparent hover:border-blue-200'
-                                            }`}
-                                            onClick={() => setSelectedElement({ 
-                                                section: activeSection, 
-                                                id: cell.id, 
-                                                target: "Value", 
-                                                text: cell.Value?.Text, 
-                                                boxLocation: { BBox: cell.Value.BoundingBox, Page: cell.Value.Page } 
                                             })}
-                                            onChange={(e) => {
-                                                // 1. Trigger Parent BBox Logic
-                                                if(isCellSelected) handleFieldChange({ ...selectedElement!, text: e.target.value });
-                                                // 2. Immediate Local State Update
-                                                const newData = { ...jsonData };
-                                                const currentRow = [...newData[activeSection].rows[rIdx]];
-                                                const cellIdx = currentRow.findIndex(c => c.id === cell.id);
-                                                currentRow[cellIdx] = { ...cell, Value: { ...cell.Value, Text: e.target.value }};
-                                                newData[activeSection].rows[rIdx] = currentRow;
-                                                setJsonData(newData);
-                                            }}
-                                        />
-                                    </td>
-                                );
-                            })}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-        <button onClick={addTableRow} className="w-full p-3 text-[11px] font-black text-blue-600 hover:bg-blue-50 border-t bg-white sticky bottom-0">
-            + Add New Row
-        </button>
-    </div>
-)}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <button onClick={addTableRow} className="w-full p-3 text-[11px] font-black text-blue-600 hover:bg-blue-50 border-t bg-white sticky bottom-0">
+                            + Add New Row
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

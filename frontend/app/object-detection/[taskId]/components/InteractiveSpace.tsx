@@ -5,6 +5,7 @@ import { addIdsToJsonData, saveJsonData } from "@/app/hooks/utils";
 import FieldsDisplay from "./FieldsDisplay";
 import axiosInstance from "@/app/hooks/axiosInstance";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface InteractiveSpaceProps {
     taskDetails: any;
@@ -138,6 +139,9 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
     // Transform jsonData into overlays for the PdfViewer
     const overlays = jsonData?.map((item: any) => ({
         id: item.id,
+        section: item.label,
+        target: 'Box',
+        text: item.text || '',
         BBox: item.boxLocation.BBox,
         Page: item.boxLocation.Page,
         label: item.label,
@@ -167,6 +171,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                     taskDetails={taskDetails}
                     isEditor={isEditor}
                     selectedElement={selectedElement}
+                    setSelectedElement={setSelectedElement}
                     leftWidth={leftWidth}
                     handleFieldChange={handleFieldChange}
                     overlays={overlays}
@@ -179,13 +184,20 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
             {/* Right Panel */}
             <div className="flex-1 flex flex-col h-full bg-white overflow-hidden">
                 {jsonNotFound && !jsonData ? (
-                    <div className="flex flex-col items-center justify-center h-full p-8">
-                        <button 
-                            onClick={() => { setJsonData([]); setJsonNotFound(false); }}
-                            className="px-6 py-2 bg-teal-600 text-white rounded-lg font-bold"
-                        >
-                            Start New Annotation
-                        </button>
+                    <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-gray-50">
+                        <h2 className="text-xl font-bold mb-4 text-slate-700">No annotation found</h2>
+                        {schemaDefined ? (
+                            <button 
+                                onClick={() => { setJsonData([]); setJsonNotFound(false); }}
+                                className="px-6 py-2 bg-teal-600 text-white rounded-lg font-bold shadow-md hover:bg-teal-700 transition-all"
+                            >
+                                Start New Annotation
+                            </button>
+                        ) : (
+                            <Link href={`/object-detection/schema/${taskDetails?.project_id}`} className="text-teal-600 font-bold hover:underline">
+                                Define Project Schema First
+                            </Link>
+                        )}
                     </div>
                 ) : (
                     <>
@@ -201,6 +213,12 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                         </div>
 
                         <div className="p-4 border-t flex gap-2 bg-white">
+                            <button
+                                onClick={fetchJsonData}
+                                className="flex-1 py-2 bg-gray-600 text-white rounded font-bold uppercase text-xs"
+                            >
+                                Reset
+                            </button>
                             <button 
                                 onClick={() => saveJsonData(jsonData, taskDetails)}
                                 className="flex-1 py-2 bg-teal-600 text-white rounded font-bold uppercase text-xs"

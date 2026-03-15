@@ -43,7 +43,7 @@ export default function CreateSuperuser() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
       <div className="max-w-4xl w-full grid lg:grid-cols-2 shadow-2xl rounded-3xl overflow-hidden">
         {/* Left Section: Visual Branding & Inspiration */}
-        <div className="hidden lg:flex flex-col items-center justify-center bg-white dark:bg-slate-800/50 p-12">
+        <div className="hidden lg:flex flex-col items-center justify-center bg-slate-300 dark:bg-slate-800/50 p-12">
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-teal-600 to-cyan-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
             <img
