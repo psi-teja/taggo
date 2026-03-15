@@ -163,8 +163,8 @@ const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
             <thead className="sticky top-0 bg-white z-10">
               <tr className="bg-slate-50/50 border-b border-slate-100">
                 <th className="px-8 py-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Identification</th>
-                <th className="px-8 py-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Assignment</th>
-                <th className="px-8 py-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Current Status</th>
+                {/* <th className="px-8 py-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Assignment</th> */}
+                <th className="px-8 py-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
                 <th className="px-8 py-5"></th>
               </tr>
             </thead>
@@ -190,7 +190,7 @@ const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
                         </button>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
+                    {/* <td className="px-8 py-6">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center text-teal-600 border border-teal-100">
                           <UserIcon size={14} />
@@ -199,7 +199,7 @@ const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
                           {task.assigned_to_user?.username || "Pending Assignment"}
                         </span>
                       </div>
-                    </td>
+                    </td> */}
                     <td className="px-8 py-6">
                       <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${getStatusStyle(task.status)}`}>
                         {task.status.replace('-', ' ')}
