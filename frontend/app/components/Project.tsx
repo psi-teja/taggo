@@ -41,7 +41,7 @@ export const TOOL_ICON_CONFIG = {
     bg: 'bg-emerald-50',
     border: 'border-emerald-100',
     activeRing: 'ring-emerald-600/10',
-    available: false
+    available: true
   },
   'image-segmentation': {
     icon: Pentagon,
