@@ -240,18 +240,20 @@ def ProjectDetailsView(request, project_id: str):
         return JsonResponse({"error": "Project not found"}, status=404)
 
     if request.method == "PATCH":
-        # partial=True allows us to update only the 'schema' without needing 'name'
         serializer = ProjectSerializer(project, data=request.data, partial=True)
-        
         if serializer.is_valid():
             serializer.save()
-            # Return the updated data
+            # Save schema to file if 'schema' is updated
+            schema = serializer.validated_data.get("schema")
+            if schema is not None:
+                folder_path = os.path.join(settings.MEDIA_ROOT, f"{project_id}")
+                os.makedirs(folder_path, exist_ok=True)
+                schema_path = os.path.join(folder_path, "schema.json")
+                with open(schema_path, "w") as f:
+                    json.dump(schema, f, indent=2)
             return JsonResponse(serializer.data, status=200)
-        
-        # If the JSON structure is malformed, DRF returns clear error messages
         return JsonResponse(serializer.errors, status=400)
 
-    # Standard GET logic
     serializer = ProjectSerializer(project)
     return JsonResponse(serializer.data, status=200)
 

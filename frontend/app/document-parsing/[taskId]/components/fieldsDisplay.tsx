@@ -317,45 +317,47 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
                                                             </button>
                                                         </div>
                                                     </div>
-                                                    <input
-                                                        type="text"
-                                                        value={col.Label || ""}
-                                                        className={`text-xs p-1.5 border rounded-md bg-white w-full ${selectedElement && selectedElement.id === col.id && selectedElement.target === 'Label' ? 'border-red-500 ring-2 ring-red-50' : 'border-gray-200'}`}
-                                                        placeholder="Header Text"
-                                                        onClick={() => setSelectedElement({
-                                                            section: activeSection!,
-                                                            id: col.id,
-                                                            target: 'Label',
-                                                            text: col.Label,
-                                                            boxLocation: { BBox: col.LabelBoundingBox, Page: col.Page }
-                                                        })}
-                                                        onChange={(e) => {
-                                                            const newText = e.target.value;
-                                                            // Update local state immediately for responsiveness
-                                                            const newData = { ...jsonData };
-                                                            newData[activeSection!].columns = newData[activeSection!].columns.map((c: any) =>
-                                                                c.id === col.id ? { ...c, Label: newText } : c
-                                                            );
-                                                            setJsonData(newData);
-                                                            // Propagate change up for bounding box logic
-                                                            if (selectedElement?.id === col.id && selectedElement) {
-                                                                handleFieldChange({ ...selectedElement, text: newText });
-                                                            }
-                                                        }}
-                                                    />
-                                                    {col.LabelBoundingBox && (
-                                                        <button
-                                                            className="absolute top-2 right-2"
-                                                            onClick={(e) => {
+                                                    <div className="flex items-center gap-2">
+                                                        <input
+                                                            type="text"
+                                                            value={col.Label || ""}
+                                                            className={`text-xs p-1.5 border rounded-md bg-white w-full ${selectedElement && selectedElement.id === col.id && selectedElement.target === 'Label' ? 'border-red-500 ring-2 ring-red-50' : 'border-gray-200'}`}
+                                                            placeholder="Header Text"
+                                                            onClick={() => setSelectedElement({
+                                                                section: activeSection!,
+                                                                id: col.id,
+                                                                target: 'Label',
+                                                                text: col.Label,
+                                                                boxLocation: { BBox: col.LabelBoundingBox, Page: col.Page }
+                                                            })}
+                                                            onChange={(e) => {
+                                                                const newText = e.target.value;
+                                                                // Update local state immediately for responsiveness
+                                                                const newData = { ...jsonData };
+                                                                newData[activeSection!].columns = newData[activeSection!].columns.map((c: any) =>
+                                                                    c.id === col.id ? { ...c, Label: newText } : c
+                                                                );
+                                                                setJsonData(newData);
+                                                                // Propagate change up for bounding box logic
                                                                 if (selectedElement?.id === col.id && selectedElement) {
-                                                                    removeBoundingBox(e, selectedElement);
+                                                                    handleFieldChange({ ...selectedElement, text: newText });
                                                                 }
                                                             }}
-                                                        >
-                                                            <img src="/rect.png" alt="Box" className="h-3 w-3" />
-                                                            {selectedElement?.id === col.id && <XIcon />}
-                                                        </button>
-                                                    )}
+                                                        />
+                                                        {col.LabelBoundingBox && (
+                                                            <button
+                                                                className="relative"
+                                                                onClick={(e) => {
+                                                                    if (selectedElement?.id === col.id && selectedElement) {
+                                                                        removeBoundingBox(e, selectedElement);
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <img src="/rect.png" alt="Box" className="h-4 w-4" />
+                                                                {selectedElement?.id === col.id && <XIcon />}
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </th>
                                         ))}

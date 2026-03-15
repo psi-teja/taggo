@@ -70,6 +70,18 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   const [resizing, setResizing] = useState<boolean>(false);
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
 
+  useEffect(() => {
+    const body = document.body;
+    if (drawingBox || resizing) {
+      body.style.userSelect = 'none';
+    } else {
+      body.style.userSelect = 'auto';
+    }
+    return () => {
+      body.style.userSelect = 'auto';
+    };
+  }, [drawingBox, resizing]);
+
   const scrollSpeed = 10;
   const scrollMargin = 50;
 
