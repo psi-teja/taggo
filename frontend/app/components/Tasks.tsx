@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { FaHistory, FaSearch, FaChevronRight } from "react-icons/fa";
-import { Loader2, Inbox, User as UserIcon, Clock } from "lucide-react";
+import { Loader2, Inbox, User as UserIcon, Clock, Download } from "lucide-react";
 import axiosInstance from "../hooks/axiosInstance";
 import { Project } from "./Project";
 import { User } from "./User";
@@ -35,6 +35,42 @@ const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
 
   const observer = useRef<IntersectionObserver | null>(null);
   const perPage = 10;
+
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const response = await axiosInstance.get(`/projects/${project.id}/export/`, {
+        params: { status: selectedStatus },
+        responseType: "blob",
+      });
+
+      // Extract filename from Content-Disposition header, fallback to default
+      const contentDisposition = response.headers["content-disposition"];
+      let filename = `${project.name || project.id}_export.zip`;
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?(.+?)"?$/);
+        if (match) filename = match[1];
+      }
+
+      // Create a blob URL and trigger a download via an <a> click
+      const blob = new Blob([response.data], { type: "application/zip" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      console.error("Export failed:", err);
+      alert(`Export failed: ${err.message || "Unknown error. Check console for details."}`);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // Modified fetch: takes isFirstLoad to decide whether to append or replace
   const fetchTasks = async (assignee: string, status: string, page: number, query: string, isFirstLoad: boolean) => {
@@ -153,6 +189,19 @@ const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
               ))}
             </select>
           </div>
+
+          <button
+            onClick={handleExport}
+            disabled={isExporting}
+            className="flex items-center gap-2 px-5 py-2.5 bg-teal-600 text-white rounded-2xl text-sm font-bold hover:bg-teal-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-teal-200"
+          >
+            {isExporting ? (
+              <Loader2 className="animate-spin" size={16} />
+            ) : (
+              <Download size={16} />
+            )}
+            {isExporting ? "Exporting..." : "Export"}
+          </button>
         </div>
       </div>
 

@@ -1,7 +1,9 @@
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.models import User
 from django.conf import settings
 import logging
+import zipfile
+import io
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -286,3 +288,207 @@ def get_next_task(request, project_id: str):
     except Exception as e:
         logger.error(f"Error fetching next task: {e}")
         return JsonResponse({"error": str(e)}, status=500)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def ExportProjectView(request, project_id: str):
+    """
+    Export documents and annotations for a project as a ZIP file.
+    Optionally filter by status using ?status=labelled (default exports all).
+    Annotations are transformed so that field/column UUIDs are replaced with
+    human-readable names from the project schema.
+    """
+    try:
+        project = Project.objects.get(id=project_id)
+    except Project.DoesNotExist:
+        return JsonResponse({"error": "Project not found"}, status=404)
+
+    status_filter = request.GET.get("status", "all")
+    project_dir = os.path.join(settings.MEDIA_ROOT, str(project_id))
+    documents_dir = os.path.join(project_dir, "documents")
+    annotations_dir = os.path.join(project_dir, "annotations")
+
+    # Get tasks for the project, optionally filtered by status
+    tasks = Task.objects.filter(project_id=project_id)
+    if status_filter != "all":
+        tasks = tasks.filter(status=status_filter)
+
+    task_ids = set(str(t.id) for t in tasks)
+
+    # Build a UUID → human-readable-name lookup from the schema
+    schema = project.schema or {}
+    id_to_name = _build_id_to_name_map(schema)
+
+    # Build a table-id → tableName lookup for renaming table keys
+    table_id_to_name = {}
+    for table in schema.get("tables", []):
+        if table.get("id") and table.get("tableName"):
+            table_id_to_name[table["id"]] = table["tableName"]
+
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        # Add schema.json if it exists on disk
+        schema_path = os.path.join(project_dir, "schema.json")
+        if os.path.exists(schema_path):
+            zf.write(schema_path, "schema.json")
+
+        # Add matching documents
+        if os.path.isdir(documents_dir):
+            for fname in os.listdir(documents_dir):
+                file_stem = os.path.splitext(fname)[0]
+                if file_stem in task_ids:
+                    zf.write(os.path.join(documents_dir, fname), f"documents/{fname}")
+
+        # Add matching annotations (with IDs replaced by names)
+        if os.path.isdir(annotations_dir):
+            for fname in os.listdir(annotations_dir):
+                file_stem = os.path.splitext(fname)[0]
+                if file_stem in task_ids:
+                    file_path = os.path.join(annotations_dir, fname)
+                    try:
+                        with open(file_path, "r") as f:
+                            annotation = json.load(f)
+                        transformed = _transform_annotation(
+                            annotation, project.task_type, id_to_name
+                        )
+                        zf.writestr(
+                            f"annotations/{fname}",
+                            json.dumps(transformed, indent=2, ensure_ascii=False),
+                        )
+                    except (json.JSONDecodeError, Exception):
+                        # If transformation fails, include the original file as-is
+                        zf.write(file_path, f"annotations/{fname}")
+
+    buffer.seek(0)
+
+    response = HttpResponse(buffer.read(), content_type="application/zip")
+    response["Content-Disposition"] = f'attachment; filename="{project.name}_export.zip"'
+    return response
+
+
+def _build_id_to_name_map(schema: dict) -> dict:
+    """
+    Walk through any schema shape and build a flat {uuid: name} mapping.
+    Handles:
+      - document-parsing:      schema.fields[].{id,name}  +  schema.tables[].columns[].{id,name}
+      - object-detection:      schema.labels[].{id,name}
+      - document-classification: schema.classes[].{id,name}
+    """
+    id_map = {}
+
+    # fields (document-parsing)
+    for field in schema.get("fields", []):
+        if field.get("id") and field.get("name"):
+            id_map[field["id"]] = field["name"]
+
+    # tables → columns (document-parsing)
+    for table in schema.get("tables", []):
+        if table.get("id") and table.get("tableName"):
+            id_map[table["id"]] = table["tableName"]
+        for col in table.get("columns", []):
+            if col.get("id") and col.get("name"):
+                id_map[col["id"]] = col["name"]
+
+    # labels (object-detection / image-segmentation)
+    for label in schema.get("labels", []):
+        if label.get("id") and label.get("name"):
+            id_map[label["id"]] = label["name"]
+
+    # classes (document-classification)
+    for cls in schema.get("classes", []):
+        if cls.get("id") and cls.get("name"):
+            id_map[cls["id"]] = cls["name"]
+
+    return id_map
+
+
+def _transform_annotation(annotation, task_type: str, id_to_name: dict):
+    """
+    Replace field/column UUIDs with human-readable names in the annotation.
+    Each task_type has a different annotation structure.
+    """
+
+    if task_type == "document-parsing":
+        return _transform_document_parsing(annotation, id_to_name)
+    elif task_type == "object-detection" or task_type == "image-segmentation":
+        return _transform_object_detection(annotation, id_to_name)
+    elif task_type == "document-classification":
+        return _transform_document_classification(annotation, id_to_name)
+    else:
+        return annotation
+
+
+def _transform_document_parsing(annotation: dict, id_to_name: dict) -> dict:
+    """
+    document-parsing annotations have:
+      - "Singular": list of fields with "Name" = UUID
+      - "<tableName>": { "columns": [...], "rows": [...] }
+    Replace the "Name" UUID with the human-readable name.
+    """
+    if not isinstance(annotation, dict):
+        return annotation
+
+    result = {}
+
+    for key, value in annotation.items():
+        if key == "Singular":
+            # Replace Name UUIDs in singular fields
+            transformed_fields = []
+            for field in value:
+                field_copy = dict(field)
+                field_uuid = field_copy.get("Name", "")
+                field_copy["Name"] = id_to_name.get(field_uuid, field_uuid)
+                transformed_fields.append(field_copy)
+            result["Singular"] = transformed_fields
+
+        elif key == "Meta":
+            # Pass through metadata as-is
+            result["Meta"] = value
+
+        elif isinstance(value, dict) and "columns" in value:
+            # This is a table section — replace Name UUIDs in columns
+            table_data = dict(value)
+            transformed_cols = []
+            for col in table_data.get("columns", []):
+                col_copy = dict(col)
+                col_uuid = col_copy.get("Name", "")
+                col_copy["Name"] = id_to_name.get(col_uuid, col_uuid)
+                transformed_cols.append(col_copy)
+            table_data["columns"] = transformed_cols
+            result[key] = table_data
+
+        else:
+            result[key] = value
+
+    return result
+
+
+def _transform_object_detection(annotation, id_to_name: dict):
+    """
+    object-detection annotations are a list of objects with "label" as a string.
+    Labels are already human-readable, but if they happen to be UUIDs, replace them.
+    """
+    if not isinstance(annotation, list):
+        return annotation
+
+    result = []
+    for obj in annotation:
+        obj_copy = dict(obj)
+        label = obj_copy.get("label", "")
+        obj_copy["label"] = id_to_name.get(label, label)
+        result.append(obj_copy)
+    return result
+
+
+def _transform_document_classification(annotation: dict, id_to_name: dict) -> dict:
+    """
+    document-classification annotations have { "classification": "<class_name_or_id>" }.
+    Replace the value if it's a UUID.
+    """
+    if not isinstance(annotation, dict):
+        return annotation
+
+    result = dict(annotation)
+    cls_value = result.get("classification", "")
+    result["classification"] = id_to_name.get(cls_value, cls_value)
+    return result
