@@ -92,14 +92,6 @@ The application can be configured using environment variables. For Docker, these
 
 You can export these in your shell or create env files (e.g., backend/.env and frontend/.env.local). The app works with the defaults above for local development.
 
-## Sample Data
-
-Sample documents and completed annotations are included in the `taggo_files` directory.
-- `taggo_files/documents`: Contains sample PDF documents.
-- `taggo_files/annotations`: Contains the corresponding annotation JSON files.
-
-The application is pre-configured to use these files, providing a ready-to-use environment for testing and demonstration.
-
 ## Components
 
 ### 1) backend
@@ -128,7 +120,7 @@ Local setup (manual)
 - **Port already in use**: Stop the process using the port or change the port in `docker-compose.yaml` or your manual run command.
 - **Frontend cannot reach backend**:
     - **Docker**: Ensure the `HOST_IP` is correctly set and that `NEXT_PUBLIC_API_BASE_URL` in `docker-compose.yaml` points to the correct backend address.
-    - **Manual**: Ensure `NEXT_PUBLIC_API_URL` in `frontend/.env.local` is correct and the Django server is running.
+    - **Manual**: Ensure `NEXT_PUBLIC_API_BASE_URL` in `frontend/.env.local` is correct and the Django server is running.
 - **CORS errors**: Ensure the frontend's origin (e.g., `http://localhost:3000`) is included in the `CORS_ALLOWED_ORIGINS` in the backend's environment settings.
 - **Database connection issues (manual setup)**: Make sure your `DATABASE_URL` is correctly formatted and the PostgreSQL server is running and accessible.
 
@@ -136,10 +128,6 @@ Local setup (manual)
 - Fork → branch → PR
 - Example
   - git checkout -b feature-name
-  - git commit -m "Add feature"
-  - git push origin feature-name
-
-## License
   - git commit -m "Add feature"
   - git push origin feature-name
 

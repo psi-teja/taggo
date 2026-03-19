@@ -1,4 +1,4 @@
-import React, { use } from 'react';
+import React, from 'react';
 import Select from "react-select";
 import { useState, useEffect } from 'react';
 import axiosInstance from '../hooks/axiosInstance';

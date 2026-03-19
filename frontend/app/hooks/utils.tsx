@@ -1,7 +1,7 @@
 import axiosInstance from "./axiosInstance";
 import { Task } from "@/app/components/Tasks";
 
-function genId(prefix: string) {
+export function genId(prefix: string) {
     try {
         // Try native crypto.randomUUID when available
         const uuid = (crypto as any)?.randomUUID?.();

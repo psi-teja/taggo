@@ -167,7 +167,7 @@ CORS_ALLOW_METHODS = [
 
 FRONTEND_URL = f"http://{HOST_IP}:3000"
 
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
 DATABASES = {
     'default': dj_database_url.config(
@@ -180,5 +180,5 @@ DATABASES = {
 ALLOWED_HOSTS = [HOST_IP, 'localhost']
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = '/code/media'
+MEDIA_ROOT = os.environ.get('MEDIA_ROOT', os.path.join(BASE_DIR, 'media'))
 

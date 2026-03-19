@@ -6,6 +6,7 @@ import {
   ChevronLeft, Loader2, CheckCircle2, AlertCircle, Tag
 } from "lucide-react";
 import Link from "next/link";
+import { genId } from "@/app/hooks/utils";
 
 interface ClassificationClass {
   id: string;
@@ -39,7 +40,7 @@ export default function ClassificationSchemaPage({ params }: { params: { project
     };
 
     // --- Actions ---
-    const addClass = () => setClasses([...classes, { id: crypto.randomUUID(), name: "" }]);
+    const addClass = () => setClasses([...classes, { id: genId('cls'), name: "" }]);
 
     const saveSchema = async () => {
         setValidationErrors([]);
