@@ -67,22 +67,17 @@ export function addIdsToJsonData(jsonData: any) {
 }
 
 export async function saveJsonData (jsonData: any, taskDetails: Task) {
-    console.log("Saving JSON data:", jsonData);
-    try {
-        await axiosInstance.post(
-            `/save_json_data/`,
-            {
-                taskId: taskDetails.id,
-                projectId: taskDetails.project_id,
-                jsonData: jsonData,
+    await axiosInstance.post(
+        `/save_json_data/`,
+        {
+            taskId: taskDetails.id,
+            projectId: taskDetails.project_id,
+            jsonData: jsonData,
+        },
+        {
+            headers: {
+                "Content-Type": "application/json",
             },
-            {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            }
-        );
-    } catch (error) {
-        console.error("Error saving JSON data:", error);
-    }
+        }
+    );
 };

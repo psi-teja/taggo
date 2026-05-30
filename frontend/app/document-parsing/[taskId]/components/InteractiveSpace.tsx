@@ -432,7 +432,12 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                                 </button>
                                 <button
                                     onClick={async () => {
-                                        await saveJsonData(jsonData, taskDetails);
+                                        try {
+                                            await saveJsonData(jsonData, taskDetails);
+                                        } catch {
+                                            alert("Failed to save annotation. Please try again.");
+                                            return;
+                                        }
                                         await axiosInstance.put(`/tasks/update/${taskDetails.id}/`, { status: 'labelled' });
                                         try {
                                             const response = await axiosInstance.get(`/projects/${taskDetails.project_id}/next_task/`);

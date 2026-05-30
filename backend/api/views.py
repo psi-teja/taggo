@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 def TaskListView(request):
     assignee = request.GET.get("assignee", "all")
     status = request.GET.get("status", "all")
-    per_page = int(request.GET.get("perPage", 10))
+    per_page = min(int(request.GET.get("perPage", 10)), 100)
     page = int(request.GET.get("page", 1))
     search_id = request.GET.get("searchID", "")
     project_id = request.GET.get("project_id", "")
@@ -87,7 +87,10 @@ def TaskListView(request):
 @permission_classes([IsAuthenticated])
 def TaskDetailsView(request, id: str):
     try:
-        task = Task.objects.get(id=id)
+        if request.user.is_superuser:
+            task = Task.objects.get(id=id)
+        else:
+            task = Task.objects.get(id=id, assigned_to_user=request.user)
         task_data = {
             "id": task.id,
             "project_id": task.project.id,
@@ -152,7 +155,10 @@ def TaskCreateView(request):
 @permission_classes([IsAuthenticated])
 def TaskUpdateView(request, id: str):
     try:
-        task = Task.objects.get(id=id)
+        if request.user.is_superuser:
+            task = Task.objects.get(id=id)
+        else:
+            task = Task.objects.get(id=id, assigned_to_user=request.user)
         data = json.loads(request.body)
 
         if "assigned_to_user" in data:
@@ -183,6 +189,8 @@ def TaskUpdateView(request, id: str):
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def TaskDeleteView(request, id: str):
+    if not request.user.is_superuser:
+        return JsonResponse({"error": "Forbidden"}, status=403)
     try:
         task = Task.objects.get(id=id)
         task.delete()

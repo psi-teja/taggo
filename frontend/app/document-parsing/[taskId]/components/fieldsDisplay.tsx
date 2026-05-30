@@ -291,7 +291,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
                                                         <select
                                                             value={col.Name || ""}
                                                             onChange={(e) => {
-                                                                const newData = { ...jsonData };
+                                                                const newData = { ...jsonData, [activeSection]: { ...jsonData[activeSection] } };
                                                                 newData[activeSection].columns = newData[activeSection].columns.map((c: any) =>
                                                                     c.id === col.id ? { ...c, Name: e.target.value } : c
                                                                 );
@@ -332,8 +332,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
                                                             })}
                                                             onChange={(e) => {
                                                                 const newText = e.target.value;
-                                                                // Update local state immediately for responsiveness
-                                                                const newData = { ...jsonData };
+                                                                const newData = { ...jsonData, [activeSection!]: { ...jsonData[activeSection!] } };
                                                                 newData[activeSection!].columns = newData[activeSection!].columns.map((c: any) =>
                                                                     c.id === col.id ? { ...c, Label: newText } : c
                                                                 );
@@ -391,7 +390,7 @@ const FieldsDisplay: React.FC<FieldsDisplayProps> = ({
                                                                 })}
                                                                 onChange={(e) => {
                                                                     if (isCellSelected) handleFieldChange({ ...selectedElement!, text: e.target.value });
-                                                                    const newData = { ...jsonData };
+                                                                    const newData = { ...jsonData, [activeSection!]: { ...jsonData[activeSection!], rows: [...jsonData[activeSection!].rows] } };
                                                                     const currentRow = [...newData[activeSection!].rows[rIdx]];
                                                                     const cellIdx = currentRow.findIndex(c => c.id === cell.id);
                                                                     currentRow[cellIdx] = { ...cell, Value: { ...cell.Value, Text: e.target.value } };

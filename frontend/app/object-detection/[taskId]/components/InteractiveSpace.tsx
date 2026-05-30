@@ -47,7 +47,7 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
     const minWidth = 20; 
     const maxWidth = 90;
 
-    const jsonURL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/annotations/${taskDetails?.id}.json`;
+    const jsonURL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/${taskDetails?.project_id}/annotations/${taskDetails?.id}.json`;
 
     // --- Data Fetching ---
 
@@ -227,7 +227,12 @@ const InteractiveSpace: React.FC<InteractiveSpaceProps> = ({
                             </button>
                             <button
                                 onClick={async () => {
-                                    await saveJsonData(jsonData, taskDetails);
+                                    try {
+                                        await saveJsonData(jsonData, taskDetails);
+                                    } catch {
+                                        alert("Failed to save annotation. Please try again.");
+                                        return;
+                                    }
                                     await axiosInstance.put(`/tasks/update/${taskDetails.id}/`, { status: 'labelled' });
                                     try {
                                         const response = await axiosInstance.get(`/projects/${taskDetails.project_id}/next_task/`);

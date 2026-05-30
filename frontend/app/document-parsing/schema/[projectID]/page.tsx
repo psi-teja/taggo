@@ -48,21 +48,20 @@ export default function SchemaPage({ params }: { params: { projectID: string } }
         return tables.some(t => t.tableName.toLowerCase() === name.toLowerCase() && t.id !== currentId);
     };
 
-    // Check if a field/column name is duplicated anywhere in the schema
+    // Check if a singular field name is duplicated among singular fields only
     const isFieldNameDuplicate = (name: string, currentId: string) => {
         if (!name) return false;
         const normalized = name.toLowerCase();
-        
-        // Check singular fields
-        const inFields = fields.some(f => f.name.toLowerCase() === normalized && f.id !== currentId);
-        if (inFields) return true;
+        return fields.some(f => f.name.toLowerCase() === normalized && f.id !== currentId);
+    };
 
-        // Check all columns in all tables
-        const inTables = tables.some(t => 
-            t.columns.some(col => col.name.toLowerCase() === normalized && col.id !== currentId)
-        );
-        
-        return inTables;
+    // Check if a column name is duplicated within its own table only
+    const isColumnNameDuplicate = (name: string, currentId: string, tableId: string) => {
+        if (!name) return false;
+        const normalized = name.toLowerCase();
+        const table = tables.find(t => t.id === tableId);
+        if (!table) return false;
+        return table.columns.some(col => col.name.toLowerCase() === normalized && col.id !== currentId);
     };
 
     // --- Actions ---
@@ -95,7 +94,7 @@ export default function SchemaPage({ params }: { params: { projectID: string } }
             t.columns.forEach(c => { if (!c.name) errors.push(c.id); });
         });
 
-        // Check for duplicate names
+        // Check for duplicate singular field names
         const allFieldNames = new Map<string, string[]>();
         fields.forEach(f => {
             const norm = f.name.toLowerCase();
@@ -104,18 +103,23 @@ export default function SchemaPage({ params }: { params: { projectID: string } }
                 allFieldNames.get(norm)!.push(f.id);
             }
         });
+        allFieldNames.forEach((ids) => {
+            if (ids.length > 1) errors.push(...ids);
+        });
+
+        // Check for duplicate column names within each table independently
         tables.forEach(t => {
+            const colNames = new Map<string, string[]>();
             t.columns.forEach(c => {
                 const norm = c.name.toLowerCase();
                 if (norm) {
-                    if (!allFieldNames.has(norm)) allFieldNames.set(norm, []);
-                    allFieldNames.get(norm)!.push(c.id);
+                    if (!colNames.has(norm)) colNames.set(norm, []);
+                    colNames.get(norm)!.push(c.id);
                 }
             });
-        });
-
-        allFieldNames.forEach((ids) => {
-            if (ids.length > 1) errors.push(...ids);
+            colNames.forEach((ids) => {
+                if (ids.length > 1) errors.push(...ids);
+            });
         });
 
         const allTableNames = new Map<string, string[]>();
@@ -251,7 +255,7 @@ export default function SchemaPage({ params }: { params: { projectID: string } }
                                     <div className="p-8">
                                         <div className="flex flex-wrap gap-3">
                                             {t.columns.map((col) => {
-                                                const colDup = isFieldNameDuplicate(col.name, col.id);
+                                                const colDup = isColumnNameDuplicate(col.name, col.id, t.id);
                                                 const colHasError = validationErrors.includes(col.id);
                                                 return (
                                                     <div key={col.id} className={`flex items-center gap-2 pl-4 pr-2 py-2 bg-slate-50 border rounded-xl group transition-all ${colDup || colHasError ? 'border-rose-400 bg-rose-50 ring-2 ring-rose-100' : 'border-slate-200 hover:border-teal-300'}`}>

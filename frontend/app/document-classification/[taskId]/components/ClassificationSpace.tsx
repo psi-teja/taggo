@@ -30,7 +30,7 @@ const ClassificationSpace: React.FC<ClassificationSpaceProps> = ({
     const minWidth = 20; 
     const maxWidth = 90;
 
-    const jsonURL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/annotations/${taskDetails?.id}.json`;
+    const jsonURL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/${taskDetails?.project_id}/annotations/${taskDetails?.id}.json`;
 
     const fetchAnnotationData = async () => {
         if (!taskDetails?.id) return;
@@ -64,12 +64,9 @@ const ClassificationSpace: React.FC<ClassificationSpaceProps> = ({
     };
 
     useEffect(() => {
+        if (!taskDetails || !projectDetails) return;
         setIsLoading(true);
-        if (taskDetails && projectDetails) {
-            fetchAnnotationData();
-            loadSchemaOptions();
-            setIsLoading(false);
-        }
+        Promise.all([fetchAnnotationData(), loadSchemaOptions()]).finally(() => setIsLoading(false));
     }, [taskDetails, projectDetails]);
 
     const handleSave = async () => {
@@ -78,7 +75,12 @@ const ClassificationSpace: React.FC<ClassificationSpaceProps> = ({
     };
 
     const handleSaveAndNext = async () => {
-        await handleSave();
+        try {
+            await handleSave();
+        } catch (error) {
+            alert("Failed to save annotation. Please try again.");
+            return;
+        }
         await axiosInstance.put(`/tasks/update/${taskDetails.id}/`, { status: 'labelled' });
         try {
             const response = await axiosInstance.get(`/projects/${projectDetails.id}/next_task/`);
