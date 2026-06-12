@@ -11,11 +11,12 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 import os
 import dj_database_url
 
 
-HOST_IP = os.environ.get("HOST_IP")
+HOST_IP = os.environ.get("HOST_IP", "localhost")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,10 +25,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-b9*q@7j7jdhp7%0+15=ew4-ul8tuvp6akv$@voe3_l#$u0_^qq"
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY",
+    "django-insecure-b9*q@7j7jdhp7%0+15=ew4-ul8tuvp6akv$@voe3_l#$u0_^qq"
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
 # Application definition
 
@@ -139,12 +143,6 @@ CORS_ALLOW_METHODS = [
     "PUT",
 ]
 
-
-ALLOWED_HOSTS = ["*"]
-
-from datetime import timedelta
-import socket
-
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),  # Default: 5–15 minutes
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),  # Default: 1–7 days
@@ -158,19 +156,7 @@ REST_FRAMEWORK = {
     ),
 }
 
-CORS_ALLOW_METHODS = [
-    "DELETE",
-    "GET",
-    "OPTIONS",
-    "PATCH",
-    "POST",
-    "PUT",
-]
-
-
 FRONTEND_URL = f"http://{HOST_IP}:3000"
-
-DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
 DATABASES = {
     'default': dj_database_url.config(
@@ -180,7 +166,7 @@ DATABASES = {
     )
 }
 
-ALLOWED_HOSTS = [HOST_IP, 'localhost']
+ALLOWED_HOSTS = [HOST_IP, 'localhost', '0.0.0.0']
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.environ.get('MEDIA_ROOT', os.path.join(BASE_DIR, 'media'))

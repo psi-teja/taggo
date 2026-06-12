@@ -1,8 +1,11 @@
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 from django.core import signing
+from django.views.decorators.http import require_GET
 from .models import UserProfile
 
+
+@require_GET
 def verify_email(request):
     token = request.GET.get('token')
     if not token:

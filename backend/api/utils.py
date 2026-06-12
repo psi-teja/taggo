@@ -1,4 +1,5 @@
 import os
+import logging
 from PIL import Image
 import io
 from django.http import HttpResponse, JsonResponse
@@ -8,7 +9,11 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from .models import Task
 
+logger = logging.getLogger(__name__)
 
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def ConvertToPdfView(request, project_id, filename):
     """
     Converts a file to PDF format.
@@ -32,7 +37,7 @@ def ConvertToPdfView(request, project_id, filename):
         return response
 
     except Exception as e:
-        print(f"Error converting file to PDF: {e}")
+        logger.error(f"Error converting file to PDF: {e}")
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 @api_view(["POST"])
@@ -77,6 +82,5 @@ def save_json_data(request):
         }, status=200)
 
     except Exception as e:
-        # It's good practice to log the actual error for debugging
-        print(f"Error saving JSON data: {str(e)}")
+        logger.error(f"Error saving JSON data: {str(e)}")
         return JsonResponse({"status": "error", "message": "Internal server error"}, status=500)

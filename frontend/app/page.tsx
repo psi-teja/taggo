@@ -21,7 +21,7 @@ function Home() {
     useEffect(() => {
         async function checkSuperuser() {
             try {
-                const res = await axiosInstance.get(`/check-superuser`);
+                const res = await axiosInstance.get(`/check-superuser/`);
                 setSuperuserExists(res.data && res.data.superuser_exists);
                 if (res.data && res.data.superuser_exists === false && loggedInUser) {
                     clearAuthStorage();

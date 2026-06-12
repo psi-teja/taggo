@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import Tasks from "@/app/components/Tasks";
 import AppHeader from "@/app/components/AppHeader";
 import { useAuth } from "@/app/hooks/userAuth";
 import { Project } from "@/app/components/Project";
 import withAuth, { WithAuthProps } from "@/app/hooks/withAuth";
-import { ArrowLeft, Loader2, LayoutGrid } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import axiosInstance from "@/app/hooks/axiosInstance";
 
 const ProjectDashboard = (props: WithAuthProps) => {
@@ -37,7 +36,7 @@ const ProjectDashboard = (props: WithAuthProps) => {
     };
 
     fetchProjectDetails();
-  }, [params.id]); 
+  }, [params.projectId]);
 
   // If we are loading or project is still undefined, show a loader
   // This prevents AppHeader from getting an 'undefined' task_type

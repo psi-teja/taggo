@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { FaHistory, FaSearch, FaChevronRight } from "react-icons/fa";
-import { Loader2, Inbox, User as UserIcon, Clock, Download } from "lucide-react";
+import { Loader2, Inbox, Clock, Download } from "lucide-react";
 import axiosInstance from "../hooks/axiosInstance";
 import { Project } from "./Project";
 import { User } from "./User";
@@ -21,12 +21,12 @@ interface TasksProps {
   loggedInUser: User;
 }
 
-const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
+const Tasks: React.FC<TasksProps> = ({ project }) => {
   const [data, setData] = useState<Task[]>([]);
   const [isLoading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [totalTasks, setTotalTasks] = useState<number>(0);
-  const [selectedAssignee, setSelectedAssignee] = useState<string>("all");
+  const [selectedAssignee] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [searchID, setSearchID] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -81,9 +81,13 @@ const Tasks: React.FC<TasksProps> = ({ project, loggedInUser }) => {
       });
       
       const newTasks = response.data.tasks || [];
-      setData(prev => isFirstLoad ? newTasks : [...prev, ...newTasks]);
-      setTotalTasks(response.data.total_tasks || 0);
-      setHasMore(data.length + newTasks.length < response.data.total_tasks);
+      const total = response.data.total_tasks || 0;
+      setData(prev => {
+        const updated = isFirstLoad ? newTasks : [...prev, ...newTasks];
+        setHasMore(updated.length < total);
+        return updated;
+      });
+      setTotalTasks(total);
     } catch (err: any) {
       setError(err.message);
     } finally {

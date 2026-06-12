@@ -11,11 +11,11 @@ export function useTaskAndProjectDetails(taskId: string | string[] | undefined) 
   useEffect(() => {
     const fetchDetails = async () => {
       try {
-        const taskResponse = await axiosInstance.get(`/tasks/${taskId}`);
+        const taskResponse = await axiosInstance.get(`/tasks/${taskId}/`);
         const data = taskResponse.data;
         if (!data) return;
         setTaskDetails(data);
-        const projectResponse = await axiosInstance.get(`/projects/${data.project_id}`);
+        const projectResponse = await axiosInstance.get(`/projects/${data.project_id}/`);
         setProjectDetails(projectResponse.data);
         const assigneeUsername = typeof data.assigned_to_user === 'object'
           ? data.assigned_to_user?.username

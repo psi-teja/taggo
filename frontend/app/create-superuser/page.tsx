@@ -26,7 +26,6 @@ export default function CreateSuperuser() {
     }
 
     try {
-      console.log("API_BASE_URL:", API_BASE_URL);
       await axios.post(
         `${API_BASE_URL}/create-superuser/`,
         { username, email, password },

@@ -7,8 +7,6 @@ import io
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.decorators import parser_classes
 import json
 import pytz
 import os
@@ -113,36 +111,40 @@ def TaskCreateView(request):
         project_id = request.POST.get("project_id")
         document = request.FILES.get("document")
 
+        if not project_id:
+            return JsonResponse({"error": "project_id is required"}, status=400)
         if not document:
-            return JsonResponse(
-                {"error": "Document is required field"},
-                status=400,
-            )
+            return JsonResponse({"error": "Document is required field"}, status=400)
 
-        # Define the directory path for the task type
+        if not Project.objects.filter(id=project_id).exists():
+            return JsonResponse({"error": "Project not found"}, status=404)
+
         task_directory = os.path.join(settings.MEDIA_ROOT, project_id, "documents")
         os.makedirs(task_directory, exist_ok=True)
 
         file_extension = os.path.splitext(document.name)[1]
-        
+
         task = Task.objects.create(
             project_id=project_id,
             status="uploaded",
             history=[
-            {
-                "timestamp": get_current_time_ist(),
-                "action": f"file uploaded by {request.user.username}",
-            }
+                {
+                    "timestamp": get_current_time_ist(),
+                    "action": f"file uploaded by {request.user.username}",
+                }
             ]
         )
 
         task.filename = f'{task.id}{file_extension}'
-    
-        # Save the uploaded file to the specified directory
-        file_path = os.path.join(task_directory, f'{task.filename}')
-        with open(file_path, "wb") as f:
-            for chunk in document.chunks():
-                f.write(chunk)
+        file_path = os.path.join(task_directory, task.filename)
+
+        try:
+            with open(file_path, "wb") as f:
+                for chunk in document.chunks():
+                    f.write(chunk)
+        except Exception as e:
+            task.delete()
+            raise e
 
         task.save()
 

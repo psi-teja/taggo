@@ -434,7 +434,6 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
                 Page: pageNumber
               }
             });
-            console.log(pageNumber)
           } catch (error) {
             console.error("OCR API error", error);
           }

@@ -50,9 +50,7 @@ const AppHeader = ({ loggedInUser, project, navigation }: AppHeaderProps) => {
           }
         );
 
-        if (response.status === 200) {
-          console.log("File uploaded successfully");
-        } else {
+        if (response.status !== 200) {
           console.error("Failed to upload file:", response.statusText);
           setFailedFiles((prev) => [
             ...prev,

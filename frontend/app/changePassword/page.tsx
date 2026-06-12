@@ -31,7 +31,6 @@ export default function ChangePasswordForm() {
             const response = await axiosInstance.post("/change_password/", {
               old_password: oldPassword,
               new_password: newPassword,
-              refresh_token: localStorage.getItem("refresh_token"),
             });
 
             const data: ChangePasswordResponse = response.data;
