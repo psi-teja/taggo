@@ -15,10 +15,11 @@ import { Loader2 } from "lucide-react";
 interface AppHeaderProps {
   loggedInUser: User | undefined;
   project: Project;
-  navigation: string; // You can replace 'any' with the specific type if you have it defined
+  navigation: string;
+  onUploadComplete?: () => void;
 }
 
-const AppHeader = ({ loggedInUser, project, navigation }: AppHeaderProps) => {
+const AppHeader = ({ loggedInUser, project, navigation, onUploadComplete }: AppHeaderProps) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
@@ -159,7 +160,7 @@ const AppHeader = ({ loggedInUser, project, navigation }: AppHeaderProps) => {
           handleOk={() => {
             setIsUploadModalOpen(false);
             setUploadDone(false);
-            window.location.reload();
+            onUploadComplete?.();
           }}
         />
       )}

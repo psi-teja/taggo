@@ -2,12 +2,13 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "@/app/hooks/axiosInstance";
 import { 
-  Plus, Trash2, Save, Type, Grid3X3, 
+  Plus, Trash2, Save,
   ChevronLeft, Loader2, CheckCircle2, AlertCircle, Tag
 } from "lucide-react";
 import Link from "next/link";
 import { genId } from "@/app/hooks/utils";
-import { useAuth } from "@/app/hooks/userAuth";
+import { toast } from "sonner";
+import { Project } from "@/app/components/Project";
 
 interface ClassificationClass {
   id: string;
@@ -15,9 +16,8 @@ interface ClassificationClass {
 }
 
 export default function ClassificationSchemaPage({ params }: { params: { projectID: string } }) {
-    const { loggedInUser } = useAuth();
     const projectId = params.projectID;
-    const [projectData, setProjectData] = useState<any>(null);
+    const [projectData, setProjectData] = useState<Project | null>(null);
     const [classes, setClasses] = useState<ClassificationClass[]>([]);
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
@@ -77,7 +77,7 @@ export default function ClassificationSchemaPage({ params }: { params: { project
             });
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 3000);
-        } catch (e) { alert("Save failed"); } finally { setIsSaving(false); }
+        } catch (e) { toast.error("Save failed. Please try again."); } finally { setIsSaving(false); }
     };
 
     if (!projectData) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin text-teal-500" /></div>;

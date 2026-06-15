@@ -86,28 +86,45 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
   const scrollMargin = 50;
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-  let fileUrl = `${API_BASE_URL}/media/${taskDetails?.project_id}/documents/${taskDetails?.filename}`;
-  if (taskDetails?.filename && !taskDetails.filename.toLowerCase().endsWith(".pdf")) {
-    fileUrl = `${API_BASE_URL}/convert_to_pdf/${taskDetails?.project_id}/${taskDetails.filename}/`;
-  }
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
+  // Fetch the file via axiosInstance so the Bearer token is sent,
+  // then hand a blob URL to pdfjs / react-pdf instead of the raw endpoint.
   useEffect(() => {
     if (!taskDetails?.filename) return;
-    const fetchPdfDimensions = async () => {
+
+    let objectUrl: string | null = null;
+
+    const fetchFile = async () => {
+      setLoading(true);
       try {
-        const pdfDoc = await pdfjs.getDocument(fileUrl).promise;
+        const isImage = !taskDetails.filename.toLowerCase().endsWith(".pdf");
+        const url = isImage
+          ? `/convert_to_pdf/${taskDetails.project_id}/${taskDetails.filename}/`
+          : `/media/${taskDetails.project_id}/documents/${taskDetails.filename}`;
+
+        const response = await axiosInstance.get(url, { responseType: "blob" });
+        objectUrl = URL.createObjectURL(response.data);
+        setBlobUrl(objectUrl);
+
+        const pdfDoc = await pdfjs.getDocument(objectUrl).promise;
         const firstPage = await pdfDoc.getPage(1);
         const viewport = firstPage.getViewport({ scale: 1 });
         setPdfDim({ width: viewport.width, height: viewport.height });
         setNumPages(pdfDoc.numPages);
-        setLoading(false);
       } catch (error) {
-        console.error("Error fetching PDF dimensions:", error);
+        console.error("Error fetching PDF:", error);
+      } finally {
         setLoading(false);
       }
     };
-    fetchPdfDimensions();
-  }, [fileUrl, taskDetails]);
+
+    fetchFile();
+
+    return () => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [taskDetails?.filename, taskDetails?.project_id]);
 
   const recalcScaleFromContainer = () => {
     if (pdfDim.width && viewerRef.current) {
@@ -469,8 +486,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
           }
         }}
         handleScaleChange={(e) => setScale(parseFloat(e.target.value))}
-        downloadFile={() => downloadFile(fileUrl, taskDetails.filename)}
-        fileUrl={fileUrl}
+        downloadFile={() => blobUrl && downloadFile(blobUrl, taskDetails.filename)}
+        fileUrl={blobUrl ?? ""}
       />
 
       <div
@@ -481,7 +498,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({
         onMouseLeave={handleMouseUp}
       >
         <div className="relative shadow-2xl bg-white h-fit">
-          <Document file={fileUrl} loading={<div className="p-20 animate-pulse">Loading PDF...</div>}>
+          <Document file={blobUrl ?? ""} loading={<div className="p-20 animate-pulse">Loading PDF...</div>}>
             <Page
               pageNumber={pageNumber}
               scale={scale}

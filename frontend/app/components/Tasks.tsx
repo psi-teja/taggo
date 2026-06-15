@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { toast } from "sonner";
 import Link from "next/link";
 import { FaHistory, FaSearch, FaChevronRight } from "react-icons/fa";
 import { Loader2, Inbox, Clock, Download } from "lucide-react";
@@ -19,9 +20,10 @@ export type Task = {
 interface TasksProps {
   project: Project;
   loggedInUser: User;
+  refreshKey?: number;
 }
 
-const Tasks: React.FC<TasksProps> = ({ project }) => {
+const Tasks: React.FC<TasksProps> = ({ project, refreshKey }) => {
   const [data, setData] = useState<Task[]>([]);
   const [isLoading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,7 +68,7 @@ const Tasks: React.FC<TasksProps> = ({ project }) => {
       window.URL.revokeObjectURL(url);
     } catch (err: any) {
       console.error("Export failed:", err);
-      alert(`Export failed: ${err.message || "Unknown error. Check console for details."}`);
+      toast.error(`Export failed: ${err.message || "Unknown error."}`);
     } finally {
       setIsExporting(false);
     }
@@ -95,21 +97,21 @@ const Tasks: React.FC<TasksProps> = ({ project }) => {
     }
   };
 
-  // Reset list when filters/search change
+  // Reset list when filters/search change or parent signals a refresh
   useEffect(() => {
     setCurrentPage(1);
     const delayDebounceFn = setTimeout(() => {
       fetchTasks(selectedAssignee, selectedStatus, 1, searchID, true);
     }, 300);
     return () => clearTimeout(delayDebounceFn);
-  }, [selectedAssignee, selectedStatus, searchID]);
+  }, [selectedAssignee, selectedStatus, searchID, refreshKey]);
 
   // Fetch more when page increments
   useEffect(() => {
     if (currentPage > 1) {
       fetchTasks(selectedAssignee, selectedStatus, currentPage, searchID, false);
     }
-  }, [currentPage]);
+  }, [currentPage, selectedAssignee, selectedStatus, searchID]);
 
   // Observer callback to detect end of list
   const lastTaskElementRef = useCallback((node: HTMLTableRowElement) => {

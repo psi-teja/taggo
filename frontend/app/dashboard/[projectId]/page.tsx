@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Tasks from "@/app/components/Tasks";
 import AppHeader from "@/app/components/AppHeader";
@@ -14,9 +14,10 @@ const ProjectDashboard = (props: WithAuthProps) => {
   const { loggedInUser } = useAuth();
   const params = useParams(); // Get ID from URL directly for refreshes
   
-  // Initialize state with props, but allow it to be updated by fetch
   const [project, setProject] = useState<Project | null>((props as any).project || null);
   const [isLoading, setIsLoading] = useState(!project);
+  const [tasksRefreshKey, setTasksRefreshKey] = useState(0);
+  const handleUploadComplete = useCallback(() => setTasksRefreshKey(k => k + 1), []);
 
   useEffect(() => {
     const fetchProjectDetails = async () => {
@@ -52,17 +53,18 @@ const ProjectDashboard = (props: WithAuthProps) => {
   return (
     <div className="flex flex-col h-screen bg-white">
       {/* Now guaranteed to have a project object here */}
-      <AppHeader 
-        loggedInUser={loggedInUser} 
-        project={project} 
+      <AppHeader
+        loggedInUser={loggedInUser}
+        project={project}
         navigation="dashboard"
+        onUploadComplete={handleUploadComplete}
       />
 
       <main className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto">
           {loggedInUser && (
             <div className="p-8">
-              <Tasks project={project} loggedInUser={loggedInUser} />
+              <Tasks project={project} loggedInUser={loggedInUser} refreshKey={tasksRefreshKey} />
             </div>
           )}
         </div>

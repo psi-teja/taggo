@@ -6,7 +6,8 @@ import {
   ChevronLeft, Loader2, CheckCircle2, AlertCircle 
 } from "lucide-react";
 import Link from "next/link";
-import { useAuth } from "@/app/hooks/userAuth";
+import { toast } from "sonner";
+import { Project } from "@/app/components/Project";
 
 interface SchemaField {
   id: string;
@@ -20,9 +21,8 @@ interface SchemaTable {
 }
 
 export default function SchemaPage({ params }: { params: { projectID: string } }) {
-    const { loggedInUser } = useAuth();
     const projectId = params.projectID;
-    const [projectData, setProjectData] = useState<any>(null);
+    const [projectData, setProjectData] = useState<Project | null>(null);
     const [fields, setFields] = useState<SchemaField[]>([]);
     const [tables, setTables] = useState<SchemaTable[]>([]);
     const [isSaving, setIsSaving] = useState(false);
@@ -149,7 +149,7 @@ export default function SchemaPage({ params }: { params: { projectID: string } }
             });
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 3000);
-        } catch (e) { alert("Save failed"); } finally { setIsSaving(false); }
+        } catch (e) { toast.error("Save failed. Please try again."); } finally { setIsSaving(false); }
     };
 
     if (!projectData) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin text-teal-500" /></div>;

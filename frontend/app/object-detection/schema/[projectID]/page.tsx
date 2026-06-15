@@ -6,7 +6,8 @@ import {
   ChevronLeft, Loader2, CheckCircle2, AlertCircle, Palette
 } from "lucide-react";
 import Link from "next/link";
-import { useAuth } from "@/app/hooks/userAuth";
+import { toast } from "sonner";
+import { Project } from "@/app/components/Project";
 
 interface LabelClass {
   id: string;
@@ -15,9 +16,8 @@ interface LabelClass {
 }
 
 export default function ObjectDetectionSchema({ params }: { params: { projectID: string } }) {
-    const { loggedInUser } = useAuth();
     const projectId = params.projectID;
-    const [projectData, setProjectData] = useState<any>(null);
+    const [projectData, setProjectData] = useState<Project | null>(null);
     const [labels, setLabels] = useState<LabelClass[]>([]);
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
@@ -40,7 +40,7 @@ export default function ObjectDetectionSchema({ params }: { params: { projectID:
     };
 
     const addLabel = () => {
-        const randomColor = `#${Math.floor(Math.random()*16777215).toString(16)}`;
+        const randomColor = `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
         setLabels([...labels, { id: crypto.randomUUID(), name: "", color: randomColor }]);
     };
 
@@ -49,7 +49,7 @@ export default function ObjectDetectionSchema({ params }: { params: { projectID:
         const hasDuplicates = new Set(labels.map(l => l.name.toLowerCase())).size !== labels.length;
 
         if (hasEmptyNames || hasDuplicates) {
-            alert("Please ensure all label names are unique and non-empty.");
+            toast.error("Please ensure all label names are unique and non-empty.");
             return;
         }
 
@@ -60,7 +60,7 @@ export default function ObjectDetectionSchema({ params }: { params: { projectID:
             });
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 3000);
-        } catch (e) { alert("Save failed"); } finally { setIsSaving(false); }
+        } catch (e) { toast.error("Save failed. Please try again."); } finally { setIsSaving(false); }
     };
 
     if (!projectData) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin text-indigo-500" /></div>;

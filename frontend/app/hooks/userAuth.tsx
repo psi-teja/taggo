@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { User } from "@/app/components/User";
 import { getLoggedInUser } from "./authStorage";
 
 export const useAuth = () => {
   const [loggedInUser, setLoggedInUser] = useState<User | undefined>();
+  const router = useRouter();
 
   useEffect(() => {
     const storedUser = getLoggedInUser();
@@ -11,7 +13,7 @@ export const useAuth = () => {
       setLoggedInUser(storedUser);
     } else {
       const next = encodeURIComponent(window.location.pathname + window.location.search);
-      window.location.href = `/login?next=${next}`;
+      router.push(`/login?next=${next}`);
     }
   }, []);
 
