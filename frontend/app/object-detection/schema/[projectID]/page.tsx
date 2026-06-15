@@ -6,6 +6,7 @@ import {
   ChevronLeft, Loader2, CheckCircle2, AlertCircle, Palette
 } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/app/hooks/userAuth";
 
 interface LabelClass {
   id: string;
@@ -14,6 +15,7 @@ interface LabelClass {
 }
 
 export default function ObjectDetectionSchema({ params }: { params: { projectID: string } }) {
+    const { loggedInUser } = useAuth();
     const projectId = params.projectID;
     const [projectData, setProjectData] = useState<any>(null);
     const [labels, setLabels] = useState<LabelClass[]>([]);

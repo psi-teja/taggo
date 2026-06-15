@@ -6,6 +6,7 @@ import {
   ChevronLeft, Loader2, CheckCircle2, AlertCircle 
 } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/app/hooks/userAuth";
 
 interface SchemaField {
   id: string;
@@ -19,6 +20,7 @@ interface SchemaTable {
 }
 
 export default function SchemaPage({ params }: { params: { projectID: string } }) {
+    const { loggedInUser } = useAuth();
     const projectId = params.projectID;
     const [projectData, setProjectData] = useState<any>(null);
     const [fields, setFields] = useState<SchemaField[]>([]);

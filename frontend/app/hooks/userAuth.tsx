@@ -10,7 +10,8 @@ export const useAuth = () => {
     if (storedUser) {
       setLoggedInUser(storedUser);
     } else {
-      window.location.href = "/login";
+      const next = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = `/login?next=${next}`;
     }
   }, []);
 

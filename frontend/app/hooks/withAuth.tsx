@@ -2,6 +2,7 @@
 
 import { useAuth } from "./userAuth";
 import { FC } from "react";
+import { Loader2 } from "lucide-react";
 
 export type WithAuthProps = {
   [key: string]: any;
@@ -12,10 +13,10 @@ const withAuth = (WrappedComponent: FC<WithAuthProps>): FC<WithAuthProps> => {
     const { loggedInUser } = useAuth();
 
     if (!loggedInUser) {
-      // Still checking auth or not authenticated
       return (
-        <div className="flex justify-center items-center h-screen">
-          <div className="text-gray-600 text-xl animate-pulse">Checking authentication...</div>
+        <div className="h-screen w-full flex flex-col items-center justify-center bg-white">
+          <Loader2 className="animate-spin text-teal-500 mb-3" size={32} />
+          <p className="text-sm font-medium text-slate-400">Loading...</p>
         </div>
       );
     }

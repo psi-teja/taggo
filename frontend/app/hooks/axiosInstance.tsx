@@ -1,6 +1,6 @@
 // utils/axiosInstance.js
 import axios from 'axios';
-import { getAccessToken, setAccessToken, getRefreshToken, setRefreshToken } from "./authStorage";
+import { getAccessToken, setAccessToken, getRefreshToken, setRefreshToken, clearAuthStorage } from "./authStorage";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -62,10 +62,9 @@ axiosInstance.interceptors.response.use(
                 originalRequest.headers.Authorization = `Bearer ${response.data.access}`;
                 return axiosInstance(originalRequest);
             } catch (refreshError) {
-                // Clear tokens and redirect to login if refreshing fails
-                localStorage.removeItem('access_token');
-                localStorage.removeItem('refresh_token');
-                window.location.href = '/login';
+                clearAuthStorage();
+                const next = encodeURIComponent(window.location.pathname + window.location.search);
+                window.location.href = `/login?next=${next}`;
                 return Promise.reject(refreshError);
             }
         }

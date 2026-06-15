@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { LockKeyhole } from 'lucide-react';
+import axios from "axios";
 import axiosInstance from "../hooks/axiosInstance";
 import { setAccessToken, setRefreshToken, setLoggedInUser } from "../hooks/authStorage";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
 
 // Response from /token/
 interface LoginResponse {
@@ -33,6 +36,15 @@ const Login = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const next = searchParams.get("next") || "/dashboard";
+
+  // Guard: if no superuser exists yet, this page should not be accessible
+  useEffect(() => {
+    axios.get(`${API_BASE_URL}/check-superuser/`).then(res => {
+      if (!res.data?.superuser_exists) {
+        router.replace("/create-superuser");
+      }
+    }).catch(() => {});
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

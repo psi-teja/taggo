@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { genId } from "@/app/hooks/utils";
+import { useAuth } from "@/app/hooks/userAuth";
 
 interface ClassificationClass {
   id: string;
@@ -14,6 +15,7 @@ interface ClassificationClass {
 }
 
 export default function ClassificationSchemaPage({ params }: { params: { projectID: string } }) {
+    const { loggedInUser } = useAuth();
     const projectId = params.projectID;
     const [projectData, setProjectData] = useState<any>(null);
     const [classes, setClasses] = useState<ClassificationClass[]>([]);
